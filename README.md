@@ -9,9 +9,9 @@ Ansible Playbooks to deploy:
 
 # Usage
 Example:
-Create the RHEV VMs for OpenShift Cluster OCP2 requires three steps:
+Create OpenShift Cluster OCP2 requires three steps:
 1. Create the RHEV VMs
-1. Prepare these VMs
+1. Prepare these VMs so that OpenShift Pre-Reqs are fulfilled.
 1. Install OpenShift onto these VMs
 
 ```bash
@@ -19,6 +19,8 @@ ansible-playbook -i cfg/inventory.yml -e @cfg/ocp2.yml  300_ocp_create_nodes.yml
 ansible-playbook -i cfg/inventory.yml -e @cfg/ocp2.yml  310_ocp_prepare_nodes.yml  
 ansible-playbook -i cfg/inventory.yml -e @cfg/ocp2.yml  320_ocp_install_nodes.yml  
 ```
+This shows the structure and procedure nicely. Check the playbooks for tags, there are plenty of them to be able to easily run/skip only certain parts.
+
 
 # Big Picture
 The overall design looks like this:
