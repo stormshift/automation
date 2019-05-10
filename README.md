@@ -19,3 +19,7 @@ ansible-playbook -i cfg/inventory.yml -e @cfg/ocp2.yml  300_ocp_create_nodes.yml
 ansible-playbook -i cfg/inventory.yml -e @cfg/ocp2.yml  310_ocp_prepare_nodes.yml  
 ansible-playbook -i cfg/inventory.yml -e @cfg/ocp2.yml  320_ocp_install_nodes.yml  
 ```
+
+# Big Picture
+The overall design looks like this:
+![logo](docs/StormshiftDesign.png)
