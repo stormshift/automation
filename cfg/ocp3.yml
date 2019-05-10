@@ -1,0 +1,216 @@
+    layer3_ocp_name: "ocp3"
+    layer3_ocp_bastion_ip: "10.32.105.43"
+    layer3_ocp_network_prefix: "172.16.12"
+    layer3_ocp_master_url: "master.{{layer3_ocp_name}}.{{sysctx_dns_domain}}"
+    layer3_ocp_master_apps: "apps.{{layer3_ocp_name}}.{{sysctx_dns_domain}}"
+    layer3_ocp_disk_size_ocs: "100GiB"
+    layer3_ocp_disk_size_container: "25GiB"
+    layer3_ocp_deploy_istio: true
+    layer3_ocp_admin_users:
+      - admin
+      - dfroehliadm
+      - oschneidadm
+      - rbohneadm
+
+    master_vm_profile:
+      cluster: Default
+      template: rhel7
+      clone: yes
+      memory: 17GiB
+      memory_guaranteed: 16GiB
+      memory_max: 24GiB
+      sockets: 1
+      cores: 4
+      cpu_threads: 1
+      disks:
+        - size: 70GiB
+          name: rhel7disk
+          name_prefix: false
+          storage_domain: data
+          interface: virtio
+        - size: "{{layer3_ocp_disk_size_container}}"
+          name: containerdisk
+          name_prefix: true
+          storage_domain: data
+          interface: virtio
+        - size: "{{layer3_ocp_disk_size_ocs}}"
+          name: ocsdisk
+          name_prefix: true
+          storage_domain: data
+          interface: virtio
+      nics:
+        - name: nic1
+          network: service
+          profile: service
+      state: running
+
+    infra_vm_profile:
+      cluster: Default
+      template: rhel7
+      clone: yes
+      memory: 17GiB
+      memory_guaranteed: 16GiB
+      memory_max: 32GiB
+      sockets: 1
+      cores: 4
+      cpu_threads: 1
+      disks:
+        - size: 25GiB
+          name: rhel7disk
+          name_prefix: false
+          storage_domain: data
+          interface: virtio
+        - size: "{{layer3_ocp_disk_size_container}}"
+          name: containerdisk
+          name_prefix: true
+          storage_domain: data
+          interface: virtio
+        - size: "{{layer3_ocp_disk_size_ocs}}"
+          name: ocsdisk
+          name_prefix: true
+          storage_domain: data
+          interface: virtio
+      nics:
+        - name: nic1
+          network: service
+          profile: service
+      state: running
+
+    app_vm_profile:
+      cluster: Default
+      template: rhel7
+      clone: yes
+      memory: 32GiB
+      memory_guaranteed: 32GiB
+      memory_max: 64GiB
+      sockets: 1
+      cores: 10
+      cpu_threads: 1
+      disks:
+        - size: 25GiB
+          name: rhel7disk
+          name_prefix: false
+          storage_domain: data
+          interface: virtio
+        - size: "{{layer3_ocp_disk_size_container}}"
+          name: containerdisk
+          name_prefix: true
+          storage_domain: data
+          interface: virtio
+        - size: "{{layer3_ocp_disk_size_ocs}}"
+          name: ocsdisk
+          name_prefix: true
+          storage_domain: data
+          interface: virtio
+      nics:
+        - name: nic1
+          network: service
+          profile: service
+      state: running
+
+    vms:
+      - name: "{{layer3_ocp_name}}bastion"
+        tag: ocpbastion
+        profile:
+          state: running
+          cluster: Default
+          template: rhel7
+          clone: yes
+          memory: 2GiB
+          memory_guaranteed: 1GiB
+          memory_max: 4GiB
+          sockets: 1
+          cores: 2
+          cpu_threads: 1
+          disks:
+            - size: 10GiB
+              name: rhel7disk
+              name_prefix: false
+              storage_domain: data
+              interface: virtio
+            - size: 5GiB
+              name: containerdisk
+              name_prefix: true
+              storage_domain: data
+              interface: virtio
+          nics:
+            - name: nic1
+              network: ovirtmgmt
+              profile: ovirtmgmt
+            - name: nic2
+              network: service
+              profile: service
+          cloud_init:
+            root_password: "{{ secret_password }}"
+            host_name: "{{layer3_ocp_name}}bastion.{{sysctx_dns_domain }}"
+            dns_servers: "{{ layer1_dns }}"
+          cloud_init_nics:
+            - nic_ip_address: "{{layer3_ocp_bastion_ip}}"
+              nic_boot_protocol: "static"
+              nic_netmask: "255.255.240.0"
+              nic_gateway: "{{sysctx_gateway}}"
+              nic_on_boot: true
+              nic_name: "eth0"
+            - nic_ip_address: "{{layer3_ocp_network_prefix}}.1"
+              nic_boot_protocol: "static"
+              nic_netmask: "255.255.255.0"
+              nic_gateway: "{{layer3_ocp_network_prefix}}.1"
+              nic_on_boot: true
+              nic_name: "eth1"
+
+      - name: "{{layer3_ocp_name}}master1"
+        tag: ocpmaster
+        profile: "{{ master_vm_profile }}"
+        cloud_init:
+          root_password: "{{ secret_password }}"
+          host_name: "{{layer3_ocp_name}}master1.{{sysctx_dns_domain}}"
+          dns_servers: "{{ layer1_dns }}"
+          nic_ip_address: "{{layer3_ocp_network_prefix}}.11"
+          nic_boot_protocol: "static"
+          nic_netmask: "255.255.255.0"
+          nic_gateway: "{{layer3_ocp_network_prefix}}.1"
+          nic_on_boot: true
+          nic_name: "eth0"
+          custom_script: |
+            growpart:
+              mode: auto
+            resizefs:
+                resize_rootfs: true
+
+      - name: "{{layer3_ocp_name}}inf1"
+        tag: ocpinf
+        profile: "{{ infra_vm_profile }}"
+        cloud_init:
+          root_password: "{{ secret_password }}"
+          host_name: "{{layer3_ocp_name}}inf1.{{sysctx_dns_domain}}"
+          dns_servers: "{{ layer1_dns }}"
+          nic_ip_address: "{{layer3_ocp_network_prefix}}.21"
+          nic_boot_protocol: "static"
+          nic_netmask: "255.255.255.0"
+          nic_gateway: "{{layer3_ocp_network_prefix}}.1"
+          nic_on_boot: true
+          nic_name: "eth0"
+          custom_script: |
+            growpart:
+              mode: auto
+            resizefs:
+                resize_rootfs: true
+
+      - name: "{{layer3_ocp_name}}app1"
+        tag: ocpapp
+        profile: "{{ app_vm_profile }}"
+        cloud_init:
+          root_password: "{{ secret_password }}"
+          host_name: "{{layer3_ocp_name}}app1.{{sysctx_dns_domain}}"
+          dns_servers: "{{ layer1_dns }}"
+          nic_ip_address: "{{layer3_ocp_network_prefix}}.31"
+          nic_boot_protocol: "static"
+          nic_netmask: "255.255.255.0"
+          nic_gateway: "{{layer3_ocp_network_prefix}}.1"
+          nic_on_boot: true
+          nic_name: "eth0"
+          custom_script: |
+            growpart:
+              mode: auto
+            resizefs:
+                resize_rootfs: true

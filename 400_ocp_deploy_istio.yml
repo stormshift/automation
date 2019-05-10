@@ -1,0 +1,280 @@
+# This deployes istio operator,controlplane and demo app
+# Example:
+# ansible-playbook -i cfg/inventory.yml -e @cfg/ocp2.yml  -e delete=yes 400_ocp_deploy_istio.yml --tags demo
+#
+# To Remove/undeploy, set env variable "delete=yes" and use tag "delete":
+# ansible-playbook -i cfg/inventory.yml -e @cfg/ocp2.yml  -e delete=yes 400_ocp_deploy_istio.yml --tags delete
+#
+- name: Configure Masters for istio
+  hosts: "{{layer3_ocp_name}}masters"
+  vars_files:
+    - cfg/secrets.yml
+    - cfg/stormshift.yml
+
+  tasks:
+    - name: Add WebHooks to master admission config
+      tags: pre,master
+      blockinfile:
+        path: /etc/origin/master/master-config.yaml
+        marker: "# {mark} ANSIBLE MANAGED BLOCK {{layer3_ocp_name}}"
+        backup: yes
+        insertbefore: "openshift.io/ImagePolicy"
+        block: |
+          # Webhooks for ISTO
+              MutatingAdmissionWebhook:
+                configuration:
+                  apiVersion: apiserver.config.k8s.io/v1alpha1
+                  kubeConfigFile: /dev/null
+                  kind: WebhookAdmission
+              ValidatingAdmissionWebhook:
+                configuration:
+                  apiVersion: apiserver.config.k8s.io/v1alpha1
+                  kubeConfigFile: /dev/null
+                  kind: WebhookAdmission
+      register: mastercfg
+
+    - name: Restart Master
+      tags: pre,master
+      block:
+        - name: Restart API
+          tags: pre,master
+          command: master-restart api
+          changed_when: false
+
+        - name: Restart Controllers
+          tags: pre,master
+          command: master-restart controllers
+          changed_when: false
+
+        - name: Wait for master to be online again
+          tags: pre,master
+          wait_for:
+            host: localhost
+            port: 8443
+      when: mastercfg is changed
+
+
+- name: Deploy istio
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars_files:
+    - cfg/secrets.yml
+    - cfg/stormshift.yml
+  vars:
+    namespace_operator: "istio-operator"
+    namespace_system: "istio-system"
+    namespace_demo: "istio-demo"
+    operator_template_url: "https://raw.githubusercontent.com/Maistra/istio-operator/maistra-0.10/deploy/servicemesh-operator.yaml"
+
+  tasks:
+    - name: Login to Openshift
+      command: "oc login {{layer3_ocp_master_url}}:8443 --username=admin --password={{secret_password}}"
+      changed_when: false
+
+    - name: Create operator project
+      tags: deploy, operator
+      k8s:
+        state: present
+        definition:
+          api_version: v1
+          kind: Project
+          metadata:
+            name: "{{ namespace_operator }}"
+      register: opsproject
+
+    - name: Deploy operator
+      tags: deploy, operator
+      shell: "oc apply -n {{ namespace_operator }} -f {{operator_template_url}}"
+      when: "opsproject is changed"
+
+    - name: Create system project
+      tags: deploy,system
+      k8s:
+        state: present
+        definition:
+          api_version: v1
+          kind: Project
+          metadata:
+            name: "{{ namespace_system }}"
+
+    - name: Deploy control plane basic install
+      tags: deploy,system
+      k8s:
+        state: present
+        definition:
+          apiVersion: istio.openshift.com/v1alpha3
+          kind: ControlPlane
+          metadata:
+            name: basic-install
+            namespace: "{{ namespace_system }}"
+          spec:
+            launcher:
+              enabled: false
+              # specify the url to master, e.g. https://master.some.domain.com:443
+              LAUNCHER_MISSIONCONTROL_OPENSHIFT_CONSOLE_URL:
+              # Your GitHub username
+              LAUNCHER_MISSIONCONTROL_GITHUB_USERNAME:
+              # Your GitHub Mission Control access token
+              LAUNCHER_MISSIONCONTROL_GITHUB_TOKEN:
+            threeScale:
+              enabled: false
+            istio:
+              global:
+                proxy:
+                  resources:
+                    requests:
+                      cpu: 100m
+                      memory: 128Mi
+                    limits:
+                      cpu: 500m
+                      memory: 128Mi
+              gateways:
+                istio-egressgateway:
+                  autoscaleEnabled: false
+                istio-ingressgateway:
+                  autoscaleEnabled: false
+                  ior_enabled: false
+              mixer:
+                policy:
+                  autoscaleEnabled: false
+                telemetry:
+                  autoscaleEnabled: false
+                  resources:
+                    requests:
+                      cpu: 100m
+                      memory: 1G
+                    limits:
+                      cpu: 500m
+                      memory: 4G
+              pilot:
+                autoscaleEnabled: false
+                traceSampling: 100.0
+              kiali:
+               dashboard:
+                  user: admin
+                  passphrase: admin
+              tracing:
+                enabled: true
+                elasticsearch_memory: 1Gi
+      register: system
+
+    - name: Wait for control plane pods to start (Coffe time if first pull)
+      tags: deploy,system
+      shell: oc get pods -n "{{ namespace_system }}" | grep -E "(1/1|2/2).*Running" | wc -l
+      register: podsrunning
+      until: " '15' in podsrunning.stdout"
+      retries: 120
+      delay: 2
+      changed_when: false
+      when: system is changed
+
+    - name: Create demo project
+      tags: deploy,system
+      k8s:
+        state: present
+        definition:
+          api_version: v1
+          kind: Project
+          metadata:
+            name: "{{ namespace_demo }}"
+      register: demoproject
+
+    - block:
+      - name: "Grant anyuid policy"
+        tags: deploy,policy
+        shell: "oc adm policy add-scc-to-user anyuid -z default -n {{ namespace_demo }}"
+
+      - name: "Grant privileged policy"
+        tags: deploy,policy
+        shell: "oc adm policy add-scc-to-user privileged -z default -n {{ namespace_demo }}"
+
+      - name: "Deploy bookinfo app"
+        tags: deploy,demo
+        shell: "oc apply -n {{ namespace_demo }} -f https://raw.githubusercontent.com/Maistra/bookinfo/master/bookinfo.yaml"
+
+      - name: "Deploy bookinfo gateway "
+        tags: deploy,demo
+        shell: "oc apply -n {{ namespace_demo }} -f https://raw.githubusercontent.com/Maistra/bookinfo/master/bookinfo-gateway.yaml"
+      when: demoproject is defined and demoproject is changed
+
+    - name: Wait for demo pods to start
+      tags: deploy,demo
+      shell: oc get pods -n "{{ namespace_demo }}" | grep -E "(1/1|2/2).*Running" | wc -l
+      register: podsrunning
+      until: " '6' in podsrunning.stdout"
+      retries: 120
+      delay: 2
+      changed_when: false
+      when: demoproject is defined
+
+    - name: "Join system pod network"
+      tags: deploy,policy
+      shell: "oc adm pod-network join-projects --to=default {{ namespace_operator }} {{ namespace_system }} {{ namespace_demo }}"
+
+#oc patch StatefulSet elasticsearch -p '{"spec": {"template": {"spec": {"containers": [{"name": "elasticsearch","resources": {"limits": {"cpu": "500m","memory": "2Gi"}}}]}}}}'
+    - name: Limit elasticsearch memory
+      tags: post,fix
+      register: elastic
+      k8s:
+        state: present
+        definition:
+          api_version: v1
+          kind: StatefulSet
+          metadata:
+            namespace: "{{ namespace_system }}"
+            name: elasticsearch
+          spec:
+            template:
+              spec:
+                containers:
+                  - name: 'elasticsearch'
+                    resources:
+                      limits:
+                        memory: 2Gi
+    - name: Restart elasticsearch
+      tags: post,fix
+      command: "oc delete pod elasticsearch-0 -n {{ namespace_system }}"
+      when: elastic is changed
+
+
+
+    - name: Delete demo project
+      tags: delete,demo
+      k8s:
+        state: absent
+        definition:
+          api_version: v1
+          kind: Project
+          metadata:
+            name: "{{ namespace_demo }}"
+      when: delete is defined
+
+    - name: Delete control plane basic install
+      tags: delete,system
+      k8s:
+        state: absent
+        definition:
+          apiVersion: istio.openshift.com/v1alpha3
+          kind: ControlPlane
+          metadata:
+            name: basic-install
+            namespace: "{{ namespace_system }}"
+      when: delete is defined
+
+    - name: Delete system project
+      tags: delete,system
+      k8s:
+        state: absent
+        definition:
+          api_version: v1
+          kind: Project
+          metadata:
+            name: "{{ namespace_system }}"
+      when: delete is defined
+
+# Remove it:
+# oc delete project {{ namespace_demo }}
+# oc delete ControlPlane/basic-install -n {{ namespace_system }}
+# oc delete project {{ namespace_system }}

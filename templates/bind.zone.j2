@@ -1,0 +1,21 @@
+;
+; BIND data file for {{ sysctx_dns_domain }}
+;
+$ORIGIN {{ sysctx_dns_domain }}.
+$TTL    60
+@       IN      SOA       @ {{layer1_host_fqdn}}. (
+                          {{ bind_zone_serial.stdout }}        ; Serial
+                          60       ; Refresh after 3 hours
+                          60       ; Retry after 1 hour
+                          60       ; Expire after 1 week
+                          60 )     ; Negative caching TTL of 1 day
+
+        IN      NS      {{layer1_host_fqdn}}.
+        IN      MX      10 {{layer1_host_fqdn}}.
+
+; Basic DNS Rules:
+; IP-Adresses: 10.32.105.70 - 84, assigned to storm5 guests
+; IP-Adresses: 10.32.105.40 - 54, assigned to storm3 guests
+
+rhev  IN  A {{layer2_rhev_engine_ip}}
+cockpit IN A {{layer1_host_ip_adress}}

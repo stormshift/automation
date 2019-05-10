@@ -1,0 +1,73 @@
+- name: Snapshot nodes
+  hosts: localhost
+  connection: local
+
+  vars_files:
+    - cfg/secrets.yml
+    - cfg/stormshift.yml
+  vars:
+    snapshot_desc: "{{ ansible_date_time.iso8601}}"
+
+  tasks:
+    - name: Login into RHEV
+      tags: always
+      ovirt_auth:
+       url: "{{layer2_rhev_engine_url}}"
+       username: "{{layer2_rhev_engine_user}}"
+       password: "{{ layer2_rhev_engine_password }}"
+
+    - name: Initiate shutdown
+      tags: shutdown
+      ovirt_vm:
+        auth: "{{ ovirt_auth }}"
+        name: "{{ item.name }}"
+        state: stopped
+        wait: no
+      with_items: "{{ vms }}"
+      changed_when: false
+
+    - name: Wait for shutdown
+      tags: shutdown
+      ovirt_vm:
+        auth: "{{ ovirt_auth }}"
+        name: "{{ item.name }}"
+        state: stopped
+        wait: yes
+      with_items: "{{ vms }}"
+      changed_when: false
+
+    - name: Create snapshot
+      tags: snapshot,slow
+      ovirt_snapshot:
+        auth: "{{ ovirt_auth }}"
+        vm_name: "{{ item.name }}"
+        use_memory: false
+        state: present
+        description: "{{snapshot_desc}}"
+      with_items: "{{ vms }}"
+
+    - name: Initiate Start
+      tags: start
+      ovirt_vm:
+        auth: "{{ ovirt_auth }}"
+        name: "{{ item.name }}"
+        state: running
+        wait: no
+      with_items: "{{ vms }}"
+      changed_when: false
+
+    - name: Wait for start
+      tags: start
+      ovirt_vm:
+        auth: "{{ ovirt_auth }}"
+        name: "{{ item.name }}"
+        state: running
+        wait: yes
+      with_items: "{{ vms }}"
+      changed_when: false
+
+    - name: Logoff from RHEV
+      tags: always
+      ovirt_auth:
+        state: absent
+        ovirt_auth: "{{ ovirt_auth }}"

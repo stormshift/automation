@@ -1,0 +1,164 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: no
+
+  tasks:
+    - name: Enable Required Repos
+      tags: repos,slow
+      rhsm_repository:
+        name:
+          - rhel-7-server-rpms
+          - rhel-7-server-extras-rpms
+          - rhel-7-server-ansible-2-rpms
+          - rhel-7-server-rhv-4.2-manager-rpms
+          - rhel-7-server-openstack-12-tools-rpms
+          - rhel-7-server-ose-3.11-rpms
+      become: true
+
+    - name: Install required packages
+      tags: packages,slow
+      yum:
+        name:
+          - ansible
+          - git
+          - gcc
+          - genisoimage
+          - isomd5sum
+          - nmap
+          - bind-utils
+          - nfs-utils
+          - pykickstart
+          - ovirt-ansible-roles
+          - python-ovirt-engine-sdk4
+          - "/usr/bin/virt-customize"
+          - pki-tools
+          - tmux
+          - python-devel
+          - python-pip
+          - python-openstack
+          - atomic-openshift-clients
+        state: latest
+      become: true
+
+    - name: Updating all packages to latest
+      tags: repos,slow
+      yum:
+        name: '*'
+        state: latest
+      become: true
+
+    - name: Prepare for openshift ansible part1
+      tags: openshift,ansible
+      pip:
+        name: setuptools
+        extra_args: --upgrade
+
+    - name: Prepare for openshift ansible part2
+      tags: openshift,ansible
+      pip:
+        name: openshift
+        extra_args: --user
+
+    - name: Add CA Certs for openshift ansible modules
+      tags: openshift,ansible
+      lineinfile:
+          path: /home/hailstorm/.bashrc
+          line: "export K8S_AUTH_SSL_CA_CERT=/home/hailstorm/certs/redhat-pki-ca-chain.crt"
+
+    - name: prepare pki
+      tags: pki
+      lineinfile:
+        create: true
+        line: "fjfj"
+        path: "~/.pki.password"
+        mode: "600"
+
+    - name: init pki
+      tags: pki
+      command: "pki -C ~/.pki.password client-init"
+      register: pki
+      ignore_errors: true
+      failed_when: "pki.rc!=0 and pki.stdout is not search('Security database already exis')"
+      changed_when: pki.rc == 0
+
+    - name: connect pki
+      tags: pki
+      command: "pki -v -C ~/.pki.password -U 'https://ca.corp.redhat.com:8443/ca' cert-show 0x1"
+
+    - name: generate private key
+      tags: cert
+      openssl_privatekey:
+        type: RSA
+        size: 4096
+        path: ~/stormshift.key
+
+    - name: generate certifacte request
+      tags: cert
+      register: csr
+      openssl_csr:
+        path: ~/stormshift.csr
+        privatekey_path: ~/stormshift.key
+        key_usage: nonRepudiation, digitalSignature, keyEncipherment
+        key_usage_critical: true
+        basicConstraints: "CA:FALSE"
+        common_name: "*.stormshift.coe.muc.redhat.com"
+        organization_name: "Red Hat"
+        organizational_unit_name: "SolutionArchitectsDach"
+        subject_alt_name:
+          - "DNS:storm3.coe.muc.redhat.com"
+          - "DNS:*.storm3.coe.muc.redhat.com"
+          - "DNS:*.stormshift.coe.muc.redhat.com"
+          - "DNS:master.ocp1.stormshift.coe.muc.redhat.com"
+          - "DNS:*.apps.ocp1.stormshift.coe.muc.redhat.com"
+          - "DNS:master.ocp2.stormshift.coe.muc.redhat.com"
+          - "DNS:*.apps.ocp2.stormshift.coe.muc.redhat.com"
+          - "DNS:master.ocp3.stormshift.coe.muc.redhat.com"
+          - "DNS:*.apps.ocp3.stormshift.coe.muc.redhat.com"
+          - "DNS:master.ocp4.stormshift.coe.muc.redhat.com"
+          - "DNS:*.apps.ocp4.stormshift.coe.muc.redhat.com"
+          - "DNS:master.ocp5.stormshift.coe.muc.redhat.com"
+          - "DNS:*.apps.ocp5.stormshift.coe.muc.redhat.com"
+          - "IP:10.32.105.3"
+          - "IP:10.32.105.40"
+          - "IP:10.32.105.41"
+          - "IP:10.32.105.42"
+          - "IP:10.32.105.43"
+          - "IP:10.32.105.44"
+          - "IP:10.32.105.45"
+          - "IP:10.32.105.46"
+          - "IP:10.32.105.47"
+          - "IP:10.32.105.48"
+          - "IP:10.32.105.49"
+          - "IP:10.32.105.50"
+          - "IP:10.32.105.51"
+          - "IP:10.32.105.52"
+          - "IP:10.32.105.53"
+          - "IP:10.32.105.54"
+
+    - block:
+      - name: Prepare request xml from template
+        tags: cert
+        template:
+          src: templates/redhatIAM_caServerCertRequest.xml.j2
+          dest: "~/redhatIAM_caServerCertRequest.xml"
+
+      - name: Insert CSR into  request xml
+        tags: cert
+        blockinfile:
+          path: ~/redhatIAM_caServerCertRequest.xml
+          block: "{{ lookup('file', '~/stormshift.csr')}}"
+          insertafter: "INSERT-PKCS10-CSR-HERE"
+          marker: "<!-- {mark} ANSIBLE MANAGED BLOCK -->"
+
+      - name: Remove Begin and End Markers from CSR in XML
+        tags: cert
+        replace:
+          path: ~/redhatIAM_caServerCertRequest.xml
+          regexp: "^-----(BEGIN|END) CERTIFICATE REQUEST-----$\n"
+          replace: ""
+
+      - name: Submit CSR to Red Hat Internal CA
+        tags: cert
+        command: "XXXpki -U 'https://ca.corp.redhat.com/ca'  cert-request-submit ~/redhatIAM_caServerCertRequest.xml"
+      when: csr is changed

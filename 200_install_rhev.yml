@@ -1,0 +1,303 @@
+---
+- hosts: all
+  remote_user: root
+  gather_facts: no
+  vars_files:
+    - cfg/secrets.yml
+    - cfg/stormshift.yml
+
+  tasks:
+# -------------------------- subscription and repo stuff ---------------------
+  - name: Register with Red Hat Subscription Manager
+    tags: rhsm,slow
+    redhat_subscription:
+      state: present
+      username: "{{ sysctx_rhsm_user}}"
+      password: "{{ sysctx_rhsm_pswd}}"
+      pool_ids: "{{ sysctx_rhsm_poolid_phys}}"
+
+  - name: Disable all Repos
+    tags: repos,slow
+    rhsm_repository:
+      name: '*'
+      state: disabled
+
+  - name: Enable Required Repos
+    tags: repos,slow
+    rhsm_repository:
+      name:
+        - rhel-7-server-rpms
+        - rhel-7-server-ansible-2-rpms
+#        - rhel-7-server-extras-rpms
+        - rhel-7-server-supplementary-rpms
+        - rhel-7-server-rhv-4.2-manager-rpms
+        - rhel-7-server-rhv-4-manager-tools-rpms
+        - rhel-7-server-rhv-4-mgmt-agent-rpms
+        - jb-eap-7-for-rhel-7-server-rpms
+      state: enabled
+
+  - name: Updating all packages to latest
+    tags: update,slow
+    yum:
+      name: '*'
+      state: latest
+    register: yumupdate
+
+  - name: Reboot
+    tags: update,slow
+    reboot:
+    when: yumupdate is changed
+
+# -------------------------- cockpit stuff  ---------------------
+  - name: Install cockpit
+    tags: cockpit
+    yum:
+      name: cockpit
+      state: latest
+
+  - name: Open Firewall for cockpit
+    firewalld:
+     service: cockpit
+     permanent: yes
+     immediate: yes
+     state: enabled
+    tags:
+      - cockpit
+
+  - name: Enable cockpit service
+    service:
+      name: cockpit
+      enabled: yes
+      state: started
+    tags:
+      - cockpit
+
+# ----------------------- setup bind as DNS Server
+  - name: Install BIND
+    yum:
+      name: bind
+      state: latest
+    tags:
+      - dns
+
+  - name: Configure BIND to listen on em1
+    lineinfile:
+      regexp: ".*listen-on port 53.*"
+      line: "  listen-on port 53 { 127.0.0.1; {{ layer1_host_ip_adress }}; };"
+      path: /etc/named.conf
+    tags:
+      - dns
+
+  - name: Configure BIND not to listen on ipv6
+    lineinfile:
+      line: 'OPTIONS="-4"'
+      path: /etc/sysconfig/named
+    tags:
+      - dns
+
+  - name: configure BIND to answer external queries
+    lineinfile:
+      line: "  allow-query     { any; };"
+      regexp: ".*allow-query.*"
+      path: /etc/named.conf
+    tags:
+      - dns
+  - name: configure BIND to forward to coe muc dns
+    lineinfile:
+      line: "  forwarders {10.32.96.1;};"
+      regexp: ".*forwarders.*"
+      insertafter: ".*allow-query.*"
+      path: /etc/named.conf
+    tags:
+      - dns
+
+  - name: create a sensible serial for BIND zone
+    shell: date +%Y%m%d$((`date +%-H`*4+`date +%-M`/8))
+    register: bind_zone_serial
+    changed_when: False
+    tags:
+      - dns
+
+  - name: create zone file
+    template:
+      src: templates/bind.zone.j2
+      dest: /etc/named/{{ sysctx_dns_domain }}.zone
+    tags:
+      - dns
+
+  - name: add zone db to bind config
+    lineinfile:
+      line: "zone \"{{ sysctx_dns_domain }}\" { type master; file \"/etc/named/{{ sysctx_dns_domain }}.zone\"; };"
+      path: /etc/named.rfc1912.zones
+    tags:
+      - dns
+
+  - name: Enable dns server
+    service:
+      name: named
+      enabled: yes
+      state: restarted
+    tags:
+      - dns
+
+  - name: Open Firewall for dns
+    firewalld:
+     service: dns
+     permanent: yes
+     immediate: yes
+     state: enabled
+    tags:
+      - dns
+
+# -------------------------- storage stuff  ---------------------
+  - name: Install hosted engine setup package
+    tags: notReallyRequired
+    yum:
+      name:
+        - ovirt-hosted-engine-setup
+      state: latest
+
+
+# -------------------------- storage stuff  ---------------------
+  - name: Create logical volume for rhev
+    lvol:
+      vg: sataraid
+      lv: rhev
+      size: 1024g
+      state: present
+    tags:
+      - storage
+
+  - name: Create filesystem for rhev
+    filesystem:
+      fstype: xfs
+      dev: /dev/mapper/sataraid-rhev
+    tags:
+      - storage
+
+  - name: Mount file system for rhev
+    mount:
+      path: /var/rhev
+      src: /dev/mapper/sataraid-rhev
+      fstype: xfs
+      state: mounted
+    tags:
+      - storage
+
+# -------------------------- nfs export stuff  ---------------------
+  - name: Make directory for nfs export
+    file:
+      path: "{{layer2_rhev_storage_nfs_path}}/{{item}}"
+      owner: vdsm
+      group: kvm
+      mode: "0755"
+      state: directory
+    with_items:
+      - hostedEngine
+      - data
+      - export
+      - iso
+    tags:
+      - storage
+
+  - name: Export nfs directory
+    lineinfile:
+      path: /etc/exports
+      line: '{{layer2_rhev_storage_nfs_path}}/{{item}} *(async,wdelay,rw)'
+      create: yes
+    with_items:
+      - hostedEngine
+      - data
+      - export
+      - iso
+    tags:
+      - storage
+
+  - name: Enable nfs
+    service:
+      name: nfs-server
+      enabled: yes
+      state: started
+    tags:
+      - storage
+
+  - name: Open Firewall for nfs
+    firewalld:
+     service: nfs
+     permanent: yes
+     immediate: yes
+     state: enabled
+    tags:
+      - storage
+
+# vi /etc/sysconfig/nfs
+# (Enable ports)
+#LOCKD_TCPPORT=32803
+#LOCKD_UDPPORT=32769
+#MOUNTD_PORT=892
+#RQUOTAD_PORT=875
+#STATD_PORT=662
+#STATD_OUTGOING_PORT=2020
+
+#systemctl enable nfs-server
+
+#systemctl restart nfs-config
+
+#firewall-cmd --add-service=nfs --permanent
+
+
+  - name: Prepare engine deployment
+    template:
+      src: templates/hosted-engine-deploy-answers.txt.j2
+      dest: /root/hosted-engine-deploy-answers.txt
+
+  - name: Test for existing engine deployment
+    command: hosted-engine --check-liveliness
+    register: he_check_result
+    ignore_errors: True
+    changed_when: False
+
+  - name: Undeploy hosted engine
+    shell: /usr/sbin/ovirt-hosted-engine-cleanup -q
+    when: he_check_result.rc!=0
+
+  - name: Make sure storage path is empty
+    shell: rm -rf {{layer2_rhev_storage_nfs_path}}/{{item}}/*
+#    warn: false
+    with_items:
+      - hostedEngine
+      - data
+      - export
+      - iso
+    when: he_check_result.rc != 0
+
+  - name: Deploy rhev hosted engine - time for coffee!
+    shell: hosted-engine --deploy  --config-append=/root/hosted-engine-deploy-answers.txt
+    when: he_check_result.rc != 0
+
+  - name: Check hosted engine liveliness after deployment
+    command: hosted-engine --check-liveliness
+    when: he_check_result.rc != 0
+
+
+# TODO: If previous command did install something, reboot to be sure we are up to date:
+#  - name: reboot machine
+#    reboot:
+#      msg: "Rebooting now for updates to take effect"
+
+# Deploy hosted engine:
+#
+#hosted-engine --deploy  --config-append=hosted-engine-deploy-answers.txt
+#hosted-engine --check-liveliness
+#hosted-engine --check-deployed
+
+# Destroy:
+#/usr/sbin/ovirt-hosted-engine-cleanup -q
+# rm -rf /var/rhev/storage
+
+# ----------------------- setup ansible modules
+#  - name: Install ansible roles
+#    yum:
+#      name:
+#        - ovirt-ansible-roles
+#      state: latest

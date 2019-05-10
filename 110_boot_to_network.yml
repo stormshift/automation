@@ -1,0 +1,20 @@
+---
+- hosts: idracs
+  connection: local
+  name: Get Installed Firmware Inventory
+  gather_facts: False
+  vars_files:
+    - cfg/secrets.yml
+    - cfg/stormshift.yml
+
+  tasks:
+  - name: Boot to iso image
+    dellemc_boot_to_network_iso:
+       idrac_ip:        "{{layer0_idrac_ip}}"
+       idrac_user:      "{{layer0_idrac_user}}"
+       idrac_pwd:       "{{layer0_idrac_pwd}}"
+       share_name:  "{{sysctx_nfs_share}}"
+#       share_user:  "xxxx"i
+#       share_pwd:   "xxxxxxxx"
+#       iso_image:   "hailstorm/iso/rhel-server-7.6-storm3-42.iso"
+       iso_image:   "hailstorm/iso/rhel-server-7.6-x86_64-dvd.iso"

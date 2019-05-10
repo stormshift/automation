@@ -1,0 +1,46 @@
+  sysctx_dns: "10.32.96.1"
+  sysctx_gateway: "10.32.111.254"
+  sysctx_cidr: "20"
+  sysctx_dns_suffix: "coe.muc.redhat.com"
+  sysctx_dns_domain: "stormshift.{{ sysctx_dns_suffix }}"
+  sysctx_admin_ssh_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDTz8MFjA+JwZQDmkR59fwnhi7eaL41RlYsD7THaa517AmzpS+ERsS4RO3voyqdwCFQWdEQ4LD9st1MpNx5Ap94+5kBKc7jO5tA7RuP/1pwGaRKfGf0i8vX/L6T6F6WGwNcXYkKg+JvMlfEBi+E1MmzVxf6WXEzowxt5rmY/cfQkT5vetdjmgycucMnWaX22rY1JgpdfoL+T8urQIVB4B7EuuA1dj80PeMQIKe6M0WJ6AeEm8Mrbi4z6fbQzcNcA2BdLgs9XUQS0HuxJLYgY8/DA82tMPXtzpcp9iOqIN8fynrYGx6YCIesF+vSxo1qSeTFqPyet5ZfttviyX/kfoPZ hailstorm@hailstormdeploy.coe.muc.redhat.com"
+  sysctx_nfs_share: "10.32.97.3:/iso"
+
+# Secret stuff stored in ansible vault:
+  secret_password: "{{vault_secret_password}}"
+  sysctx_rhsm_user: "{{vault_sysctx_rhsm_user}}"
+  sysctx_rhsm_pswd: "{{vault_sysctx_rhsm_pswd}}"
+  sysctx_rhsm_poolid_virt: "{{vault_sysctx_rhsm_poolid_virt}}"
+  sysctx_rhsm_poolid_phys: "{{vault_sysctx_rhsm_poolid_phys}}"
+  sysctx_google_auth_client_id: "{{vault_sysctx_google_auth_client_id}}"
+  sysctx_google_auth_client_secret: "{{vault_sysctx_google_auth_client_secret}}"
+  sysctx_registry_token_user: "{{vault_sysctx_registry_token_user}}"
+  sysctx_registry_token: "{{vault_sysctx_registry_token}}"
+  layer0_idrac_user: "{{vault_layer0_idrac_user}}"
+  layer0_idrac_pwd: "{{vault_layer0_idrac_pwd}}"
+
+
+  layer0_idrac_ip: "10.32.104.92"
+
+  layer1_host_name: "storm3"
+  layer1_host_fqdn: "{{layer1_host_name}}.{{ sysctx_dns_suffix }}"
+  layer1_host_ip_adress: "10.32.105.3"
+  layer1_host_primary_nic: em1
+  layer1_nfs_fqn: "{{layer1_host_fqdn}}"
+  layer1_dns: "{{layer1_host_ip_adress}}"
+  layer1_device_nvme1: "pci_0000_81_00_0"
+  layer1_device_nvme2: "pci_0000_83_00_0"
+  layer1_device_nvme3: "pci_0000_84_00_0"
+
+
+  layer2_rhev_engine_ip: "10.32.105.40"
+  layer2_rhev_engine_fqdn: "rhev.{{sysctx_dns_domain}}"
+  layer2_rhev_engine_host_fqdn: "{{layer1_host_fqdn}}"
+  layer2_rhev_engine_user: "admin@internal"
+  layer2_rhev_engine_password: "{{secret_password}}"
+  layer2_rhev_engine_url: https://{{layer2_rhev_engine_fqdn}}/ovirt-engine/api
+
+  layer2_rhev_storage_nfs_path: /var/rhev/storage/nfs
+  layer2_rhev_engine_storage_connection: "{{layer1_nfs_fqn}}:{{layer2_rhev_storage_nfs_path}}/hostedEngine"
+
+# see also ocp1..5.yml:
