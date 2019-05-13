@@ -1,7 +1,7 @@
 ---
-- hosts: all
+- hosts: layer1
   remote_user: root
-  gather_facts: no
+  gather_facts: yes
   vars_files:
     - cfg/secrets.yml
     - cfg/stormshift.yml
@@ -50,27 +50,53 @@
 
 # -------------------------- cockpit stuff  ---------------------
   - name: Install cockpit
-    tags: cockpit
+    tags: cockpit,slow
     yum:
       name: cockpit
       state: latest
 
   - name: Open Firewall for cockpit
+    tags: cockpit
     firewalld:
      service: cockpit
      permanent: yes
      immediate: yes
      state: enabled
-    tags:
-      - cockpit
 
   - name: Enable cockpit service
+    tags: cockpit
     service:
       name: cockpit
       enabled: yes
       state: started
-    tags:
-      - cockpit
+
+  - name: Add monitoring user for cokcpit
+    tags: cockpit
+    user:
+      name: monitor
+      password: "$6$mysecretsalt$aT7pE2g.eKUxv/BAP6bmhhi/MnY1MKGUQfUn7iW5JqPGzuHbIKrK1G6d2/ATeTlHwnV4WMiI3NjofmKzLTFP6/"
+
+  - name: Copy stormshift server cert to bastion
+    tags: cockpit
+    copy:
+      src: "~/certs/"
+      dest: "/root/certs/"
+
+  - name: Assemble cockpit certs
+    tags: cockpit
+    shell: "cat stormshift.crt redhat-pki-ca-chain.crt stormshift.key  >>/etc/cockpit/ws-certs.d/1-stormshift.cert"
+    args:
+      chdir: /root/certs/
+      creates: "/etc/cockpit/ws-certs.d/1-stormshift.cert"
+    register: cockpitcert
+
+  - name: Restart cockpit service
+    tags: cockpit
+    service:
+      name: cockpit
+      state: restarted
+    when: cockpitcert is changed
+
 
 # ----------------------- setup bind as DNS Server
   - name: Install BIND

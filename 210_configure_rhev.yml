@@ -170,6 +170,23 @@
         state: present
         wait: true
 
+    # - name: Create Monitor user
+    #   tags: user
+    #   ovirt_user:
+    #     auth: "{{ ovirt_auth }}"
+    #     domain: "internal-authz"
+    #     name: monitor
+    #     state: present
+    #     wait: true
+    #
+    # - name: Add Monitor user to readOnlyAdmin Role
+    #   tags: user
+    #   ovirt_permissions:
+    #     auth: "{{ ovirt_auth }}"
+    #     domain: "internal-authz"
+    #     user_name: "monitor"
+    #     role: "ReadOnlyAdmin"
+    #     wait: true
 
   post_tasks:
     - name: Logout from oVirt
