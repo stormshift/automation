@@ -108,24 +108,19 @@
       k8s:
         state: present
         definition:
-          apiVersion: istio.openshift.com/v1alpha3
-          kind: ControlPlane
+          apiVersion: maistra.io/v1
+          kind: ServiceMeshControlPlane
           metadata:
             name: basic-install
             namespace: "{{ namespace_system }}"
           spec:
-            launcher:
-              enabled: false
-              # specify the url to master, e.g. https://master.some.domain.com:443
-              LAUNCHER_MISSIONCONTROL_OPENSHIFT_CONSOLE_URL:
-              # Your GitHub username
-              LAUNCHER_MISSIONCONTROL_GITHUB_USERNAME:
-              # Your GitHub Mission Control access token
-              LAUNCHER_MISSIONCONTROL_GITHUB_TOKEN:
-            threeScale:
-              enabled: false
             istio:
               global:
+#                hub: "registry.redhat.io/openshift-istio-tech-preview/"
+#                tag: 0.11.0
+# Required for OCP3.11 - see https://docs.openshift.com/container-platform/3.11/servicemesh-install/servicemesh-install.html#deploying-control-plane
+                proxy_init:
+                  image: proxy-init
                 proxy:
                   resources:
                     requests:
@@ -134,6 +129,12 @@
                     limits:
                       cpu: 500m
                       memory: 128Mi
+                mtls: false
+                disablePolicyChecks: true
+                policyCheckFailOpen: false
+#                imagePullSecrets:
+#                  - MyPullSecret
+
               gateways:
                 istio-egressgateway:
                   autoscaleEnabled: false
@@ -156,12 +157,16 @@
                 autoscaleEnabled: false
                 traceSampling: 100.0
               kiali:
-               dashboard:
+                enabled: true
+#                tag: v0.20.0
+                dashboard:
                   user: admin
                   passphrase: admin
               tracing:
                 enabled: true
                 elasticsearch_memory: 1Gi
+              threeScale:
+                enabled: false
       register: system
 
     - name: Wait for control plane pods to start (Coffe time if first pull)
