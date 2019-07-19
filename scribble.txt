@@ -1,5 +1,5 @@
 TMUX:
-setw -g mode-mouse on
+CTRL-B : setw -g mode-mouse on
 
 Kernel Cmd:
 intel_iommu=on

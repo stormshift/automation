@@ -16,7 +16,7 @@
       tags: pre,master
       blockinfile:
         path: /etc/origin/master/master-config.yaml
-        marker: "# {mark} ANSIBLE MANAGED BLOCK {{layer3_ocp_name}}"
+        marker: "# {mark} ANSIBLE MANAGED BLOCK ISTIO {{layer3_ocp_name}}"
         backup: yes
         insertbefore: "openshift.io/ImagePolicy"
         block: |
@@ -51,6 +51,10 @@
           wait_for:
             host: localhost
             port: 8443
+        - name: Wait 30s for master to finish init
+          tags: pre,master
+          wait_for:
+            timeout: 30
       when: mastercfg is changed
 
 
@@ -66,7 +70,7 @@
     namespace_operator: "istio-operator"
     namespace_system: "istio-system"
     namespace_demo: "istio-demo"
-    operator_template_url: "https://raw.githubusercontent.com/Maistra/istio-operator/maistra-0.10/deploy/servicemesh-operator.yaml"
+    operator_template_url: "https://raw.githubusercontent.com/Maistra/istio-operator/maistra-0.11/deploy/servicemesh-operator.yaml"
 
   tasks:
     - name: Login to Openshift
@@ -171,7 +175,7 @@
       when: system is changed
 
     - name: Create demo project
-      tags: deploy,system
+      tags: deploy,demo
       k8s:
         state: present
         definition:
@@ -182,21 +186,29 @@
       register: demoproject
 
     - block:
+      - name: "Join system pod network"
+        tags: deploy,demo,policy
+        shell: "oc adm pod-network join-projects --to=default {{ namespace_operator }} {{ namespace_system }} {{ namespace_demo }}"
+
       - name: "Grant anyuid policy"
-        tags: deploy,policy
+        tags: deploy,demo,policy
         shell: "oc adm policy add-scc-to-user anyuid -z default -n {{ namespace_demo }}"
 
       - name: "Grant privileged policy"
-        tags: deploy,policy
+        tags: deploy,demo,policy
         shell: "oc adm policy add-scc-to-user privileged -z default -n {{ namespace_demo }}"
 
       - name: "Deploy bookinfo app"
         tags: deploy,demo
         shell: "oc apply -n {{ namespace_demo }} -f https://raw.githubusercontent.com/Maistra/bookinfo/master/bookinfo.yaml"
 
-      - name: "Deploy bookinfo gateway "
+      - name: "Deploy bookinfo gateway"
         tags: deploy,demo
         shell: "oc apply -n {{ namespace_demo }} -f https://raw.githubusercontent.com/Maistra/bookinfo/master/bookinfo-gateway.yaml"
+
+      - name: "Add default destination rules"
+        tags: deploy,demo
+        shell: "oc apply -n {{ namespace_demo }} -f https://raw.githubusercontent.com/istio/istio/release-1.1/samples/bookinfo/networking/destination-rule-all.yaml"
       when: demoproject is defined and demoproject is changed
 
     - name: Wait for demo pods to start
@@ -209,9 +221,6 @@
       changed_when: false
       when: demoproject is defined
 
-    - name: "Join system pod network"
-      tags: deploy,policy
-      shell: "oc adm pod-network join-projects --to=default {{ namespace_operator }} {{ namespace_system }} {{ namespace_demo }}"
 
 #oc patch StatefulSet elasticsearch -p '{"spec": {"template": {"spec": {"containers": [{"name": "elasticsearch","resources": {"limits": {"cpu": "500m","memory": "2Gi"}}}]}}}}'
     - name: Limit elasticsearch memory

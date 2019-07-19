@@ -100,6 +100,7 @@
       tags: bastion,firewall
       iptables:
         flush: true
+      when: useFirewalld is not defined
 
 #iptables -t nat -A POSTROUTING ! -d 172.16.10.0/24  -o eth0 -j SNAT --to-source 10.32.105.71
 #iptables ! -d 172.16.10.0/24

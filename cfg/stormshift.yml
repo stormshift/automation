@@ -43,4 +43,9 @@
   layer2_rhev_storage_nfs_path: /var/rhev/storage/nfs
   layer2_rhev_engine_storage_connection: "{{layer1_nfs_fqn}}:{{layer2_rhev_storage_nfs_path}}/hostedEngine"
 
+  layer4_ocp_mongo_orgId: "{{ vault_layer4_ocp_mongo_orgId }}"
+  layer4_ocp_mongo_user: "{{vault_layer4_ocp_mongo_user}}"
+  layer4_ocp_mongo_publicApiKey: "{{ vault_layer4_ocp_mongo_publicApiKey }}"
+
+
 # see also ocp1..5.yml:

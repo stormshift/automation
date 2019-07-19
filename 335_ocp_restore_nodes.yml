@@ -1,0 +1,38 @@
+- name: Snapshot nodes
+  hosts: localhost
+  connection: local
+
+  vars_files:
+    - cfg/secrets.yml
+    - cfg/stormshift.yml
+  vars:
+    snapshot_desc: "{{ ansible_date_time.iso8601}}"
+
+  tasks:
+    - name: Login into RHEV
+      tags: always
+      ovirt_auth:
+       url: "{{layer2_rhev_engine_url}}"
+       username: "{{layer2_rhev_engine_user}}"
+       password: "{{ layer2_rhev_engine_password }}"
+
+    - name: Retrieve available snaphots
+      tags: shutdown
+      ovirt_snapshot_facts:
+        auth: "{{ ovirt_auth }}"
+        vm: "ocp3master1"
+#        vm: "{{ item.name }}"
+#      with_items: "{{ vms }}"
+      changed_when: false
+
+    - name: debug
+      debug:
+        msg: "test = {{ ovirt_snapshots|map('description') }}"
+
+
+
+    - name: Logoff from RHEV
+      tags: always
+      ovirt_auth:
+        state: absent
+        ovirt_auth: "{{ ovirt_auth }}"
