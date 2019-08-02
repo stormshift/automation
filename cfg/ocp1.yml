@@ -7,6 +7,12 @@
             - { vm: 'ocp1inf1', device: '{{layer1_device_nvme1}}' }
             - { vm: 'ocp1inf2', device: '{{layer1_device_nvme2}}' }
             - { vm: 'ocp1inf3', device: '{{layer1_device_nvme3}}' }
+    layer3_ocp_admin_users:
+      - admin
+      - dfroehliadm
+      - oschneidadm
+      - rbohneadm
+      - sbergsteadm
 
 
     master_vm_profile:

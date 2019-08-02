@@ -4,7 +4,7 @@ import openstack
 network_api = openstack.connect(cloud='stormshift')
 
 ip_address_map = {
-    '56:6f:af:b8:00:19': '172.16.10.1',   # ocp1bastion
+    '56:6f:af:b8:00:24': '172.16.10.1',   # ocp1bastion
     '56:6f:af:b8:00:1a': '172.16.10.11',  # ocp1master1
     '56:6f:af:b8:00:1b': '172.16.10.12',  # ocp1master2
     '56:6f:af:b8:00:1c': '172.16.10.13',  # ocp1master3

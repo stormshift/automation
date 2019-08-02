@@ -29,7 +29,7 @@ JUMPHOST=ocp1bastion.stormshift.coe.muc.redhat.com
 NODE_GROUP_LABEL=RebootGroup
 
 
-#REBOOT_GROUP=2
+REBOOT_GROUP=0
 
 while true
 do

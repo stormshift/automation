@@ -7,6 +7,7 @@
     - cfg/stormshift.yml
   vars:
     snapshot_desc: "{{ ansible_date_time.iso8601}}"
+    std_gateway: "{{layer3_ocp_network_prefix}}.1"
 
   tasks:
     - name: Login into RHEV

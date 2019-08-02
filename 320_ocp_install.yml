@@ -1,6 +1,7 @@
 ---
 - name: Install OpenShift
   hosts: "{{layer3_ocp_name}}bastion"
+  gather_facts: false
   vars_files:
     - cfg/secrets.yml
     - cfg/stormshift.yml
@@ -88,6 +89,7 @@
 # https://mojo.redhat.com/community/communities-at-red-hat/applications/containers-paas-community/blog/2019/03/13/google-oauth-as-identity-provider-with-red-hat-login-in-ocp-311
 - name: Configure RedHatInternalSSO as Auth Provider
   hosts: "{{layer3_ocp_name}}masters"
+  gather_facts: false
   vars_files:
     - cfg/secrets.yml
     - cfg/stormshift.yml
@@ -166,6 +168,7 @@
 #https://docs.openshift.com/container-platform/3.11/admin_guide/overcommit.html#disabling-swap-memory
 - name: Disable swap
   hosts: "{{layer3_ocp_name}}nodes"
+  gather_facts: false
   vars_files:
     - cfg/secrets.yml
     - cfg/stormshift.yml
@@ -177,6 +180,7 @@
 
 - name: Workaround BZ#1654044 - CrashLoopBackOff after rolling reboot - needed for OCP <=V3.11.98
   hosts: "{{layer3_ocp_name}}nodes"
+  gather_facts: false
   vars_files:
     - cfg/secrets.yml
     - cfg/stormshift.yml
@@ -189,3 +193,62 @@
           r /etc/origin/openvswitch/conf.db
         path: /usr/lib/tmpfiles.d/cleanup-cni.conf
         create: yes
+
+# See https://blog.openshift.com/automatically-update-red-hat-container-images-on-openshift-3-11/
+- name: Configure Auto Image Update Master Part
+  hosts: "{{layer3_ocp_name}}masters"
+  gather_facts: false
+  vars_files:
+    - cfg/secrets.yml
+    - cfg/stormshift.yml
+
+  tasks:
+    - name: Configure imagePolicyConfig in the Master Config
+      tags: post,autoimg,master
+      blockinfile:
+        path: /etc/origin/master/master-config.yaml
+        marker: "# {mark} ANSIBLE MANAGED BLOCK IMGPLCY {{layer3_ocp_name}}"
+        insertafter: imagePolicyConfig
+        block: |
+          # Configure Auto Image Update
+            MaxScheduledImageImportsPerMinute: 1
+            ScheduledImageImportMinimumIntervalSeconds: 1800
+            disableScheduledImport: false
+            maxImagesBulkImportedPerRepository: 5
+      register: cfg1
+
+    - name: Restart Master
+      tags: post,autoimg,master
+      block:
+        - name: Restart API
+          tags: post,sso
+          command: master-restart api
+          changed_when: false
+
+        - name: Restart Controllers
+          tags: post,sso
+          command: master-restart controllers
+          changed_when: false
+
+        - name: Wait for master to be online again
+          tags: post,sso
+          wait_for:
+            host: localhost
+            port: 8443
+      when: cfg1 is changed
+
+- name: Configure Auto Image Update ImageStream Part
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - cfg/secrets.yml
+    - cfg/stormshift.yml
+  tasks:
+    - name: Configure imagePolicyConfig in the Master Config
+      tags: post,autoimg,imgstream
+      shell: |
+        oc get is -n openshift -o json > openshift-is.json
+        jq '.items[].spec.tags[]? |= if .from.kind == "DockerImage" then .importPolicy.scheduled |= true else . end' openshift-is.json > openshift-is-scheduled.json
+        oc apply -f openshift-is-scheduled.json -n openshift
+      args:
+        creates: openshift-is.json
