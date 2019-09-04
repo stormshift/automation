@@ -168,7 +168,7 @@
 #https://docs.openshift.com/container-platform/3.11/admin_guide/overcommit.html#disabling-swap-memory
 - name: Disable swap
   hosts: "{{layer3_ocp_name}}nodes"
-  gather_facts: false
+  gather_facts: true
   vars_files:
     - cfg/secrets.yml
     - cfg/stormshift.yml
