@@ -17,4 +17,4 @@
 #       share_user:  "xxxx"i
 #       share_pwd:   "xxxxxxxx"
 #       iso_image:   "hailstorm/iso/rhel-server-7.6-storm3-42.iso"
-       iso_image:   "hailstorm/iso/rhel-server-7.6-x86_64-dvd.iso"
+       iso_image:   "hailstorm/iso/rhel-server-7.7-x86_64-dvd_storm3.iso"

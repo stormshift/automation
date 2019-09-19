@@ -43,6 +43,14 @@
       state: latest
     register: yumupdate
 
+  - name: Disable watchdog to avoid reboot hangups
+    sysctl:
+      name: kernel.nmi_watchdog=0
+      value: 0
+      sysctl_set: yes
+      reload: yes
+
+
   - name: Reboot
     tags: update,slow
     reboot:

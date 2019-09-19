@@ -12,6 +12,10 @@ OVEHOSTED_NETWORK/bridgeName=str:ovirtmgmt
 OVEHOSTED_NETWORK/bridgeIf=str:{{layer1_host_primary_nic}}
 OVEHOSTED_NETWORK/fqdn=str:{{layer2_rhev_engine_fqdn}}
 OVEHOSTED_NETWORK/gateway=str:{{sysctx_gateway}}
+OVEHOSTED_NETWORK/network_test=str:dns
+OVEHOSTED_NETWORK/network_test_tcp_address=none:None
+OVEHOSTED_NETWORK/network_test_tcp_port=none:None
+
 OVEHOSTED_NOTIF/destEmail=str:root@localhost
 OVEHOSTED_NOTIF/smtpPort=str:25
 OVEHOSTED_NOTIF/smtpServer=str:localhost
@@ -57,3 +61,4 @@ OVEHOSTED_VM/vmCDRom=none:None
 OVEHOSTED_VM/vmMACAddr=str:00:16:3e:34:b4:e4
 OVEHOSTED_VM/vmMemSizeMB=int:16384
 OVEHOSTED_VM/vmVCpus=str:4
+OVEHOSTED_VM/applyOpenScapProfile=bool:False
