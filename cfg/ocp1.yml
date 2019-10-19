@@ -13,6 +13,7 @@
       - oschneidadm
       - rbohneadm
       - sbergsteadm
+      - rjaiswaladm
 
 
     master_vm_profile:

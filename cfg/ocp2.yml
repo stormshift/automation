@@ -11,6 +11,8 @@
       - dfroehliadm
       - oschneidadm
       - rbohneadm
+      - rjaiswaladm
+
 
     master_vm_profile:
       cluster: Default
