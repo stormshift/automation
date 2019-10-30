@@ -23,7 +23,7 @@
 # Requires SSH access to the nodes, either via a jumphost (e.g. your bastion host), or direct SSH
 
 # The Jumphost to use:
-JUMPHOST=ocp1bastion.stormshift.coe.muc.redhat.com
+JUMPHOST=root@ocp1bastion.stormshift.coe.muc.redhat.com
 
 # The node label that groups nodes as desired:
 NODE_GROUP_LABEL=RebootGroup
@@ -53,7 +53,7 @@ do
   for NODE in $NODE_GROUP
   do
     echo Rebooting node $NODE
-    ssh -J $JUMPHOST $NODE reboot --no-wall >/dev/null 2>&1
+    ssh -J $JUMPHOST root@$NODE reboot --no-wall >/dev/null 2>&1
   done
 
   for NODE in $NODE_GROUP
