@@ -110,7 +110,19 @@
         command: /usr/bin/update-ca-trust extract
       when: cacerts is changed
 
+    - name: Limit logfile size systemd-journald
+      tags: journald
+      lineinfile:
+        path: /etc/systemd/journald.conf
+        line: SystemMaxUse=2G
+      register: journald
 
+    - name: restart journald
+      tags: journald
+      service:
+        name: systemd-journald
+        state: restarted
+      when: journald is changed
 
 # Obsolete?
 #    - name: cfg/stormshifture Docker Storage

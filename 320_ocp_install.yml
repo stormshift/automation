@@ -244,7 +244,7 @@
     - cfg/secrets.yml
     - cfg/stormshift.yml
   tasks:
-    - name: Configure imagePolicyConfig in the Master Config
+    - name: Configure image streams
       tags: post,autoimg,imgstream
       shell: |
         oc get is -n openshift -o json > openshift-is.json
