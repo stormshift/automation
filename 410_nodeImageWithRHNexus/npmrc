@@ -1,0 +1,2 @@
+cafile=RH-IT-Root-CA.crt
+registry=https://repository.engineering.redhat.com/nexus/repository/registry.npmjs.org
