@@ -8,3 +8,9 @@ sriov
 
 # Run CMD from master against all nodes:
 ansible -i stc-git/inventory -a "rm /usr/lib/tmpfiles.d/cleanup-cni.conf" nodes
+
+# Re-Install Logging:
+ansible-playbook -i /etc/ansible/hosts -e openshift_logging_install_logging=false /usr/share/ansible/openshift-ansible/playbooks/openshift-logging/config.yml
+
+# Re-Install Monitoring:
+ansible-playbook -i /etc/ansible/hosts -e openshift_cluster_monitoring_operator_install=true /usr/share/ansible/openshift-ansible/playbooks/openshift-monitoring/config.yml

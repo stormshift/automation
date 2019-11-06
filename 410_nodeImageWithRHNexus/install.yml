@@ -78,7 +78,7 @@
         apiVersion: build.openshift.io/v1
         kind: BuildConfig
         metadata:
-          name: nodejs-rh
+          name: nodejs-rh-latest
           namespace: "{{NAMESPACE}}"
         spec:
           failedBuildsHistoryLimit: 5
@@ -87,6 +87,51 @@
             to:
               kind: ImageStreamTag
               name: 'nodejs:latest'
+              namespace: openshift
+          postCommit: {}
+          resources: {}
+          runPolicy: Serial
+          source:
+            contextDir: 410_nodeImageWithRHNexus
+            git:
+              uri: 'https://github.com/DanielFroehlich/stormshift.git'
+            type: Git
+          strategy:
+            dockerStrategy:
+              from:
+                kind: ImageStreamTag
+                name: 'nodejs-10-rhel7:latest'
+            type: Docker
+          successfulBuildsHistoryLimit: 5
+          triggers:
+            - github:
+                secret: 6ZuT7zBYmsMbtMFLrOO3
+              type: GitHub
+            - generic:
+                secret: EOQUBK9hO6BWdHsXZgPi
+              type: Generic
+            - type: ConfigChange
+            - imageChange:
+              type: ImageChange
+
+  - name: Buildconfig
+    tags: is
+    k8s:
+      state: present
+      wait: true
+      definition:
+        apiVersion: build.openshift.io/v1
+        kind: BuildConfig
+        metadata:
+          name: nodejs-rh-10
+          namespace: "{{NAMESPACE}}"
+        spec:
+          failedBuildsHistoryLimit: 5
+          nodeSelector: null
+          output:
+            to:
+              kind: ImageStreamTag
+              name: 'nodejs:10'
               namespace: openshift
           postCommit: {}
           resources: {}
