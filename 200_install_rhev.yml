@@ -313,6 +313,8 @@
     command: hosted-engine --check-liveliness
     when: he_check_result.rc != 0
 
+  roles:
+    - { role: redhatinsights.insights-client, when: ansible_os_family == 'RedHat' }
 
 # TODO: If previous command did install something, reboot to be sure we are up to date:
 #  - name: reboot machine

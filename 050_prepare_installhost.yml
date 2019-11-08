@@ -59,6 +59,10 @@
       pip:
         name: openshift
         extra_args: --user
+    - name: Install ansible roles:
+      tags: ansible, roles
+      shell: ansible-galaxy install redhatinsights.insights-client
+      
 
     - name: Add CA Certs for openshift ansible modules
       tags: openshift,ansible
