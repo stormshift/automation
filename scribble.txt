@@ -14,3 +14,8 @@ ansible-playbook -i /etc/ansible/hosts -e openshift_logging_install_logging=fals
 
 # Re-Install Monitoring:
 ansible-playbook -i /etc/ansible/hosts -e openshift_cluster_monitoring_operator_install=true /usr/share/ansible/openshift-ansible/playbooks/openshift-monitoring/config.yml
+
+# Fix Docker Storage / Disk Full:
+NODE=ocp3app1.stormshift.coe.muc.redhat.com
+oc adm manage-node $NODE --schedulable=false
+oc adm drain $NODE --grace-period=10 --timeout=60s --delete-local-data --ignore-daemonsets
