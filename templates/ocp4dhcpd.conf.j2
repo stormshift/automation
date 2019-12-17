@@ -1,0 +1,15 @@
+#
+# DHCP Server Configuration file.
+#   see /usr/share/doc/dhcp-server/dhcpd.conf.example
+#   see dhcpd.conf(5) man page
+#
+option domain-name "{{layer3_ocp_name}}.{{ sysctx_dns_domain }}";
+default-lease-time 86400;
+authoritative;
+subnet 172.16.10.0 netmask 255.255.255.0 {
+  range 172.16.10.10 172.16.10.100;
+  option domain-name-servers 172.16.10.5;
+  option routers 172.16.10.1;
+  option broadcast-address 172.16.10.255;
+  max-lease-time 172800;
+}

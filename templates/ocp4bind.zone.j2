@@ -1,0 +1,24 @@
+;
+; BIND data file for {{layer3_ocp_name}}.{{ sysctx_dns_domain }}
+;
+$ORIGIN {{layer3_ocp_name}}.{{ sysctx_dns_domain }}.
+$TTL    60
+@       IN      SOA       @ {{layer3_ocp_name}}support.{{ sysctx_dns_domain }}. (
+                          {{ bind_zone_serial.stdout }}        ; Serial
+                          60       ; Refresh after 3 hours
+                          60       ; Retry after 1 hour
+                          60       ; Expire after 1 week
+                          60 )     ; Negative caching TTL of 1 day
+
+        IN      NS      {{layer3_ocp_name}}support.{{ sysctx_dns_domain }}.
+        IN      MX      10 {{layer3_ocp_name}}support.{{ sysctx_dns_domain }}.
+
+
+support   IN  A 172.16.10.5
+bootstrap  IN  A 172.16.10.6
+control-0  IN  A 172.16.10.10
+control-1  IN  A 172.16.10.11
+control-2  IN  A 172.16.10.12
+compute-0  IN  A 172.16.10.20
+compute-1  IN  A 172.16.10.21
+compute-2  IN  A 172.16.10.22

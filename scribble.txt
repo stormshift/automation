@@ -19,3 +19,11 @@ ansible-playbook -i /etc/ansible/hosts -e openshift_cluster_monitoring_operator_
 NODE=ocp3app1.stormshift.coe.muc.redhat.com
 oc adm manage-node $NODE --schedulable=false
 oc adm drain $NODE --grace-period=10 --timeout=60s --delete-local-data --ignore-daemonsets
+
+# On Node:
+systemctl stop docker
+#(Contetnt from template/docker-storage-setup):
+vi /etc/sysconfig/docker-storage-setup
+docker-storage-setup
+rm -Rf /var/lib/docker/*
+reboot
