@@ -22,6 +22,9 @@
       sockets: 1
       cores: 4
       cpu_threads: 1
+      boot_devices:
+        - hd
+        - network
       disks:
         - size: 120GiB
           name: rhcosdisk
@@ -45,6 +48,9 @@
       sockets: 6
       cores: 6
       cpu_threads: 1
+      boot_devices:
+        - hd
+        - network
       disks:
         - size: 120GiB
           name: rhcosdisk
@@ -116,7 +122,7 @@
           cores: 2
           cpu_threads: 1
           disks:
-            - size: 10GiB
+            - size: 100GiB
               name: rhel8disk
               name_prefix: false
               storage_domain: data
@@ -129,6 +135,11 @@
             root_password: "{{ secret_password }}"
             host_name: "{{layer3_ocp_name}}support.{{sysctx_dns_domain }}"
             dns_servers: "{{ layer1_dns }}"
+            custom_script: |
+              growpart:
+                mode: auto
+              resizefs:
+                  resize_rootfs: true
           cloud_init_nics:
             - nic_ip_address: "{{layer3_ocp_network_prefix}}.5"
               nic_boot_protocol: "static"
@@ -137,25 +148,52 @@
               nic_on_boot: true
               nic_name: "ens2"
 
+
+      - name: "{{layer3_ocp_name}}bootstrap"
+        tag: ocpcontrol
+        profile: "{{ control_vm_profile }}"
+        nics:
+          - name: nic1
+            mac_address: "42:42:42:42:42:06"
+
       - name: "{{layer3_ocp_name}}control-0"
         tag: ocpcontrol
         profile: "{{ control_vm_profile }}"
+        nics:
+          - name: nic1
+            mac_address: "42:42:42:42:42:10"
 
       - name: "{{layer3_ocp_name}}control-1"
         tag: ocpcontrol
         profile: "{{ control_vm_profile }}"
+        nics:
+          - name: nic1
+            mac_address: "42:42:42:42:42:11"
 
       - name: "{{layer3_ocp_name}}control-2"
         tag: ocpcontrol
         profile: "{{ control_vm_profile }}"
+        nics:
+          - name: nic1
+            mac_address: "42:42:42:42:42:12"
 
       - name: "{{layer3_ocp_name}}compute-0"
         tag: ocpcompute
         profile: "{{ compute_vm_profile }}"
+        nics:
+          - name: nic1
+            mac_address: "42:42:42:42:42:20"
 
       - name: "{{layer3_ocp_name}}compute-1"
         tag: ocpcompute
         profile: "{{ compute_vm_profile }}"
+        nics:
+          - name: nic1
+            mac_address: "42:42:42:42:42:21"
+
       - name: "{{layer3_ocp_name}}compute-2"
         tag: ocpcompute
         profile: "{{ compute_vm_profile }}"
+        nics:
+          - name: nic1
+            mac_address: "42:42:42:42:42:22"

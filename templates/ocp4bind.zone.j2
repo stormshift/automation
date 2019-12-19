@@ -13,12 +13,34 @@ $TTL    60
         IN      NS      {{layer3_ocp_name}}support.{{ sysctx_dns_domain }}.
         IN      MX      10 {{layer3_ocp_name}}support.{{ sysctx_dns_domain }}.
 
+; ClusterName CN = {{layer3_ocp_name}}
+; BaseDomain BD = {{ sysctx_dns_domain }}
 
-support   IN  A 172.16.10.5
-bootstrap  IN  A 172.16.10.6
-control-0  IN  A 172.16.10.10
-control-1  IN  A 172.16.10.11
-control-2  IN  A 172.16.10.12
-compute-0  IN  A 172.16.10.20
-compute-1  IN  A 172.16.10.21
-compute-2  IN  A 172.16.10.22
+
+
+; A records of Nodes/Host-names - might be done by DHCP
+control-0.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	86400 IN A 172.16.10.10
+control-1.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	86400 IN A 172.16.10.11
+control-2.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	86400 IN A 172.16.10.12
+compute-0.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	86400 IN A 172.16.10.20
+compute-1.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	86400 IN A 172.16.10.21
+compute-2.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	86400 IN A 172.16.10.22
+bootstrap.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	86400 IN A 172.16.10.6
+
+; SRV Records
+; _service._proto.name. 		TTL    class SRV priority weight port target.
+_etcd-server-ssl._tcp.{{layer3_ocp_name}}.{{sysctx_dns_domain}}  86400 IN    SRV 0        10     2380 etcd-0.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.
+_etcd-server-ssl._tcp.{{layer3_ocp_name}}.{{sysctx_dns_domain}}  86400 IN    SRV 0        10     2380 etcd-1.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.
+_etcd-server-ssl._tcp.{{layer3_ocp_name}}.{{sysctx_dns_domain}}  86400 IN    SRV 0        10     2380 etcd-2.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.
+
+; Additional A records to the Node/Host-names
+etcd-0.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	86400 IN A 172.16.10.10
+etcd-1.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	86400 IN A 172.16.10.11
+etcd-2.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	86400 IN A 172.16.10.12
+
+*.apps.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	   86400 IN A 172.16.10.1
+api.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	     86400 IN A 172.16.10.1
+api-int.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.   86400 IN A 172.16.10.1
+
+support.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.    86400 IN  A 172.16.10.5
+{{layer3_ocp_name}}support.{{layer3_ocp_name}}.{{sysctx_dns_domain}}. 86400   IN  A 172.16.10.5

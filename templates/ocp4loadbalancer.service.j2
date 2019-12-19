@@ -1,0 +1,31 @@
+[Unit]
+Description=OpenShift 4 LoadBalancer CLUSTER
+After=network.target
+
+[Service]
+Type=simple
+TimeoutStartSec=5m
+
+ExecStartPre=-/usr/bin/podman rm "openshift-4-loadbalancer"
+ExecStartPre=/usr/bin/podman pull quay.io/redhat-emea-ssa-team/openshift-4-loadbalancer
+ExecStart=/usr/bin/podman run --name openshift-4-loadbalancer --net host \
+  -e API=bootstrap={{layer3_ocp_network_prefix}}.6:6443,control-0={{layer3_ocp_network_prefix}}.10:6443,control-1={{layer3_ocp_network_prefix}}.11:6443,control-2={{layer3_ocp_network_prefix}}.12:6443 \
+  -e API_LISTEN=127.0.0.1:6443,{{layer3_ocp_network_prefix}}.1:6443,{{layer3_ocp_bastion_ip}}:6443 \
+  -e INGRESS_HTTP=control-0={{layer3_ocp_network_prefix}}.10:80,control-1={{layer3_ocp_network_prefix}}.11:80,control-2={{layer3_ocp_network_prefix}}.12:80,compute-0={{layer3_ocp_network_prefix}}.20:80,compute-1={{layer3_ocp_network_prefix}}.35:21,compute-2={{layer3_ocp_network_prefix}}.22:80 \
+  -e INGRESS_HTTP_LISTEN=127.0.0.1:80,{{layer3_ocp_network_prefix}}.1:80,{{layer3_ocp_bastion_ip}}:80 \
+  -e INGRESS_HTTPS=control-0={{layer3_ocp_network_prefix}}.10:443,control-1={{layer3_ocp_network_prefix}}.11:443,control-2={{layer3_ocp_network_prefix}}.12:443,compute-0={{layer3_ocp_network_prefix}}.20:443,compute-1={{layer3_ocp_network_prefix}}.21:443,compute-2={{layer3_ocp_network_prefix}}.22:443 \
+  -e INGRESS_HTTPS_LISTEN=127.0.0.1:443,{{layer3_ocp_network_prefix}}.1:443,{{layer3_ocp_bastion_ip}}:443 \
+  -e MACHINE_CONFIG_SERVER=bootstrap={{layer3_ocp_network_prefix}}.6:22623,control-0={{layer3_ocp_network_prefix}}.10:22623,control-1={{layer3_ocp_network_prefix}}.11:22623,control-2={{layer3_ocp_network_prefix}}.12:22623 \
+  -e MACHINE_CONFIG_SERVER_LISTEN=127.0.0.1:22623,{{layer3_ocp_network_prefix}}.1:22623,{{layer3_ocp_bastion_ip}}:22623 \
+  -e STATS_LISTEN=127.0.0.1:1984 \
+  -e STATS_ADMIN_PASSWORD=aengeo4oodoidaiP \
+  quay.io/redhat-emea-ssa-team/openshift-4-loadbalancer
+
+ExecReload=-/usr/bin/podman stop "openshift-4-loadbalancer"
+ExecReload=-/usr/bin/podman rm "openshift-4-loadbalancer"
+ExecStop=-/usr/bin/podman stop "openshift-4-loadbalancer"
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target
