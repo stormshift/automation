@@ -181,6 +181,15 @@
         zone: internal
         port: 6443/tcp
 
+    - name: Open Machine Config Port 22623 to internal
+      tags: bastion,firewall
+      firewalld:
+        immediate: yes
+        permanent: yes
+        state: enabled
+        zone: internal
+        port: 22623/tcp
+
 
     - name: Open external service ports
       tags: bastion,firewall
@@ -268,6 +277,9 @@
           - tftp-server
           - tftp
           - xinetd
+          - tar
+          - syslinux
+          - jq
         state: latest
 
     - name: upgrade all packages
@@ -446,11 +458,38 @@
       template:
         src: templates/ocp4tftp.j2
         dest:  /etc/xinetd.d/tftp
-
+      register: tftp_cfg
 
     - name: Enable and start tftp server
       tags: support,tftp
       service:
         name: xinetd
         enabled: yes
-        state: started
+        state: restarted
+      when: tftp_cfg is changed
+
+# -------------------------------------------------
+# ----------------------- prepare PXE boot
+# See: https://wiki.centos.org/HowTos/PXE/PXE_Setup
+    - name: Copy syslinux files
+      tags: support,pxe
+      copy:
+        src: /usr/share/syslinux/{{item}}
+        dest: /var/lib/tftpboot
+        remote_src: yes
+      with_items:
+        - pxelinux.0
+        - ldlinux.c32
+        - menu.c32
+        - memdisk
+        - mboot.c32
+        - chain.c32
+
+    - name: Create the directories for PXE menus and images
+      tags: support,pxe
+      file:
+        path: /var/lib/tftpboot/{{item}}
+        state: directory
+      with_items:
+        - pxelinux.cfg
+        - images

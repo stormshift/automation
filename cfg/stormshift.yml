@@ -6,6 +6,8 @@
   sysctx_admin_ssh_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDTz8MFjA+JwZQDmkR59fwnhi7eaL41RlYsD7THaa517AmzpS+ERsS4RO3voyqdwCFQWdEQ4LD9st1MpNx5Ap94+5kBKc7jO5tA7RuP/1pwGaRKfGf0i8vX/L6T6F6WGwNcXYkKg+JvMlfEBi+E1MmzVxf6WXEzowxt5rmY/cfQkT5vetdjmgycucMnWaX22rY1JgpdfoL+T8urQIVB4B7EuuA1dj80PeMQIKe6M0WJ6AeEm8Mrbi4z6fbQzcNcA2BdLgs9XUQS0HuxJLYgY8/DA82tMPXtzpcp9iOqIN8fynrYGx6YCIesF+vSxo1qSeTFqPyet5ZfttviyX/kfoPZ hailstorm@hailstormdeploy.coe.muc.redhat.com"
   sysctx_nfs_share: "10.32.96.43:/var/vdo/0/nfs/iso"
 
+  sysctx_proxy: "10.32.96.1:3128"
+
 # Secret stuff stored in ansible vault:
   secret_password: "{{vault_secret_password}}"
   sysctx_rhsm_user: "{{vault_sysctx_rhsm_user}}"
