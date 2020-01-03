@@ -280,6 +280,8 @@
           - tar
           - syslinux
           - jq
+          - python3
+          - python3-pip
         state: latest
 
     - name: upgrade all packages
@@ -287,6 +289,15 @@
       yum:
         name: '*'
         state: latest
+
+    - name: Install Python modules
+      tags: support,slow
+      pip:
+        name:
+          - openshift
+          - passlib
+        state: latest
+
 
 # -------------------------------------------------
 # ----------------------- setup bind as DNS Server
@@ -417,16 +428,18 @@
     - name: Make directory for nfs export
       tags: support,nfs
       file:
-        path: "/data/nfs/ocp"
-        mode: "0755"
+        path: "/data/nfs/ocp/{{ item }}"
+        mode: "0775"
         state: directory
+      with_items: "{{layer3_ocp4_nfs_volumes}}"
 
     - name: Export nfs directory
       tags: support,nfs
       lineinfile:
         path: /etc/exports
-        line: '/data/nfs/ocp *(async,wdelay,rw)'
+        line: '/data/nfs/ocp/{{ item }} *(rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)'
         create: yes
+      with_items: "{{layer3_ocp4_nfs_volumes }}"
 
     - name: Enable nfs
       tags: support,nfs
@@ -438,10 +451,14 @@
     - name: Open Firewall for nfs
       tags: support,nfs
       firewalld:
-       service: nfs
+       service: "{{ item }}"
        permanent: yes
        immediate: yes
        state: enabled
+      with_items:
+        - nfs
+        - mountd
+        - rpc-bind
 
 # -------------------------------------------------
 # ----------------------- setup tftp

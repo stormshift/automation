@@ -45,6 +45,28 @@
   layer2_rhev_storage_nfs_path: /var/rhev/storage/nfs
   layer2_rhev_engine_storage_connection: "{{layer1_nfs_fqn}}:{{layer2_rhev_storage_nfs_path}}/hostedEngine"
 
+  layer3_ocp4_nfs_volumes:
+    - pv_registry
+    - pv01
+    - pv02
+    - pv03
+    - pv04
+    - pv05
+    - pv06
+    - pv07
+    - pv08
+    - pv09
+    - pv10
+    - pv11
+    - pv12
+    - pv13
+    - pv14
+    - pv15
+    - pv16
+    - pv17
+    - pv18
+    - pv19
+    - pv20
 
 
 # see also ocp1..5.yml:

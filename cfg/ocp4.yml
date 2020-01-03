@@ -49,8 +49,8 @@
       memory: 32GiB
       memory_guaranteed: 32GiB
       memory_max: 64GiB
-      sockets: 6
-      cores: 6
+      sockets: 1
+      cores: 10
       cpu_threads: 1
       boot_devices:
         - hd
