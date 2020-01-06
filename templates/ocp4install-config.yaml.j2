@@ -1,0 +1,25 @@
+apiVersion: v1
+baseDomain: {{sysctx_dns_domain}}
+compute:
+- hyperthreading: Disabled
+  name: worker
+  replicas: 0
+controlPlane:
+  hyperthreading: Disabled
+  name: master
+  replicas: 3
+metadata:
+  name: {{layer3_ocp_name}}
+networking:
+  clusterNetwork:
+  - cidr: 10.128.0.0/14
+    hostPrefix: 23
+  networkType: OpenShiftSDN
+  serviceNetwork:
+  - 172.30.0.0/16
+platform:
+  none: {}
+pullSecret: '{{lookup('file', '/home/hailstorm/ocp4binaries/pull-secret.txt') }}'
+sshKey: '{{sysctx_admin_ssh_key}}'
+additionalTrustBundle: |
+    {{lookup('file', '/home/hailstorm/certs/redhat-pki-ca-chain.crt') }}

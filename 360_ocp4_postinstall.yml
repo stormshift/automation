@@ -1,0 +1,192 @@
+---
+
+
+# ------------------------------------------------------------------------------
+# This customizes the OpenShift V4 Installation
+# Heavily inspired / re-used from
+# https://github.com/RedHat-EMEA-SSA-Team/hetzner-ocp4/blob/master/ansible/roles/openshift-4-cluster/tasks/post-install.yml
+
+- name: Configure OpenShift4 from support node
+  hosts: "{{layer3_ocp_name}}support.stormshift.coe.muc.redhat.com"
+  gather_facts: false
+  vars_files:
+    - cfg/secrets.yml
+    - cfg/stormshift.yml
+  tasks:
+
+# ------------------------------------------------------------------------------
+# Install Certs to Ingress Operator
+# ------------------------------------------------------------------------------
+
+    - name: Create secret with certificates
+      tags: certs
+      k8s:
+        state: present
+        kubeconfig: "/root/ocp4install/auth/kubeconfig"
+        definition:
+          apiVersion: v1
+          kind: Secret
+          data:
+            tls.crt: "{{  lookup('file', '/home/hailstorm/certs/stormshift_fullchain.crt', rstrip=false) | b64encode }}"
+            tls.key: "{{  lookup('file', '/home/hailstorm/certs/stormshift.key', rstrip=false)  | b64encode }}"
+          metadata:
+            name: stormshift-router-certs
+            namespace: openshift-ingress
+          type: kubernetes.io/tls
+
+    - name: Patch ingresscontroller/default
+      tags: certs
+      k8s:
+        state: present
+        kubeconfig: "/root/ocp4install/auth/kubeconfig"
+        merge_type: merge
+        definition:
+          apiVersion: operator.openshift.io/v1
+          kind: IngressController
+          metadata:
+            name: default
+            namespace: openshift-ingress-operator
+          spec:
+            defaultCertificate:
+              name: stormshift-router-certs
+
+# ------------------------------------------------------------------------------
+# Configure authentication
+# ------------------------------------------------------------------------------
+    - set_fact:
+        identity_roviders: "[]"
+      tags: auth
+
+    - name: Create htpasswd file
+      tags: auth,htpasswd
+      local_action:
+        module: htpasswd
+        path: /tmp/htpasswd.{{layer3_ocp_name}}
+        name: "{{item}}"
+        password: "{{secret_password}}"
+      with_items: "{{layer3_ocp_admin_users}}"
+      register: htpasswd
+
+
+    - name: Create htpasswd secret
+      tags: auth,htpasswd
+      k8s:
+        state: present
+        kubeconfig: "/root/ocp4install/auth/kubeconfig"
+        definition:
+          apiVersion: v1
+          data:
+            htpasswd: "{{ lookup('file', '/tmp/htpasswd.{{layer3_ocp_name}}') | b64encode }}"
+          kind: Secret
+          metadata:
+            name: htpasswd
+            namespace: openshift-config
+          type: Opaque
+      when: htpasswd is changed
+
+    - name: Create htpasswd identity provider template
+      tags: auth,htpasswd
+      set_fact:
+        htpasswd_idp:
+          htpasswd:
+            fileData:
+              name: htpasswd
+          mappingMethod: claim
+          name: Local
+          type: HTPasswd
+
+    - name: Push htpasswd_idp to identity_providers
+      tags: auth,htpasswd
+      set_fact:
+        identity_roviders: "{{ identity_roviders }} + [ {{ htpasswd_idp }} ]"
+
+    - name: Create google secret secret
+      tags: auth,google
+      k8s:
+        state: present
+        kubeconfig: "/root/ocp4install/auth/kubeconfig"
+        definition:
+          apiVersion: v1
+          data:
+            clientSecret: "{{ sysctx_google_auth_client_secret | b64encode }}"
+          kind: Secret
+          metadata:
+            name: google-secret
+            namespace: openshift-config
+          type: Opaque
+
+    - name: Create google identity provider template
+      tags: auth,google
+      set_fact:
+        redhatsso_idp:
+          google:
+            clientID: "{{ sysctx_google_auth_client_id }}"
+            clientSecret:
+              name: google-secret
+            hostedDomain: redhat.com
+          mappingMethod: claim
+          name: RedHatInternalSSO
+          type: Google
+
+    - name: Push google to identpty_providers
+      tags: auth,google
+      set_fact:
+        identity_roviders: "{{ identity_roviders }} + [ {{ redhatsso_idp }} ]"
+
+    - name: Configure identity providers
+      tags: auth
+      k8s:
+        state: present
+        kubeconfig: "/root/ocp4install/auth/kubeconfig"
+        definition:
+            apiVersion: config.openshift.io/v1
+            kind: OAuth
+            metadata:
+              name: cluster
+            spec:
+              identityProviders: "{{ identity_roviders }}"
+
+    - name: Add cluster-admin role to admins
+      tags: auth
+      k8s:
+        state: present
+        kubeconfig: "/root/ocp4install/auth/kubeconfig"
+        definition:
+          kind: ClusterRoleBinding
+          apiVersion: rbac.authorization.k8s.io/v1
+          metadata:
+            name: "{{ item }}-cluster-admin"
+          subjects:
+          - apiGroup: rbac.authorization.k8s.io
+            kind: User
+            name: "{{ item }}"
+          roleRef:
+            kind: ClusterRole
+            name: "cluster-admin"
+      with_items: "{{layer3_ocp_admin_users}}"
+
+# ------------------------------------------------------------------------------
+# Create additional NFS PVS until OCS is available...
+# ------------------------------------------------------------------------------
+    - name: Create NFS PVS
+      tags: pvs
+      k8s:
+        state: present
+        kubeconfig: "/root/ocp4install/auth/kubeconfig"
+        definition:
+          apiVersion: v1
+          kind: PersistentVolume
+          metadata:
+            name: "{{ item }}"
+          spec:
+            accessModes:
+              - ReadWriteMany
+              - ReadWriteOnce
+              - ReadOnlyMany
+            capacity:
+              storage: 100Gi
+            nfs:
+              path: "/data/nfs/ocp/{{ item }}"
+              server: 172.16.10.5
+            persistentVolumeReclaimPolicy: Recycle
+      with_items: "{{layer3_ocp4_nfs_volumes}}"
