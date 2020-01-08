@@ -32,7 +32,6 @@
         name: "{{layer3_ocp_name}}-network"
         vm_network: true
         mtu: 1442
-        external_provider: ovirt-provider-ovn
 
 - name: Configure Layer1 DNS
   hosts: layer1
@@ -113,12 +112,10 @@
           - haproxy
           - firewalld
           - tftp
-        state: latest
-
-    - name: Install container tools
-      tags: bastion,slow,podman,broken
-      yum:
-        name: "@container-tools"
+          - skopeo
+          - podman
+          - buildah
+          - oci-umount
         state: latest
 
     - name: upgrade all packages
@@ -425,7 +422,7 @@
 
 # -------------------------------------------------
 # ----------------------- setup nfs Server
-    - name: Make directory for nfs export
+    - name: Make directory for nfs exports
       tags: support,nfs
       file:
         path: "/data/nfs/ocp/{{ item }}"
@@ -433,13 +430,33 @@
         state: directory
       with_items: "{{layer3_ocp4_nfs_volumes}}"
 
-    - name: Export nfs directory
+    - name: Export nfs directories
       tags: support,nfs
       lineinfile:
         path: /etc/exports
         line: '/data/nfs/ocp/{{ item }} *(rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)'
         create: yes
-      with_items: "{{layer3_ocp4_nfs_volumes }}"
+      with_items: "{{layer3_ocp4_nfs_volumes}}"
+
+
+    - name: Make directory for nfs registry
+      tags: support,nfs
+      file:
+        path: "/data/nfs/ocp/{{ item }}"
+        mode: "0775"
+        state: directory
+      with_items:
+        - pv_registry
+
+
+    - name: Export nfs registry directory
+      tags: support,nfs
+      lineinfile:
+        path: /etc/exports
+        line: '/data/nfs/ocp/{{ item }} *(rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)'
+        create: yes
+      with_items:
+        - pv_registry
 
     - name: Enable nfs
       tags: support,nfs

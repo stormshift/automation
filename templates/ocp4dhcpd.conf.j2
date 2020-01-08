@@ -28,16 +28,16 @@ subnet 172.16.10.0 netmask 255.255.255.0 {
 group {
   filename "/pxelinux.0";
   next-server 172.16.10.5;
-  host bootstrap {hardware ethernet 42:42:42:42:42:06; fixed-address 172.16.10.6;}
-  host control-0 {hardware ethernet 42:42:42:42:42:10; fixed-address 172.16.10.10;}
-  host control-1 {hardware ethernet 42:42:42:42:42:11; fixed-address 172.16.10.11;}
-  host control-2 {hardware ethernet 42:42:42:42:42:12; fixed-address 172.16.10.12;}
+  host bootstrap {hardware ethernet {{layer3_ocp_mac_prefix}}:06; fixed-address 172.16.10.6;}
+  host control-0 {hardware ethernet {{layer3_ocp_mac_prefix}}:10; fixed-address 172.16.10.10;}
+  host control-1 {hardware ethernet {{layer3_ocp_mac_prefix}}:11; fixed-address 172.16.10.11;}
+  host control-2 {hardware ethernet {{layer3_ocp_mac_prefix}}:12; fixed-address 172.16.10.12;}
 }
 
 group {
   filename "/pxelinux.0";
   next-server 172.16.10.5;
-  host compute-0 {hardware ethernet 42:42:42:42:42:20; fixed-address 172.16.10.20;}
-  host compute-1 {hardware ethernet 42:42:42:42:42:21; fixed-address 172.16.10.21;}
-  host compute-2 {hardware ethernet 42:42:42:42:42:22; fixed-address 172.16.10.22;}
+  host compute-0 {hardware ethernet {{layer3_ocp_mac_prefix}}:20; fixed-address 172.16.10.20;}
+  host compute-1 {hardware ethernet {{layer3_ocp_mac_prefix}}:21; fixed-address 172.16.10.21;}
+  host compute-2 {hardware ethernet {{layer3_ocp_mac_prefix}}:22; fixed-address 172.16.10.22;}
 }

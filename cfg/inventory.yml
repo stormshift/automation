@@ -42,16 +42,10 @@ all:
           ocp2bastion:
             hosts:
               ocp2bastion.stormshift.coe.muc.redhat.com
-          ocp2nodes:
-            children:
-                ocp2masters:
-                  hosts:
-                    ocp2master1:
+          ocp2support:
             hosts:
-              ocp2inf1:
-              ocp2app1:
+              ocp2support.stormshift.coe.muc.redhat.com
             vars:
-    #          ansible_ssh_common_args: '-o ProxyCommand="ssh -W %h:%p -q root@ocp1bastion.hailstorm5.coe.muc.redhat.com"'
               ansible_ssh_common_args: '-o ProxyJump=root@ocp2bastion.stormshift.coe.muc.redhat.com -o StrictHostKeyChecking=no'
 
 # -----------------------
@@ -62,16 +56,10 @@ all:
           ocp3bastion:
             hosts:
               ocp3bastion.stormshift.coe.muc.redhat.com
-          ocp3nodes:
-            children:
-                ocp3masters:
-                  hosts:
-                    ocp3master1:
+          ocp3support:
             hosts:
-              ocp3inf1:
-              ocp3app1:
+              ocp3support.stormshift.coe.muc.redhat.com
             vars:
-    #          ansible_ssh_common_args: '-o ProxyCommand="ssh -W %h:%p -q root@ocp1bastion.hailstorm5.coe.muc.redhat.com"'
               ansible_ssh_common_args: '-o ProxyJump=root@ocp3bastion.stormshift.coe.muc.redhat.com -o StrictHostKeyChecking=no'
 
 # -----------------------

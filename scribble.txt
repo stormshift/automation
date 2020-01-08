@@ -27,3 +27,39 @@ vi /etc/sysconfig/docker-storage-setup
 docker-storage-setup
 rm -Rf /var/lib/docker/*
 reboot
+
+
+# -------------------------------------------
+# ------------------ OCP4 Rollout
+# -------------------------------------------
+
+# -------------------------------------------
+# Pre-Reqs (Ask Daniel F.):
+- SSH Access to hailstorm@hailstormdeploy.coe.muc.redhat.com
+- User+Pswd for RHEV Console
+
+
+# -------------------------------------------
+# Step 1: Create the RHEV Network manually
+Log on to RHEV Console (https://rhev.stormshift.coe.muc.redhat.com)
+Navigate to Network -> New
+name: ocpXXX-network
+mtu: custom: 1442
+Create on external Provider: true
+External Provider = ovirt-provider-ovn
+Network port security = DISABLED
+
+
+# -------------------------------------------
+# Step 2: Provision the Infrastructure using Ansible Playbook 340_ocp4_provision_infrastructure.yml
+ssh hailstorm@hailstormdeploy.coe.muc.redhat.com
+[hailstorm@hailstormdeploy ~]$ tmux
+[hailstorm@hailstormdeploy ~]$ cd stormshift
+[hailstorm@hailstormdeploy stormshift]$ ansible-playbook -i cfg/inventory.yml -e @cfg/ocp3.yml 340_ocp4_provision_infrastructure.yml
+
+# If something fails, fix the issue and re-run.
+# To speed things up, you can start with the failed task, e.g
+[hailstorm@hailstormdeploy stormshift]$ ansible-playbook -i cfg/inventory.yml -e @cfg/ocp3.yml 340_ocp4_provision_infrastructure.yml --start-at-task "Install packages"
+
+# -------------------------------------------
+# Step 3: Install OpenShift

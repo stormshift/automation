@@ -118,24 +118,56 @@
         src: templates/ocp4pxe_menu.j2
         dest: /var/lib/tftpboot/pxelinux.cfg/{{item.mac}}
       with_items:
-        - { mac: '01-42-42-42-42-42-06', ign: 'bootstrap.ign' }
-        - { mac: '01-42-42-42-42-42-10', ign: 'master.ign' }
-        - { mac: '01-42-42-42-42-42-11', ign: 'master.ign' }
-        - { mac: '01-42-42-42-42-42-12', ign: 'master.ign' }
-        - { mac: '01-42-42-42-42-42-20', ign: 'worker.ign' }
-        - { mac: '01-42-42-42-42-42-21', ign: 'worker.ign' }
-        - { mac: '01-42-42-42-42-42-22', ign: 'worker.ign' }
+        - { mac: '01-{{layer3_ocp_mac_prefix_dash}}-06', ign: 'bootstrap.ign' }
+        - { mac: '01-{{layer3_ocp_mac_prefix_dash}}-10', ign: 'master.ign' }
+        - { mac: '01-{{layer3_ocp_mac_prefix_dash}}-11', ign: 'master.ign' }
+        - { mac: '01-{{layer3_ocp_mac_prefix_dash}}-12', ign: 'master.ign' }
+        - { mac: '01-{{layer3_ocp_mac_prefix_dash}}-20', ign: 'worker.ign' }
+        - { mac: '01-{{layer3_ocp_mac_prefix_dash}}-21', ign: 'worker.ign' }
+        - { mac: '01-{{layer3_ocp_mac_prefix_dash}}-22', ign: 'worker.ign' }
 
 
 
 # ------------------------------------------------------------------------------
 # Step: Start VMS...
 # ------------------------------------------------------------------------------
-# TODO....
+- name: Start Virtual Machines
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - cfg/secrets.yml
+    - cfg/stormshift.yml
+  tasks:
+    - name: Login into RHEV
+      tags: boot
+      ovirt_auth:
+       url: "{{layer2_rhev_engine_url}}"
+       username: "{{layer2_rhev_engine_user}}"
+       password: "{{layer2_rhev_engine_password}}"
+
+    - name: Start virtual machines
+      tags: boot
+      ovirt_vm:
+        auth: "{{ ovirt_auth }}"
+        name: "{{ item.name }}"
+        state: running
+        wait: no
+      with_items: "{{vms}}"
+      changed_when: false
+
+
 
 # ------------------------------------------------------------------------------
 # Step: Wait for bootstrap to complete
 # ------------------------------------------------------------------------------
+- name: Post deployment stuff
+  hosts: "{{layer3_ocp_name}}support.stormshift.coe.muc.redhat.com"
+  gather_facts: false
+  vars_files:
+    - cfg/secrets.yml
+    - cfg/stormshift.yml
+  tasks:
     - name: Waiting bootstrap to complete
       command: "/root/bin/openshift-install wait-for bootstrap-complete --dir=/root/ocp4install --log-level debug"
       register: bootstrap_status
@@ -210,6 +242,7 @@
       k8s:
         state: present
         kubeconfig: "/root/ocp4install/auth/kubeconfig"
+        merge_type: merge
         definition:
           kind: Config
           apiVersion: imageregistry.operator.openshift.io/v1

@@ -1,6 +1,7 @@
     layer3_ocp_name: "ocp4"
     layer3_ocp_bastion_ip: "10.32.105.44"
     layer3_ocp_network_prefix: "172.16.10"
+    layer3_ocp_mac_prefix: "42:42:42:42:04"
     useFirewalld: true
     std_gateway: "{{layer3_ocp_network_prefix}}.1"
     layer3_ocp_version: "4.2.10"
@@ -160,46 +161,46 @@
         profile: "{{ control_vm_profile }}"
         nics:
           - name: nic1
-            mac_address: "42:42:42:42:42:06"
+            mac_address: "{{layer3_ocp_mac_prefix}}:06"
 
       - name: "{{layer3_ocp_name}}control-0"
         tag: ocpcontrol
         profile: "{{ control_vm_profile }}"
         nics:
           - name: nic1
-            mac_address: "42:42:42:42:42:10"
+            mac_address: "{{layer3_ocp_mac_prefix}}:10"
 
       - name: "{{layer3_ocp_name}}control-1"
         tag: ocpcontrol
         profile: "{{ control_vm_profile }}"
         nics:
           - name: nic1
-            mac_address: "42:42:42:42:42:11"
+            mac_address: "{{layer3_ocp_mac_prefix}}:11"
 
       - name: "{{layer3_ocp_name}}control-2"
         tag: ocpcontrol
         profile: "{{ control_vm_profile }}"
         nics:
           - name: nic1
-            mac_address: "42:42:42:42:42:12"
+            mac_address: "{{layer3_ocp_mac_prefix}}:12"
 
       - name: "{{layer3_ocp_name}}compute-0"
         tag: ocpcompute
         profile: "{{ compute_vm_profile }}"
         nics:
           - name: nic1
-            mac_address: "42:42:42:42:42:20"
+            mac_address: "{{layer3_ocp_mac_prefix}}:20"
 
       - name: "{{layer3_ocp_name}}compute-1"
         tag: ocpcompute
         profile: "{{ compute_vm_profile }}"
         nics:
           - name: nic1
-            mac_address: "42:42:42:42:42:21"
+            mac_address: "{{layer3_ocp_mac_prefix}}:21"
 
       - name: "{{layer3_ocp_name}}compute-2"
         tag: ocpcompute
         profile: "{{ compute_vm_profile }}"
         nics:
           - name: nic1
-            mac_address: "42:42:42:42:42:22"
+            mac_address: "{{layer3_ocp_mac_prefix}}:22"

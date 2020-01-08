@@ -190,3 +190,25 @@
               server: 172.16.10.5
             persistentVolumeReclaimPolicy: Recycle
       with_items: "{{layer3_ocp4_nfs_volumes}}"
+
+# ------------------------------------------------------------------------------
+# Add Red Hat Internal CA to trust chain
+# (https://docs.openshift.com/container-platform/4.2/networking/configuring-a-custom-pki.html#nw-proxy-configure-object_configuring-a-custom-pki)
+# The CA Chain is in user-ca-bundle ConfigMap, thanks to install
+# config "additionalTrustBundle" (see there). Thus, wee need only
+# to add it to the Cluster Proxy Config
+# ------------------------------------------------------------------------------
+    - name: Add Red Hat Internal CA to trust chain
+      tags: pvs
+      k8s:
+        state: present
+        kubeconfig: "/root/ocp4install/auth/kubeconfig"
+        merge_type: merge
+        definition:
+          apiVersion: config.openshift.io/v1
+          kind: Proxy
+          metadata:
+            name: cluster
+          spec:
+            trustedCA:
+              name: "user-ca-bundle"
