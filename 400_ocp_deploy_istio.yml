@@ -1,3 +1,41 @@
+# 1. Install Operators
+# Elastic
+# Jaeger
+# Kiali
+# ServiceMesh
+
+# 2. Deploy Control Plane
+create project istio-system
+deploy basic-install
+# add dfroehli@redhat.com as project-admin
+# ...
+
+# update MemberRoll default- add istio-demo:
+#oc -n <control plane project> patch --type='json' smmr default -p '[{"op": "add", "path": "/spec/members", "value":["'"bookinfo"'"]}]'
+
+# 3. Deploy bookinfo demo app
+# See:
+# https://docs.openshift.com/container-platform/4.2/service_mesh/service_mesh_day_two/ossm-example-bookinfo.html
+oc new-project bookinfo
+oc apply -n bookinfo -f https://raw.githubusercontent.com/Maistra/bookinfo/maistra-1.0/bookinfo.yaml
+oc apply -n bookinfo -f https://raw.githubusercontent.com/Maistra/bookinfo/maistra-1.0/bookinfo-gateway.yaml
+oc apply -n bookinfo -f https://raw.githubusercontent.com/istio/istio/release-1.1/samples/bookinfo/networking/destination-rule-all.yaml
+
+
+# Call bookinfo via CURL
+export GATEWAY_URL=$(oc -n istio-system get route istio-ingressgateway -o jsonpath='{.spec.host}')
+curl -o /dev/null -s -w "%{http_code}\n" http://$GATEWAY_URL/productpage
+
+while true; do curl -o /dev/null -s -w "%{http_code}\n" http://$GATEWAY_URL/productpage; done
+
+# Call via Browser:
+# URL: http://istio-ingressgateway-istio-system.apps.ocp3.stormshift.coe.muc.redhat.com/productpage
+
+# Access Kiali:
+# URL https://kiali-istio-system.apps.ocp3.stormshift.coe.muc.redhat.com/console/overview?duration=60&pi=15000
+
+
+
 # This deployes istio operator,controlplane and demo app
 # Example:
 # ansible-playbook -i cfg/inventory.yml -e @cfg/ocp2.yml  -e delete=yes 400_ocp_deploy_istio.yml --tags demo

@@ -38,6 +38,16 @@ reboot
 - SSH Access to hailstorm@hailstormdeploy.coe.muc.redhat.com
 - User+Pswd for RHEV Console
 
+# -------------------------------------------
+# Step 0: Cleanup
+1. Manually delete all exitings VMS for this Cluster in RHEV.
+Be sure to include the disks.
+
+2. remove the host keys for ocp2.... from hailstorm@hailstormdeploy:~/.ssh/known_hosts
+[hailstorm@hailstormdeploy stormshift]$ vi ~/.ssh/known_hosts
+
+
+
 
 # -------------------------------------------
 # Step 1: Create the RHEV Network manually
@@ -52,8 +62,15 @@ Network port security = DISABLED
 
 # -------------------------------------------
 # Step 2: Provision the Infrastructure using Ansible Playbook 340_ocp4_provision_infrastructure.yml
+# (Takes roughly  10 Minutes)
+# 11:08 -
 ssh hailstorm@hailstormdeploy.coe.muc.redhat.com
+
+# Use tmux to avoid issue in case of loss of signal:
 [hailstorm@hailstormdeploy ~]$ tmux
+
+#(use tmux attach-session -t 0 to return to your session)
+
 [hailstorm@hailstormdeploy ~]$ cd stormshift
 [hailstorm@hailstormdeploy stormshift]$ ansible-playbook -i cfg/inventory.yml -e @cfg/ocp3.yml 340_ocp4_provision_infrastructure.yml
 
@@ -63,3 +80,11 @@ ssh hailstorm@hailstormdeploy.coe.muc.redhat.com
 
 # -------------------------------------------
 # Step 3: Install OpenShift
+# (Takes roughly 30 minutes)
+ansible-playbook -i cfg/inventory.yml -e @cfg/ocp2.yml 350_ocp4_install.yml
+
+# -------------------------------------------
+# Step 4: Configure OpenShift
+# (Takes roughly 2 minutes to run, but wait 5 minutes for all changes
+# to be picked up by operators)
+ansible-playbook -i cfg/inventory.yml -e @cfg/ocp2.yml 360_ocp4_postinstall.yml

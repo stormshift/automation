@@ -171,6 +171,7 @@
     - name: Waiting bootstrap to complete
       command: "/root/bin/openshift-install wait-for bootstrap-complete --dir=/root/ocp4install --log-level debug"
       register: bootstrap_status
+      changed_when: false
       retries: 60
       delay: 60
       until: bootstrap_status.rc == 0
@@ -252,6 +253,12 @@
             storage:
               pvc:
                 claim: registry-storage
+# Needs retry because Operator needs time to create that object
+      failed_when: false
+      register: patch_status
+      retries: 18
+      delay: 10
+      until: patch_status.msg is not defined
 
 #  oc get pod -n openshift-image-registry | grep Running
 
@@ -263,6 +270,7 @@
 # ------------------------------------------------------------------------------
     - name: Waiting install to complete
       command: "/root/bin/openshift-install wait-for install-complete --dir=/root/ocp4install --log-level debug"
+      changed_when: false
       register: install_status
       retries: 60
       delay: 60
