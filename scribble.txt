@@ -81,6 +81,7 @@ ssh hailstorm@hailstormdeploy.coe.muc.redhat.com
 # -------------------------------------------
 # Step 3: Install OpenShift
 # (Takes roughly 30 minutes)
+# 11:20
 ansible-playbook -i cfg/inventory.yml -e @cfg/ocp2.yml 350_ocp4_install.yml
 
 # -------------------------------------------

@@ -131,11 +131,17 @@
           cores: 2
           cpu_threads: 1
           disks:
-            - size: 100GiB
+            - size: 10GiB
               name: rhel8disk
               name_prefix: false
               storage_domain: data
               interface: virtio
+            - size: 100GiB
+              name: data
+              name_prefix: true
+              storage_domain: data
+              interface: virtio
+              
           nics:
             - name: nic1
               network: "{{layer3_ocp_name}}-network"

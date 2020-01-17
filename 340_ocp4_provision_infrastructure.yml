@@ -91,6 +91,10 @@
       vars:
         wait_for_ip: false
 
+# TODO: Remove SSH keys from deployer-node if modified,
+# to avoid failing of next steps due to ssh host key changes
+
+
 - name: Configure Bastion
   hosts: "{{layer3_ocp_name}}bastion.stormshift.coe.muc.redhat.com"
   gather_facts: false
@@ -420,43 +424,70 @@
        immediate: yes
        state: enabled
 
+
+# -------------------------------------------------
+# -----------------------  create /data on lvm /sda
+    - name: Create logical volume for data
+      tags: lvm
+      lvg:
+        vg: data_vg
+        pvs: /dev/vdb
+        state: present
+
+    - name: Create logical volume for data
+      tags: lvm
+      lvol:
+        vg: data_vg
+        lv: data_lv
+        size: 90g
+        state: present
+
+    - name: Create filesystem for data_lv
+      tags: lvm
+      filesystem:
+        fstype: xfs
+        dev: /dev/mapper/data_vg-data_lv
+
+    - name: Mount file system for data
+      tags: lvm
+      mount:
+        path: /data
+        src: /dev/mapper/data_vg-data_lv
+        fstype: xfs
+        state: mounted
+
 # -------------------------------------------------
 # ----------------------- setup nfs Server
+
     - name: Make directory for nfs exports
       tags: support,nfs
       file:
         path: "/data/nfs/ocp/{{ item }}"
-        mode: "0775"
-        state: directory
-      with_items: "{{layer3_ocp4_nfs_volumes}}"
-
-    - name: Export nfs directories
-      tags: support,nfs
-      lineinfile:
-        path: /etc/exports
-        line: '/data/nfs/ocp/{{ item }} *(rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)'
-        create: yes
-      with_items: "{{layer3_ocp4_nfs_volumes}}"
-
-
-    - name: Make directory for nfs registry
-      tags: support,nfs
-      file:
-        path: "/data/nfs/ocp/{{ item }}"
-        mode: "0775"
+        mode: "770"
         state: directory
       with_items:
         - pv_registry
+        - user-pvs
 
-
-    - name: Export nfs registry directory
+    - name: Export nfs directory
       tags: support,nfs
       lineinfile:
         path: /etc/exports
-        line: '/data/nfs/ocp/{{ item }} *(rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)'
+        line: '/data/nfs/ocp/{{ item }} 172.16.10.1/24(rw,sync,no_root_squash)'
         create: yes
       with_items:
         - pv_registry
+        - user-pvs
+
+    - name: disable nfs v3
+      tags: support,nfs
+      blockinfile:
+        path: /etc/nfs.conf
+        insertafter: "# vers3=y"
+        marker: "# {mark} - Ansible Managed - OCP V4 - NFS V2/3 disabled"
+        block: |
+          vers2=n
+          vers3=n
 
     - name: Enable nfs
       tags: support,nfs

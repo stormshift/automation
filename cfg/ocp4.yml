@@ -2,6 +2,8 @@
     layer3_ocp_bastion_ip: "10.32.105.44"
     layer3_ocp_network_prefix: "172.16.10"
     layer3_ocp_mac_prefix: "42:42:42:42:04"
+    layer3_ocp_mac_prefix_dash: "42-42-42-42-04"
+
     useFirewalld: true
     std_gateway: "{{layer3_ocp_network_prefix}}.1"
     layer3_ocp_version: "4.2.10"
@@ -51,7 +53,7 @@
       memory_guaranteed: 32GiB
       memory_max: 64GiB
       sockets: 1
-      cores: 10
+      cores: 8
       cpu_threads: 1
       boot_devices:
         - hd
@@ -129,9 +131,14 @@
           cores: 2
           cpu_threads: 1
           disks:
-            - size: 100GiB
+            - size: 10GiB
               name: rhel8disk
               name_prefix: false
+              storage_domain: data
+              interface: virtio
+            - size: 100GiB
+              name: data
+              name_prefix: true
               storage_domain: data
               interface: virtio
           nics:
