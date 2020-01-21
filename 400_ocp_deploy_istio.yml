@@ -1,102 +1,17 @@
-# 1. Install Operators
-# Elastic
-# Jaeger
-# Kiali
-# ServiceMesh
 
-# 2. Deploy Control Plane
-create project istio-system
-deploy basic-install
-# add dfroehli@redhat.com as project-admin
-# ...
-
-# update MemberRoll default- add istio-demo:
-#oc -n <control plane project> patch --type='json' smmr default -p '[{"op": "add", "path": "/spec/members", "value":["'"bookinfo"'"]}]'
-
-# 3. Deploy bookinfo demo app
-# See:
-# https://docs.openshift.com/container-platform/4.2/service_mesh/service_mesh_day_two/ossm-example-bookinfo.html
-oc new-project bookinfo
-oc apply -n bookinfo -f https://raw.githubusercontent.com/Maistra/bookinfo/maistra-1.0/bookinfo.yaml
-oc apply -n bookinfo -f https://raw.githubusercontent.com/Maistra/bookinfo/maistra-1.0/bookinfo-gateway.yaml
-oc apply -n bookinfo -f https://raw.githubusercontent.com/istio/istio/release-1.1/samples/bookinfo/networking/destination-rule-all.yaml
-
-
+# DEMO Instructions:
 # Call bookinfo via CURL
-export GATEWAY_URL=$(oc -n istio-system get route istio-ingressgateway -o jsonpath='{.spec.host}')
-curl -o /dev/null -s -w "%{http_code}\n" http://$GATEWAY_URL/productpage
-
-while true; do curl -o /dev/null -s -w "%{http_code}\n" http://$GATEWAY_URL/productpage; done
-
+#export GATEWAY_URL=$(oc -n istio-system get route istio-ingressgateway -o jsonpath='{.spec.host}')
+#curl -o /dev/null -s -w "%{http_code}\n" http://$GATEWAY_URL/productpage
+#while true; do curl -o /dev/null -s -w "%{http_code}\n" http://$GATEWAY_URL/productpage; done
+#
 # Call via Browser:
 # URL: http://istio-ingressgateway-istio-system.apps.ocp3.stormshift.coe.muc.redhat.com/productpage
-
+#
 # Access Kiali:
 # URL https://kiali-istio-system.apps.ocp3.stormshift.coe.muc.redhat.com/console/overview?duration=60&pi=15000
 
-
-
-# This deployes istio operator,controlplane and demo app
-# Example:
-# ansible-playbook -i cfg/inventory.yml -e @cfg/ocp2.yml  -e delete=yes 400_ocp_deploy_istio.yml --tags demo
-#
-# To Remove/undeploy, set env variable "delete=yes" and use tag "delete":
-# ansible-playbook -i cfg/inventory.yml -e @cfg/ocp2.yml  -e delete=yes 400_ocp_deploy_istio.yml --tags delete
-#
-- name: Configure Masters for istio
-  hosts: "{{layer3_ocp_name}}masters"
-  vars_files:
-    - cfg/secrets.yml
-    - cfg/stormshift.yml
-
-  tasks:
-    - name: Add WebHooks to master admission config
-      tags: pre,master
-      blockinfile:
-        path: /etc/origin/master/master-config.yaml
-        marker: "# {mark} ANSIBLE MANAGED BLOCK ISTIO {{layer3_ocp_name}}"
-        backup: yes
-        insertbefore: "openshift.io/ImagePolicy"
-        block: |
-          # Webhooks for ISTIO
-              MutatingAdmissionWebhook:
-                configuration:
-                  apiVersion: apiserver.config.k8s.io/v1alpha1
-                  kubeConfigFile: /dev/null
-                  kind: WebhookAdmission
-              ValidatingAdmissionWebhook:
-                configuration:
-                  apiVersion: apiserver.config.k8s.io/v1alpha1
-                  kubeConfigFile: /dev/null
-                  kind: WebhookAdmission
-      register: mastercfg
-
-    - name: Restart Master
-      tags: pre,master
-      block:
-        - name: Restart API
-          tags: pre,master
-          command: master-restart api
-          changed_when: false
-
-        - name: Restart Controllers
-          tags: pre,master
-          command: master-restart controllers
-          changed_when: false
-
-        - name: Wait for master to be online again
-          tags: pre,master
-          wait_for:
-            host: localhost
-            port: 8443
-        - name: Wait 30s for master to finish init
-          tags: pre,master
-          wait_for:
-            timeout: 30
-      when: mastercfg is changed
-
-
-- name: Deploy istio
+- name: Deploy istio and bookinfo demo
   hosts: localhost
   connection: local
   gather_facts: false
@@ -105,44 +20,111 @@ while true; do curl -o /dev/null -s -w "%{http_code}\n" http://$GATEWAY_URL/prod
     - cfg/secrets.yml
     - cfg/stormshift.yml
   vars:
-    namespace_operator: "istio-operator"
     namespace_system: "istio-system"
     namespace_demo: "istio-demo"
-    operator_template_url: "https://raw.githubusercontent.com/Maistra/istio-operator/maistra-0.11/deploy/servicemesh-operator.yaml"
 
   tasks:
-    - name: Login to Openshift
-      command: "oc login {{layer3_ocp_master_url}}:8443 --username=admin --password={{secret_password}}"
+# ------------------------------------------------------
+# 1. Install Operators
+    - name: Install Pre-Req Operators Elastic, Jaeger, Kiali, ServiceMesh
+      tags: controlplane
+      register: operators
+      k8s:
+        state: present
+        definition:
+          - kind: Subscription
+            apiVersion: operators.coreos.com/v1alpha1
+            metadata:
+              name: elasticsearch-operator
+              namespace: openshift-operators
+            spec:
+              channel: "4.2"
+              installPlanApproval: Automatic
+              name: elasticsearch-operator
+              source: redhat-operators
+              sourceNamespace: openshift-marketplace
+#              startingCSV: elasticsearch-operator.4.2.14-202001061701
+          - kind: Subscription
+            apiVersion: operators.coreos.com/v1alpha1
+            metadata:
+              name: jaeger-product
+              namespace: openshift-operators
+            spec:
+              channel: stable
+              installPlanApproval: Automatic
+              name: jaeger-product
+              source: redhat-operators
+              sourceNamespace: openshift-marketplace
+#              startingCSV: jaeger-operator.v1.13.1
+          - kind: Subscription
+            apiVersion: operators.coreos.com/v1alpha1
+            metadata:
+              name: kiali-ossm
+              namespace: openshift-operators
+            spec:
+              channel: stable
+              installPlanApproval: Automatic
+              name: kiali-ossm
+              source: redhat-operators
+              sourceNamespace: openshift-marketplace
+#              startingCSV: kiali-operator.v1.0.9
+          - kind: Subscription
+            apiVersion: operators.coreos.com/v1alpha1
+            metadata:
+              name: servicemeshoperator
+              namespace: openshift-operators
+            spec:
+              channel: '1.0'
+              installPlanApproval: Automatic
+              name: servicemeshoperator
+              source: redhat-operators
+              sourceNamespace: openshift-marketplace
+#              startingCSV: servicemeshoperator.v1.0.4
+
+    - name: Wait for Operator Install to complete
+      tags: controlplane
+      shell: sleep 5s && oc get ClusterServiceVersion -n openshift-operators --no-headers | grep -v Succeeded | wc -l
+      register: operatorsNotSucceded
+      until: " '0' in operatorsNotSucceded.stdout"
+      retries: 120
       changed_when: false
+      when: operators is changed
 
-    - name: Create operator project
-      tags: deploy, operator
+# 2. Deploy Control Plane
+    - name: Create control plane project
+      tags: controlplane
       k8s:
         state: present
         definition:
-          api_version: v1
           kind: Project
+          apiVersion: project.openshift.io/v1
           metadata:
-            name: "{{ namespace_operator }}"
-      register: opsproject
+            name: "istio-system"
+            annotations:
+              openshift.io/description: "ServiceMesh Istio Control Plane"
 
-    - name: Deploy operator
-      tags: deploy, operator
-      shell: "oc apply -n {{ namespace_operator }} -f {{operator_template_url}}"
-      when: "opsproject is changed"
-
-    - name: Create system project
-      tags: deploy,system
+    - name: Add allauthenticated to control plane project admins
+      tags: controlplane
       k8s:
         state: present
         definition:
-          api_version: v1
-          kind: Project
+          kind: RoleBinding
+          apiVersion: rbac.authorization.k8s.io/v1
           metadata:
-            name: "{{ namespace_system }}"
+            creationTimestamp: null
+            namespace: "istio-system"
+            name: project-admin-binding
+          roleRef:
+            apiGroup: rbac.authorization.k8s.io
+            kind: ClusterRole
+            name: admin
+          subjects:
+          - apiGroup: rbac.authorization.k8s.io
+            kind: Group
+            name: "system:authenticated"
 
     - name: Deploy control plane basic install
-      tags: deploy,system
+      tags: controlplane
       k8s:
         state: present
         definition:
@@ -150,181 +132,118 @@ while true; do curl -o /dev/null -s -w "%{http_code}\n" http://$GATEWAY_URL/prod
           kind: ServiceMeshControlPlane
           metadata:
             name: basic-install
-            namespace: "{{ namespace_system }}"
+            namespace: istio-system
           spec:
             istio:
-              global:
-#                hub: "registry.redhat.io/openshift-istio-tech-preview/"
-#                tag: 0.11.0
-# Required for OCP3.11 - see https://docs.openshift.com/container-platform/3.11/servicemesh-install/servicemesh-install.html#deploying-control-plane
-                proxy_init:
-                  image: proxy-init
-                proxy:
-                  resources:
-                    requests:
-                      cpu: 100m
-                      memory: 128Mi
-                    limits:
-                      cpu: 500m
-                      memory: 128Mi
-                mtls: false
-                disablePolicyChecks: true
-                policyCheckFailOpen: false
-#                imagePullSecrets:
-#                  - MyPullSecret
-
               gateways:
                 istio-egressgateway:
                   autoscaleEnabled: false
                 istio-ingressgateway:
                   autoscaleEnabled: false
-                  ior_enabled: false
               mixer:
                 policy:
                   autoscaleEnabled: false
                 telemetry:
                   autoscaleEnabled: false
-                  resources:
-                    requests:
-                      cpu: 100m
-                      memory: 1G
-                    limits:
-                      cpu: 500m
-                      memory: 4G
               pilot:
                 autoscaleEnabled: false
-                traceSampling: 100.0
+                traceSampling: 100
               kiali:
                 enabled: true
-#                tag: v0.20.0
-                dashboard:
-                  user: admin
-                  passphrase: admin
+              grafana:
+                enabled: true
               tracing:
                 enabled: true
-                elasticsearch_memory: 1Gi
+                jaeger:
+                  template: all-in-one
               threeScale:
                 enabled: false
       register: system
 
-    - name: Wait for control plane pods to start (Coffe time if first pull)
-      tags: deploy,system
-      shell: oc get pods -n "{{ namespace_system }}" | grep -E "(1/1|2/2).*Running" | wc -l
-      register: podsrunning
-      until: " '15' in podsrunning.stdout"
+    - name: Wait for control plane to be ready (Coffe time)
+      tags: controlplane
+      shell: oc get ServiceMeshControlPlane -n istio-system | grep True | wc -l
+      register: controlPlaneReady
+      until: " '1' in controlPlaneReady.stdout"
       retries: 120
       delay: 2
       changed_when: false
       when: system is changed
 
-    - name: Create demo project
-      tags: deploy,demo
+# ------------------------------------------------------
+# 3. Deploy bookinfo demo app
+    - name: Create demo project {{namespace_demo}}
+      tags: demo
       k8s:
         state: present
         definition:
-          api_version: v1
           kind: Project
+          apiVersion: project.openshift.io/v1
           metadata:
-            name: "{{ namespace_demo }}"
-      register: demoproject
+            name: "{{namespace_demo}}"
+            annotations:
+              openshift.io/description: "ServiceMesh Istio Demo Project"
 
-    - block:
-      - name: "Join system pod network"
-        tags: deploy,demo,policy
-        shell: "oc adm pod-network join-projects --to=default {{ namespace_operator }} {{ namespace_system }} {{ namespace_demo }}"
+    - name: Add allauthenticated as demo project admins
+      tags: demo
+      k8s:
+        state: present
+        definition:
+          kind: RoleBinding
+          apiVersion: rbac.authorization.k8s.io/v1
+          metadata:
+            creationTimestamp: null
+            namespace: "{{namespace_demo}}"
+            name: project-admin-binding
+          roleRef:
+            apiGroup: rbac.authorization.k8s.io
+            kind: ClusterRole
+            name: admin
+          subjects:
+          - apiGroup: rbac.authorization.k8s.io
+            kind: Group
+            name: "system:authenticated"
 
-      - name: "Grant anyuid policy"
-        tags: deploy,demo,policy
-        shell: "oc adm policy add-scc-to-user anyuid -z default -n {{ namespace_demo }}"
+    - name: Add demo project to ServiceMeshMemberRoll
+      tags: demo
+      k8s:
+        state: present
+        definition:
+          kind: ServiceMeshMemberRoll
+          apiVersion: maistra.io/v1
+          metadata:
+            name: default
+            namespace: istio-system
+          spec:
+            members:
+              - "{{namespace_demo}}"
 
-      - name: "Grant privileged policy"
-        tags: deploy,demo,policy
-        shell: "oc adm policy add-scc-to-user privileged -z default -n {{ namespace_demo }}"
+    - name: "Deploy bookinfo app"
+      tags: demo
+      shell: "oc apply -n {{namespace_demo}} -f https://raw.githubusercontent.com/Maistra/bookinfo/maistra-1.0/bookinfo.yaml"
+      register: applyApp
+      changed_when: "'created' in applyApp.stdout or 'configured' in applyApp.stdout"
 
-      - name: "Deploy bookinfo app"
-        tags: deploy,demo
-        shell: "oc apply -n {{ namespace_demo }} -f https://raw.githubusercontent.com/Maistra/bookinfo/master/bookinfo.yaml"
+    - name: "Deploy bookinfo gateway"
+      tags: demo
+      shell: "oc apply -n {{namespace_demo}} -f https://raw.githubusercontent.com/Maistra/bookinfo/maistra-1.0/bookinfo-gateway.yaml"
+      register: applyGateway
+      changed_when: "'created' in applyGateway.stdout or 'configured' in applyGateway.stdout"
 
-      - name: "Deploy bookinfo gateway"
-        tags: deploy,demo
-        shell: "oc apply -n {{ namespace_demo }} -f https://raw.githubusercontent.com/Maistra/bookinfo/master/bookinfo-gateway.yaml"
-
-      - name: "Add default destination rules"
-        tags: deploy,demo
-        shell: "oc apply -n {{ namespace_demo }} -f https://raw.githubusercontent.com/istio/istio/release-1.1/samples/bookinfo/networking/destination-rule-all.yaml"
-      when: demoproject is defined and demoproject is changed
+    - name: "Add default destination rules"
+      tags: demo
+      shell: "oc apply -n {{ namespace_demo }} -f https://raw.githubusercontent.com/istio/istio/release-1.1/samples/bookinfo/networking/destination-rule-all.yaml"
+      register: applyRules
+      changed_when: "'created' in applyRules.stdout or 'configured' in applyRules.stdout"
 
     - name: Wait for demo pods to start
-      tags: deploy,demo
+      tags: demo
       shell: oc get pods -n "{{ namespace_demo }}" | grep -E "(1/1|2/2).*Running" | wc -l
       register: podsrunning
       until: " '6' in podsrunning.stdout"
       retries: 120
       delay: 2
       changed_when: false
-      when: demoproject is defined
-
-
-#oc patch StatefulSet elasticsearch -p '{"spec": {"template": {"spec": {"containers": [{"name": "elasticsearch","resources": {"limits": {"cpu": "500m","memory": "2Gi"}}}]}}}}'
-    - name: Limit elasticsearch memory
-      tags: post,fix
-      register: elastic
-      k8s:
-        state: present
-        definition:
-          api_version: v1
-          kind: StatefulSet
-          metadata:
-            namespace: "{{ namespace_system }}"
-            name: elasticsearch
-          spec:
-            template:
-              spec:
-                containers:
-                  - name: 'elasticsearch'
-                    resources:
-                      limits:
-                        memory: 2Gi
-    - name: Restart elasticsearch
-      tags: post,fix
-      command: "oc delete pod elasticsearch-0 -n {{ namespace_system }}"
-      when: elastic is changed
-
-
-
-    - name: Delete demo project
-      tags: delete,demo
-      k8s:
-        state: absent
-        definition:
-          api_version: v1
-          kind: Project
-          metadata:
-            name: "{{ namespace_demo }}"
-      when: delete is defined
-
-    - name: Delete control plane basic install
-      tags: delete,system
-      k8s:
-        state: absent
-        definition:
-          apiVersion: istio.openshift.com/v1alpha3
-          kind: ControlPlane
-          metadata:
-            name: basic-install
-            namespace: "{{ namespace_system }}"
-      when: delete is defined
-
-    - name: Delete system project
-      tags: delete,system
-      k8s:
-        state: absent
-        definition:
-          api_version: v1
-          kind: Project
-          metadata:
-            name: "{{ namespace_system }}"
-      when: delete is defined
 
 # Remove it:
 # oc delete project {{ namespace_demo }}
