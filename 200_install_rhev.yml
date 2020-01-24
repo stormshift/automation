@@ -1,10 +1,10 @@
 ---
-- hosts: layer1
+- name: "Install RHEV"
+  hosts: layer1
   remote_user: root
   gather_facts: yes
   vars_files:
     - cfg/secrets.yml
-    - cfg/stormshift.yml
 
   tasks:
 # -------------------------- subscription and repo stuff ---------------------
@@ -45,8 +45,8 @@
 
   - name: Disable watchdog to avoid reboot hangups
     sysctl:
-      name: kernel.nmi_watchdog=0
-      value: 0
+      name: kernel.nmi_watchdog
+      value: "0"
       sysctl_set: yes
       reload: yes
 
@@ -54,7 +54,7 @@
   - name: Reboot
     tags: update,slow
     reboot:
-    when: yumupdate is changed
+    when: yumupdate is defined and yumupdate is changed
 
 # -------------------------- cockpit stuff  ---------------------
   - name: Install cockpit
@@ -87,8 +87,9 @@
   - name: Copy stormshift server cert to bastion
     tags: cockpit
     copy:
-      src: "~/certs/"
-      dest: "/root/certs/"
+      src: "{{sysctx_certs_path}}"
+      dest: "/root/certs"
+    when: sysctx_certs_path is defined
 
   - name: Assemble cockpit certs
     tags: cockpit
@@ -97,6 +98,7 @@
       chdir: /root/certs/
       creates: "/etc/cockpit/ws-certs.d/1-stormshift.cert"
     register: cockpitcert
+    when: sysctx_certs_path is defined
 
   - name: Restart cockpit service
     tags: cockpit
@@ -183,9 +185,8 @@
     tags:
       - dns
 
-# -------------------------- storage stuff  ---------------------
   - name: Install hosted engine setup package
-    tags: notReallyRequired
+    tags: slow
     yum:
       name:
         - ovirt-hosted-engine-setup
@@ -193,59 +194,49 @@
 
 
 # -------------------------- storage stuff  ---------------------
-  - name: Create logical volume for rhev
+  - name: Create logical volumes for rhev
+    tags: storage
     lvol:
       vg: sataraid
-      lv: rhev
-      size: 1024g
+      lv: rhev-"{{item.vol}}"
+      size: "{{item.size}}"
       state: present
-    tags:
-      - storage
+    with_items: "{{layer2_rhev_storage_nfs_vols}}"
 
-  - name: Create filesystem for rhev
+  - name: Create filesystems for rhev
+    tags: storage
     filesystem:
       fstype: xfs
-      dev: /dev/mapper/sataraid-rhev
-    tags:
-      - storage
+      dev: /dev/mapper/sataraid-rhev--{{item.vol}}
+    with_items: "{{layer2_rhev_storage_nfs_vols}}"
 
-  - name: Mount file system for rhev
+  - name: Mount file systems for rhev
+    tags: storage
     mount:
-      path: /var/rhev
-      src: /dev/mapper/sataraid-rhev
+      path: "{{layer2_rhev_storage_nfs_path}}/{{item.vol}}"
+      src: /dev/mapper/sataraid-rhev--{{item.vol}}
       fstype: xfs
       state: mounted
-    tags:
-      - storage
+    with_items: "{{layer2_rhev_storage_nfs_vols}}"
 
 # -------------------------- nfs export stuff  ---------------------
   - name: Make directory for nfs export
+    tags: storage
     file:
-      path: "{{layer2_rhev_storage_nfs_path}}/{{item}}"
+      path: "{{layer2_rhev_storage_nfs_path}}/{{item.vol}}"
       owner: vdsm
       group: kvm
       mode: "0755"
       state: directory
-    with_items:
-      - hostedEngine
-      - data
-      - export
-      - iso
-    tags:
-      - storage
+    with_items: "{{layer2_rhev_storage_nfs_vols}}"
 
   - name: Export nfs directory
+    tags: storage
     lineinfile:
       path: /etc/exports
-      line: '{{layer2_rhev_storage_nfs_path}}/{{item}} *(async,wdelay,rw)'
+      line: '{{layer2_rhev_storage_nfs_path}}/{{item.vol}} *(async,wdelay,rw)'
       create: yes
-    with_items:
-      - hostedEngine
-      - data
-      - export
-      - iso
-    tags:
-      - storage
+    with_items: "{{layer2_rhev_storage_nfs_vols}}"
 
   - name: Enable nfs
     service:
@@ -281,21 +272,25 @@
 
 
   - name: Prepare engine deployment
+    tags: engine
     template:
       src: templates/hosted-engine-deploy-answers.txt.j2
       dest: /root/hosted-engine-deploy-answers.txt
 
   - name: Test for existing engine deployment
+    tags: engine
     command: hosted-engine --check-liveliness
     register: he_check_result
     ignore_errors: True
     changed_when: False
 
   - name: Undeploy hosted engine
+    tags: engine
     shell: /usr/sbin/ovirt-hosted-engine-cleanup -q
     when: he_check_result.rc!=0
 
   - name: Make sure storage path is empty
+    tags: engine
     shell: rm -rf {{layer2_rhev_storage_nfs_path}}/{{item}}/*
 #    warn: false
     with_items:
@@ -306,13 +301,21 @@
     when: he_check_result.rc != 0
 
   - name: Deploy rhev hosted engine - time for coffee!
+    tags: engine
     shell: hosted-engine --deploy  --config-append=/root/hosted-engine-deploy-answers.txt
     when: he_check_result.rc != 0
 
   - name: Check hosted engine liveliness after deployment
+    tags: engine
     command: hosted-engine --check-liveliness
     when: he_check_result.rc != 0
 
+- name: "Deploy Insights"
+  hosts: layer1
+  remote_user: root
+  gather_facts: yes
+  vars_files:
+    - cfg/secrets.yml
   roles:
     - { role: redhatinsights.insights-client, when: ansible_os_family == 'RedHat' }
 

@@ -97,9 +97,10 @@
     - name: Distribute red hat root ca cert
       tags: rootca
       copy:
-        src: "~/certs/redhat-pki-ca-chain.crt"
+        src: "{{sysctx_certs_path}}redhat-pki-ca-chain.crt"
         dest: "/etc/pki/ca-trust/source/anchors/"
       register: cacerts
+      when: sysctx_certs_path is defined
 
     - block:
       - name: Enable update-ca-trust
@@ -171,8 +172,9 @@
     - name: Copy stormshift server cert to bastion
       tags: certs
       copy:
-        src: "~/certs/"
+        src: "{{sysctx_certs_path}}"
         dest: "/root/certs/"
+      when: sysctx_certs_path is defined
 
 
 - name: Install SSA Standard Template Construct on Bastion

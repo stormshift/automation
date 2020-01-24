@@ -5,7 +5,7 @@
   gather_facts: False
   vars_files:
     - cfg/secrets.yml
-    - cfg/stormshift.yml
+#    - cfg/stormshift.yml
 
   tasks:
   - name: Boot to iso image
@@ -14,7 +14,11 @@
        idrac_user:      "{{layer0_idrac_user}}"
        idrac_pwd:       "{{layer0_idrac_pwd}}"
        share_name:  "{{sysctx_nfs_share}}"
+       iso_image:  "iso/rhel-server-7.7-x86_64-dvd.iso"
+#nfs://10.32.96.42:/vdo/nfs/stormshift/firmware/PER730_BOOTABLE_19.10.00.99.iso
+
 #       share_user:  "xxxx"i
 #       share_pwd:   "xxxxxxxx"
 #       iso_image:   "hailstorm/iso/rhel-server-7.6-storm3-42.iso"
-       iso_image:   "hailstorm/iso/rhel-server-7.7-x86_64-dvd_storm3.iso"
+# FW Update:
+#       iso_image:   "firmware/PER730_BOOTABLE_19.10.00.99.iso"

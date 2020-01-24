@@ -62,13 +62,14 @@
     - name: Install ansible roles:
       tags: ansible, roles
       shell: ansible-galaxy install redhatinsights.insights-client
-      
+
 
     - name: Add CA Certs for openshift ansible modules
+      when: sysctx_certs_path is defined
       tags: openshift,ansible
       lineinfile:
           path: /home/hailstorm/.bashrc
-          line: "export K8S_AUTH_SSL_CA_CERT=/home/hailstorm/certs/redhat-pki-ca-chain.crt"
+          line: "export K8S_AUTH_SSL_CA_CERT={{sysctx_certs_path}}/redhat-pki-ca-chain.crt"
 
     - name: prepare pki
       tags: pki
@@ -91,6 +92,7 @@
       command: "pki -v -C ~/.pki.password -U 'https://ca.corp.redhat.com:8443/ca' cert-show 0x1"
 
     - name: generate private key
+      when: sysctx_certs_path is defined
       tags: cert
       openssl_privatekey:
         type: RSA
@@ -98,6 +100,7 @@
         path: ~/stormshift.key
 
     - name: generate certifacte request
+      when: sysctx_certs_path is defined
       tags: cert
       register: csr
       openssl_csr:

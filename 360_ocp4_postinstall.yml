@@ -23,6 +23,7 @@
 
     - name: Create secret with certificates
       tags: certs
+      when: sysctx_certs_path is defined
       k8s:
         state: present
         kubeconfig: "/root/ocp4install/auth/kubeconfig"
@@ -30,8 +31,8 @@
           apiVersion: v1
           kind: Secret
           data:
-            tls.crt: "{{  lookup('file', '/home/hailstorm/certs/stormshift_fullchain.crt', rstrip=false) | b64encode }}"
-            tls.key: "{{  lookup('file', '/home/hailstorm/certs/stormshift.key', rstrip=false)  | b64encode }}"
+            tls.crt: "{{  lookup('file', '{{sysctx_certs_path}}/stormshift_fullchain.crt', rstrip=false) | b64encode }}"
+            tls.key: "{{  lookup('file', '{{sysctx_certs_path}}/stormshift.key', rstrip=false)  | b64encode }}"
           metadata:
             name: stormshift-router-certs
             namespace: openshift-ingress
@@ -39,6 +40,7 @@
 
     - name: Patch ingresscontroller/default
       tags: certs
+      when: sysctx_certs_path is defined
       k8s:
         state: present
         kubeconfig: "/root/ocp4install/auth/kubeconfig"
