@@ -1,0 +1,50 @@
+
+# DEMO Instructions:
+# Call bookinfo via CURL
+#export GATEWAY_URL=$(oc -n istio-system get route istio-ingressgateway -o jsonpath='{.spec.host}')
+#curl -o /dev/null -s -w "%{http_code}\n" http://$GATEWAY_URL/productpage
+#while true; do curl -o /dev/null -s -w "%{http_code}\n" http://$GATEWAY_URL/productpage; done
+#
+# Call via Browser:
+# URL: http://istio-ingressgateway-istio-system.apps.ocp3.stormshift.coe.muc.redhat.com/productpage
+#
+# Access Kiali:
+# URL https://kiali-istio-system.apps.ocp3.stormshift.coe.muc.redhat.com/console/overview?duration=60&pi=15000
+
+- name: Deploy AMQ Streams Operator
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars_files:
+    - cfg/secrets.yml
+    - cfg/stormshift.yml
+
+  tasks:
+# ------------------------------------------------------
+# Install Operator
+    - name: Install Operator
+      tags: controlplane
+      register: operators
+      k8s:
+        state: present
+        definition:
+          - kind: Subscription
+            apiVersion: operators.coreos.com/v1alpha1
+            metadata:
+              name: amq-streams
+              namespace: openshift-operators
+            spec:
+              channel: stable
+              installPlanApproval: Automatic
+              name: amq-streams
+              source: redhat-operators
+              sourceNamespace: openshift-marketplace
+
+    - name: Wait for Operator Install to complete
+      shell: sleep 5s && oc get ClusterServiceVersion -n openshift-operators --no-headers | grep -v Succeeded | wc -l
+      register: operatorsNotSucceded
+      until: " '0' in operatorsNotSucceded.stdout"
+      retries: 120
+      changed_when: false
+      when: operators is changed

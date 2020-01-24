@@ -220,7 +220,7 @@
               name: registry-storage
               namespace: openshift-image-registry
 
-    - name: Create registry-strage pvc
+    - name: Create registry-storage pvc
       tags: post,registry
       k8s:
         state: present
@@ -238,8 +238,8 @@
               requests:
                 storage: 100Gi
 
-    - name: Add pvc registry-storage to image registry
-      tags: post,registry
+    - name: Add pvc registry-storage to image registry and expose it
+      tags: post,registry,debug
       k8s:
         state: present
         kubeconfig: "/root/ocp4install/auth/kubeconfig"
@@ -253,6 +253,7 @@
             storage:
               pvc:
                 claim: registry-storage
+            defaultRoute: true
 # Needs retry because Operator needs time to create that object
       failed_when: false
       register: patch_status
