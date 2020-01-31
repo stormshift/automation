@@ -89,3 +89,10 @@ ansible-playbook -i cfg/inventory.yml -e @cfg/ocp2.yml 350_ocp4_install.yml
 # (Takes roughly 2 minutes to run, but wait 5 minutes for all changes
 # to be picked up by operators)
 ansible-playbook -i cfg/inventory.yml -e @cfg/ocp2.yml 360_ocp4_postinstall.yml
+
+
+
+#
+#route add -net 0.0.0.0 gw 172.16.10.1
+# route del -net 0.0.0.0 gw 172.16.10.1
+#  route -n

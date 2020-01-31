@@ -3,7 +3,7 @@
   hosts: "{{layer3_ocp_name}}bastion"
   gather_facts: false
   vars_files:
-    - cfg/secrets.yml
+    - cfg/secrets_{{sysctx_instance_name}}.yml
     - cfg/stormshift.yml
   tasks:
 # See issue https://github.com/RedHat-EMEA-SSA-Team/stc/issues/86
@@ -91,7 +91,7 @@
   hosts: "{{layer3_ocp_name}}masters"
   gather_facts: false
   vars_files:
-    - cfg/secrets.yml
+    - cfg/secrets_{{sysctx_instance_name}}.yml
     - cfg/stormshift.yml
 
   tasks:
@@ -170,7 +170,7 @@
   hosts: "{{layer3_ocp_name}}nodes"
   gather_facts: true
   vars_files:
-    - cfg/secrets.yml
+    - cfg/secrets_{{sysctx_instance_name}}.yml
     - cfg/stormshift.yml
   tasks:
     - name: Disable swap
@@ -182,7 +182,7 @@
   hosts: "{{layer3_ocp_name}}nodes"
   gather_facts: false
   vars_files:
-    - cfg/secrets.yml
+    - cfg/secrets_{{sysctx_instance_name}}.yml
     - cfg/stormshift.yml
   tasks:
     - name: Workaround BZ#1654044 - CrashLoopBackOff after rolling reboot
@@ -199,7 +199,7 @@
   hosts: "{{layer3_ocp_name}}masters"
   gather_facts: false
   vars_files:
-    - cfg/secrets.yml
+    - cfg/secrets_{{sysctx_instance_name}}.yml
     - cfg/stormshift.yml
 
   tasks:
@@ -241,7 +241,7 @@
   hosts: localhost
   gather_facts: false
   vars_files:
-    - cfg/secrets.yml
+    - cfg/secrets_{{sysctx_instance_name}}.yml
     - cfg/stormshift.yml
   tasks:
     - name: Configure image streams

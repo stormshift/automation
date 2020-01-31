@@ -4,7 +4,7 @@
   remote_user: root
   gather_facts: yes
   vars_files:
-    - cfg/secrets.yml
+    - cfg/secrets_{{sysctx_instance_name}}.yml
 
   tasks:
 # -------------------------- subscription and repo stuff ---------------------
@@ -110,11 +110,10 @@
 
 # ----------------------- setup bind as DNS Server
   - name: Install BIND
+    tags: dns,slow
     yum:
       name: bind
       state: latest
-    tags:
-      - dns
 
   - name: Configure BIND to listen on em1
     lineinfile:
@@ -315,7 +314,7 @@
   remote_user: root
   gather_facts: yes
   vars_files:
-    - cfg/secrets.yml
+    - cfg/secrets_{{sysctx_instance_name}}.yml
   roles:
     - { role: redhatinsights.insights-client, when: ansible_os_family == 'RedHat' }
 

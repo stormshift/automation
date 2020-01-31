@@ -14,7 +14,7 @@ all:
         children:
           ocp1bastion:
             hosts:
-              ocp1bastion.stormshift.coe.muc.redhat.com
+              ocp1bastion.gaiax.coe.muc.redhat.com
           ocp1nodes:
             children:
                 ocp1masters:
@@ -32,7 +32,7 @@ all:
               ocp1app4:
             vars:
     #          ansible_ssh_common_args: '-o ProxyCommand="ssh -W %h:%p -q root@ocp1bastion.hailstorm5.coe.muc.redhat.com"'
-              ansible_ssh_common_args: '-o ProxyJump=root@ocp1bastion.stormshift.coe.muc.redhat.com -o StrictHostKeyChecking=no'
+              ansible_ssh_common_args: '-o ProxyJump=root@ocp1bastion.gaiax.coe.muc.redhat.com -o StrictHostKeyChecking=no'
 
 # -----------------------
 # ----------------------- OCP2
@@ -41,12 +41,12 @@ all:
         children:
           ocp2bastion:
             hosts:
-              ocp2bastion.stormshift.coe.muc.redhat.com
+              ocp2bastion.gaiax.coe.muc.redhat.com
           ocp2support:
             hosts:
-              ocp2support.stormshift.coe.muc.redhat.com
+              ocp2support.gaiax.coe.muc.redhat.com
             vars:
-              ansible_ssh_common_args: '-o ProxyJump=root@ocp2bastion.stormshift.coe.muc.redhat.com -o StrictHostKeyChecking=no'
+              ansible_ssh_common_args: '-o ProxyJump=root@ocp2bastion.gaiax.coe.muc.redhat.com -o StrictHostKeyChecking=no'
 
 # -----------------------
 # ----------------------- ocp3
@@ -55,12 +55,12 @@ all:
         children:
           ocp3bastion:
             hosts:
-              ocp3bastion.stormshift.coe.muc.redhat.com
+              ocp3bastion.gaiax.coe.muc.redhat.com
           ocp3support:
             hosts:
-              ocp3support.stormshift.coe.muc.redhat.com
+              ocp3support.gaiax.coe.muc.redhat.com
             vars:
-              ansible_ssh_common_args: '-o ProxyJump=root@ocp3bastion.stormshift.coe.muc.redhat.com -o StrictHostKeyChecking=no'
+              ansible_ssh_common_args: '-o ProxyJump=root@ocp3bastion.gaiax.coe.muc.redhat.com -o StrictHostKeyChecking=no'
 
 # -----------------------
 # ----------------------- ocp4
@@ -69,9 +69,9 @@ all:
         children:
           ocp4bastion:
             hosts:
-              ocp4bastion.stormshift.coe.muc.redhat.com
+              ocp4bastion.gaiax.coe.muc.redhat.com
           ocp4support:
             hosts:
-              ocp4support.stormshift.coe.muc.redhat.com
+              ocp4support.gaiax.coe.muc.redhat.com
             vars:
-              ansible_ssh_common_args: '-o ProxyJump=root@ocp4bastion.stormshift.coe.muc.redhat.com -o StrictHostKeyChecking=no'
+              ansible_ssh_common_args: '-o ProxyJump=root@ocp4bastion.gaiax.coe.muc.redhat.com -o StrictHostKeyChecking=no'

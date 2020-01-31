@@ -2,7 +2,7 @@
 - name: Preparing Hosts for OpenShift
   hosts: "{{layer3_ocp_name}}"
   vars_files:
-    - cfg/secrets.yml
+    - cfg/secrets_{{sysctx_instance_name}}.yml
     - cfg/stormshift.yml
 
 
@@ -166,7 +166,7 @@
 - name: Copy stormshift server cert to bastion
   hosts: "{{layer3_ocp_name}}bastion"
   vars_files:
-    - cfg/secrets.yml
+    - cfg/secrets_{{sysctx_instance_name}}.yml
     - cfg/stormshift.yml
   tasks:
     - name: Copy stormshift server cert to bastion
@@ -180,7 +180,7 @@
 - name: Install SSA Standard Template Construct on Bastion
   hosts: "{{layer3_ocp_name}}bastion"
   vars_files:
-    - cfg/secrets.yml
+    - cfg/secrets_{{sysctx_instance_name}}.yml
     - cfg/stormshift.yml
   tasks:
     - name: git clone stc

@@ -21,5 +21,7 @@ platform:
   none: {}
 pullSecret: '{{lookup('file', '/home/hailstorm/ocp4binaries/pull-secret.txt') }}'
 sshKey: '{{sysctx_admin_ssh_key}}'
+{% if sysctx_certs_path is defined %}
 additionalTrustBundle: |
 {{lookup('file', '{{sysctx_certs_path}}/redhat-pki-ca-chain.crt') | indent(2,true) }}
+{% endif %}

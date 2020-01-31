@@ -17,7 +17,7 @@
   gather_facts: false
 
   vars_files:
-    - cfg/secrets.yml
+    - cfg/secrets_{{sysctx_instance_name}}.yml
     - cfg/stormshift.yml
 
   tasks:

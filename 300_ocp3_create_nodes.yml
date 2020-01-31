@@ -5,7 +5,7 @@
   gather_facts: false
 
   vars_files:
-    - cfg/secrets.yml
+    - cfg/secrets_{{sysctx_instance_name}}.yml
     - cfg/stormshift.yml
 
   vars:
@@ -29,7 +29,7 @@
 - name: Configure DNS
   hosts: layer1
   vars_files:
-    - cfg/secrets.yml
+    - cfg/secrets_{{sysctx_instance_name}}.yml
     - cfg/stormshift.yml
 
   tasks:
@@ -65,7 +65,7 @@
 - name: Configure Bastion
   hosts: "{{layer3_ocp_name}}bastion.stormshift.coe.muc.redhat.com"
   vars_files:
-    - cfg/secrets.yml
+    - cfg/secrets_{{sysctx_instance_name}}.yml
     - cfg/stormshift.yml
   tasks:
     - name: Install netcat
@@ -197,7 +197,7 @@
 - name: Prepare RHEL
   hosts: "{{layer3_ocp_name}}nodes"
   vars_files:
-    - cfg/secrets.yml
+    - cfg/secrets_{{sysctx_instance_name}}.yml
     - cfg/stormshift.yml
   tasks:
     - name: Remove cloud init as workaround RHEV bug
@@ -210,7 +210,7 @@
   gather_facts: false
 
   vars_files:
-    - cfg/secrets.yml
+    - cfg/secrets_{{sysctx_instance_name}}.yml
     - cfg/stormshift.yml
   tasks:
     - name: SRIO passthrough NVMEs to Infra Nodes

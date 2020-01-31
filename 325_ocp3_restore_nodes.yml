@@ -3,7 +3,7 @@
   connection: local
 
   vars_files:
-    - cfg/secrets.yml
+    - cfg/secrets_{{sysctx_instance_name}}.yml
     - cfg/stormshift.yml
   vars:
     snapshot_desc: "{{ ansible_date_time.iso8601}}"

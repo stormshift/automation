@@ -6,8 +6,7 @@
 #  remote_user: root
   gather_facts: no
   vars_files:
-    - cfg/secrets.yml
-    - cfg/stormshift.yml
+    - cfg/secrets_{{sysctx_instance_name}}.yml
 
   vars:
     engine_user: admin@internal
@@ -50,25 +49,24 @@
 # virt-customize --root-password password:xxxx -a rhel-server-7.6-x86_64-kvm.qcow2
 
     - name: Upload RHEL7 Base Disk Imgage
+      tags: disk, template, rhel7
       ovirt_disk:
         auth: "{{ ovirt_auth }}"
         bootable: yes
         format: cow
         alias: rhel7disk
         state: present
-        upload_image_path: /home/hailstorm/coeNfs/hailstorm/iso/rhel-server-7.7-x86_64-kvm.qcow2
+        upload_image_path: /home/hailstorm/coeNfs/iso/rhel-server-7.7-x86_64-kvm.qcow2
         size: 10GiB
         storage_domain: "data"
         wait: true
-      tags:
-        - disk
-        - template
 
     - name: Create Template VM for rhel7
+      tags: vm, template, rhel7
       ovirt_vm:
         auth: "{{ ovirt_auth }}"
         state: running
-        name: "template_vm"
+        name: "template_vm_rhel7"
         cluster: Default
         memory: 1GiB
         memory_guaranteed: 1GiB
@@ -121,33 +119,110 @@
         graphical_console:
             headless_mode: true
         wait: true
-      tags:
-        - vm_create
-        - template
 
-    - name: Wait for vm to be offline - this may take a while due to yum updates
+    - name: Wait for rhel7 vm to be offline - this may take a while due to yum updates
+      tags: vm, template, rhel7
       ovirt_vm_facts:
         auth: "{{ ovirt_auth }}"
-        pattern: "name=template_vm"
+        pattern: "name=template_vm_rhel7"
         all_content: true
         fetch_nested: true
       until: '"down" in ovirt_vms[0].status'
       retries: 180
       delay: 5
-      tags:
-        - template
 
 
-    - name: Create Template from VM
+    - name: Create rhel7 Template from VM
+      tags: template, rhel7
       tags: template_create, template
       ovirt_template:
         auth: "{{ ovirt_auth }}"
         cluster: Default
         name: rhel7
-        vm: template_vm
+        vm: template_vm_rhel7
         cpu_profile: Default
         state: present
         wait: true
+
+    - name: Upload RHEL8 Base Disk Imgage
+      tags: disk, template, rhel8, slow
+      ovirt_disk:
+        auth: "{{ ovirt_auth }}"
+        bootable: yes
+        format: cow
+        alias: rhel8disk
+        state: present
+        upload_image_path: /home/hailstorm/coeNfs/iso/rhel-8.1-x86_64-kvm.qcow2
+        size: 10GiB
+        storage_domain: "data"
+        wait: true
+
+    - name: Create Template VM for RHEL8
+      tags: vm, template, rhel8
+      ovirt_vm:
+        auth: "{{ ovirt_auth }}"
+        state: running
+        name: "template_vm_rhel8"
+        cluster: Default
+        memory: 1GiB
+        memory_guaranteed: 1GiB
+        memory_max: 4GiB
+        cpu_sockets: 1
+        cpu_cores: 4
+        cpu_threads: 1
+#        cloud_init_persist: true
+        cloud_init:
+          host_name: "template_vm_rhel8"
+          timezone: "Europe/Berlin"
+          root_password: "{{secret_password}}"
+          authorized_ssh_keys: "{{ sysctx_admin_ssh_key }}"
+          nic_boot_protocol: "dhcp"
+          nic_on_boot: true
+          nic_name: "eth0"
+          custom_script: |
+            rh_subscription:
+              username: {{ sysctx_rhsm_user}}
+              password: {{ sysctx_rhsm_pswd}}
+              auto-attach: True
+            packages:
+                - qemu-guest-agent
+            package_update: true
+            package_upgrade: true
+            package_reboot_if_required: true
+            growpart:
+              mode: auto
+            resizefs:
+                resize_rootfs: true
+            power_state:
+               mode: poweroff
+        operating_system: rhel_8x64
+        type: server
+        disks:
+          - name: rhel8disk
+            active: true
+            bootable: true
+            storage_domain: data
+            interface: virtio
+        nics:
+          - name: nic1
+            profile_name: ovirtmgmt
+        graphical_console:
+            headless_mode: false
+            protocol:
+               - spice
+               - vnc
+        wait: true
+
+    - name: Wait for rhel8 vm to be offline - this may take a while due to yum updates
+      tags: vm, template, rhel8
+      ovirt_vm_facts:
+        auth: "{{ ovirt_auth }}"
+        pattern: "name=template_vm_rhel8"
+        all_content: true
+        fetch_nested: true
+      until: '"down" in ovirt_vms[0].status'
+      retries: 180
+      delay: 5
 
     - name: Create External Network Provider
       tags: network
@@ -155,7 +230,7 @@
         auth: "{{ ovirt_auth }}"
         type: "network"
         network_type: "external"
-        url: "https://rhev.stormshift.coe.muc.redhat.com:9696"
+        url: "https://{{layer2_rhev_engine_fqdn}}:9696"
         name: "ovirt-provider-ovn"
         description: "oVirt network provider for OVN"
         state: present

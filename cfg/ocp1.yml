@@ -1,5 +1,5 @@
     layer3_ocp_name: "ocp1"
-    layer3_ocp_bastion_ip: "10.32.105.41"
+    layer3_ocp_bastion_ip: "{{layer3_ocp_public_ip.ocp1}}"
     layer3_ocp_network_prefix: "172.16.10"
     layer3_ocp_master_url: "master.{{layer3_ocp_name}}.{{sysctx_dns_domain}}"
     layer3_ocp_master_apps: "apps.{{layer3_ocp_name}}.{{sysctx_dns_domain}}"

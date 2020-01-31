@@ -1,5 +1,6 @@
     layer3_ocp_name: "ocp4"
-    layer3_ocp_bastion_ip: "10.32.105.44"
+    layer3_ocp_bastion_ip: "{{layer3_ocp_public_ip.ocp4}}"
+
     layer3_ocp_network_prefix: "172.16.10"
     layer3_ocp_mac_prefix: "42:42:42:42:04"
     layer3_ocp_mac_prefix_dash: "42-42-42-42-04"
@@ -109,13 +110,14 @@
               nic_netmask: "255.255.240.0"
               nic_gateway: "{{sysctx_gateway}}"
               nic_on_boot: true
-              nic_name: "ens2"
+              nic_name: "{{layer3_ocp_bastion_nic_ext}}"
+
             - nic_ip_address: "{{layer3_ocp_network_prefix}}.1"
               nic_boot_protocol: "static"
               nic_netmask: "255.255.255.0"
               nic_gateway: "{{layer3_ocp_network_prefix}}.1"
               nic_on_boot: true
-              nic_name: "ens5"
+              nic_name: "{{layer3_ocp_bastion_nic_int}}"
 
       - name: "{{layer3_ocp_name}}support"
         tag: ocpsupport
@@ -160,7 +162,7 @@
               nic_netmask: "255.255.255.0"
               nic_gateway: "{{layer3_ocp_network_prefix}}.1"
               nic_on_boot: true
-              nic_name: "ens2"
+              nic_name: "{{layer3_ocp_support_nic}}"
 
 
       - name: "{{layer3_ocp_name}}bootstrap"

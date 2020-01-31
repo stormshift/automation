@@ -7,11 +7,10 @@
 # https://docs.openshift.com/container-platform/4.2/installing/installing_bare_metal/installing-bare-metal.html
 # The "Step" commentes below refer to the different section headings of the installation instructions
 - name: Install OpenShift4 from support node
-  hosts: "{{layer3_ocp_name}}support.stormshift.coe.muc.redhat.com"
+  hosts: "{{layer3_ocp_name}}support.{{sysctx_dns_domain}}"
   gather_facts: false
   vars_files:
-    - cfg/secrets.yml
-    - cfg/stormshift.yml
+    - cfg/secrets_{{sysctx_instance_name}}.yml
   tasks:
 
 # ------------------------------------------------------------------------------
@@ -136,8 +135,7 @@
   connection: local
   gather_facts: false
   vars_files:
-    - cfg/secrets.yml
-    - cfg/stormshift.yml
+    - cfg/secrets_{{sysctx_instance_name}}.yml
   tasks:
     - name: Login into RHEV
       tags: boot
@@ -162,11 +160,10 @@
 # Step: Wait for bootstrap to complete
 # ------------------------------------------------------------------------------
 - name: Post deployment stuff
-  hosts: "{{layer3_ocp_name}}support.stormshift.coe.muc.redhat.com"
+  hosts: "{{layer3_ocp_name}}support.{{sysctx_dns_domain}}"
   gather_facts: false
   vars_files:
-    - cfg/secrets.yml
-    - cfg/stormshift.yml
+    - cfg/secrets_{{sysctx_instance_name}}.yml
   tasks:
     - name: Waiting bootstrap to complete
       command: "/root/bin/openshift-install wait-for bootstrap-complete --dir=/root/ocp4install --log-level debug"

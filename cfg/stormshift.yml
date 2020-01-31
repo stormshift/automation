@@ -47,7 +47,7 @@
 
   layer2_rhev_storage_nfs_path: /var/rhev/storage/nfs
   layer2_rhev_storage_nfs_vols:
-    - { vol: hostedEngine, size: 25g }
+    - { vol: hostedEngine, size: 100g }
     - { vol: data, size: 3072g }
     - { vol: export, size: 50g }
     - { vol: iso, size: 50g }
@@ -57,6 +57,17 @@
     - { vol: ocp4, size: 100g }
 
   layer2_rhev_engine_storage_connection: "{{layer1_nfs_fqn}}:{{layer2_rhev_storage_nfs_path}}/hostedEngine"
+
+  layer3_ocp_bastion_nic_ext: ens2
+  layer3_ocp_bastion_nic_int: ens5
+  layer3_ocp_support_nic:   ens2
+
+  layer3_ocp_public_ip:
+    ocp1: 10.32.105.41
+    ocp2: 10.32.105.42
+    ocp3: 10.32.105.43
+    ocp4: 10.32.105.44
+    ocp5: 10.32.105.45
 
 
 # see also ocp1..5.yml:

@@ -5,8 +5,7 @@
   gather_facts: false
 
   vars_files:
-    - cfg/secrets.yml
-    - cfg/stormshift.yml
+    - cfg/secrets_{{sysctx_instance_name}}.yml
 
   vars:
     engine_user: admin@internal
@@ -37,8 +36,7 @@
   hosts: layer1
   gather_facts: false
   vars_files:
-    - cfg/secrets.yml
-    - cfg/stormshift.yml
+    - cfg/secrets_{{sysctx_instance_name}}.yml
 
   tasks:
     - name: Add DNS entries
@@ -52,7 +50,7 @@
           *.apps.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	IN A {{layer3_ocp_bastion_ip}}
           api.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	IN A {{layer3_ocp_bastion_ip}}
           ; Forward to cluster specifc DNS Server which is running on support behind bastion
-          ;$ORIGIN {{layer3_ocp_name}}.stormshift.coe.muc.redhat.com.
+          ;$ORIGIN {{layer3_ocp_name}}.{{sysctx_dns_domain}}.
           ;@       IN      NS      {{layer3_ocp_bastion_ip}}
       register: dns
 
@@ -72,8 +70,7 @@
   gather_facts: false
 
   vars_files:
-    - cfg/secrets.yml
-    - cfg/stormshift.yml
+    - cfg/secrets_{{sysctx_instance_name}}.yml
 
   vars:
     engine_user: admin@internal
@@ -96,11 +93,10 @@
 
 
 - name: Configure Bastion
-  hosts: "{{layer3_ocp_name}}bastion.stormshift.coe.muc.redhat.com"
+  hosts: "{{layer3_ocp_name}}bastion.{{sysctx_dns_domain}}"
   gather_facts: false
   vars_files:
-    - cfg/secrets.yml
-    - cfg/stormshift.yml
+    - cfg/secrets_{{sysctx_instance_name}}.yml
   tasks:
     - name: Remove cloud init
       tags: bastion,slow
@@ -139,26 +135,26 @@
       tags: bastion,firewall
       service: name=firewalld enabled=yes state=started
 
-    - name: add ens2 to external zone
+    - name: add {{layer3_ocp_bastion_nic_ext}} to external zone
       tags: bastion,firewall
       firewalld:
         immediate: yes
         permanent: yes
         state: enabled
         zone: external
-        interface: ens2
+        interface: "{{layer3_ocp_bastion_nic_ext}}"
 
-    - name: add ens5 to internal zone
+    - name: add {{layer3_ocp_bastion_nic_int}} to internal zone
       tags: bastion,firewall
-      firewalld: immediate=yes permanent=yes state=enabled zone=internal interface=ens5
+      firewalld: immediate=yes permanent=yes state=enabled zone=internal interface={{layer3_ocp_bastion_nic_int}}
 
     - name: add masquerade to external zone
       tags: bastion,firewall
       firewalld: immediate=yes permanent=yes state=enabled zone=external masquerade=yes
 
-    - name: add passthrough to ens2
+    - name: add passthrough to {{layer3_ocp_bastion_nic_ext}}
       tags: bastion,firewall
-      shell: "firewall-cmd --permanent --direct --passthrough ipv4 -t nat -I POSTROUTING -o ens2 -j MASQUERADE -s {{layer3_ocp_network_prefix}}.0/24"
+      shell: "firewall-cmd --permanent --direct --passthrough ipv4 -t nat -I POSTROUTING -o {{layer3_ocp_bastion_nic_ext}} -j MASQUERADE -s {{layer3_ocp_network_prefix}}.0/24"
       register: fwresult
       changed_when: "fwresult.stderr is not search('ALREADY_ENABLED')"
 
@@ -254,11 +250,10 @@
 # -------------------------------------------------
 
 - name: Configure Support
-  hosts: "{{layer3_ocp_name}}support.stormshift.coe.muc.redhat.com"
+  hosts: "{{layer3_ocp_name}}support.{{sysctx_dns_domain}}"
   gather_facts: false
   vars_files:
-    - cfg/secrets.yml
-    - cfg/stormshift.yml
+    - cfg/secrets_{{sysctx_instance_name}}.yml
   tasks:
     - name: Remove cloud init
       tags: support,slow
