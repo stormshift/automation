@@ -61,7 +61,7 @@
         identity_roviders: "[]"
       tags: auth
 
-    - name: Create htpasswd file
+    - name: Add admin users to htpasswd file
       tags: auth,htpasswd
       local_action:
         module: htpasswd
@@ -69,6 +69,16 @@
         name: "{{item}}"
         password: "{{secret_password}}"
       with_items: "{{layer3_ocp_admin_users}}"
+      register: htpasswd
+
+    - name: Add normal users to htpasswd file
+      tags: auth,htpasswd
+      local_action:
+        module: htpasswd
+        path: /tmp/htpasswd.{{layer3_ocp_name}}
+        name: "{{item.name}}"
+        password: "{{item.pswd}}"
+      with_items: "{{layer3_ocp_normal_users}}"
       register: htpasswd
 
 

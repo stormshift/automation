@@ -18,6 +18,12 @@
       - rbohneadm
       - rjaiswaladm
 
+    layer3_ocp_normal_users:
+      - { name: demo-user, pswd: 'demo' }
+      - { name: manuela-dev, pswd: 'manuela' }
+      - { name: manuela-tst, pswd: 'manuela' }
+      - { name: manuela-ops, pswd: 'manuela' }
+
     control_vm_profile:
       cluster: Default
       template: ""
