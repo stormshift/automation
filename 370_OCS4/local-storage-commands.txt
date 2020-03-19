@@ -1,0 +1,166 @@
+oc new-project local-storage
+Now using project "local-storage" on server "https://api.ocp4.stormshift.coe.muc.redhat.com:6443".
+
+You can add applications to this project with the 'new-app' command. For example, try:
+
+    oc new-app django-psql-example
+
+to build a new example application in Python. Or use kubectl to deploy a simple Kubernetes application:
+
+    kubectl create deployment hello-node --image=gcr.io/hello-minikube-zero-install/hello-node
+
+ 🐵   ~/Downloads/code-with-quarkus/src/main/resources  oc get pod -n local-storage
+NAME                                     READY   STATUS    RESTARTS   AGE
+local-storage-operator-8497bd8cb-929kq   1/1     Running   0          56s
+ 🐵   ~/Downloads/code-with-quarkus/src/main/resources  cd ..
+ 🐵   ~/Downloads/code-with-quarkus/src/main  cd ..
+ 🐵   ~/Downloads/code-with-quarkus/src  cd ..
+ 🐵   ~/Downloads/code-with-quarkus  cd ..
+ 🐵   ~/Downloads  mkdir ocs-files
+ 🐵   ~/Downloads  cd ocs-files 
+ 🐵   ~/Downloads/ocs-files  vi local-storage-filesystem.yaml
+ 🐵   ~/Downloads/ocs-files  vi local-storage-filesystem.yaml
+ 🐵   ~/Downloads/ocs-files  oc get nodes
+NAME                                           STATUS   ROLES           AGE   VERSION
+compute-0.ocp4.stormshift.coe.muc.redhat.com   Ready    worker          60d   v1.16.2
+compute-1.ocp4.stormshift.coe.muc.redhat.com   Ready    worker          60d   v1.16.2
+compute-2.ocp4.stormshift.coe.muc.redhat.com   Ready    worker          60d   v1.16.2
+control-0.ocp4.stormshift.coe.muc.redhat.com   Ready    master,worker   60d   v1.16.2
+control-1.ocp4.stormshift.coe.muc.redhat.com   Ready    master,worker   60d   v1.16.2
+control-2.ocp4.stormshift.coe.muc.redhat.com   Ready    master,worker   60d   v1.16.2
+ 🐵   ~/Downloads/ocs-files  vi local-storage-filesystem.yaml
+ 🐵   ~/Downloads/ocs-files  oc create -f local-storage-filesystem.yaml
+localvolume.local.storage.openshift.io/local-disks-ocs-mon created
+ 🐵   ~/Downloads/ocs-files  oc get pod -n local-storage
+NAME                                          READY   STATUS              RESTARTS   AGE
+local-disks-ocs-mon-local-diskmaker-bd7l5     0/1     ContainerCreating   0          13s
+local-disks-ocs-mon-local-diskmaker-mmcwl     0/1     ContainerCreating   0          13s
+local-disks-ocs-mon-local-diskmaker-mnl58     0/1     ContainerCreating   0          13s
+local-disks-ocs-mon-local-provisioner-29hrs   0/1     ContainerCreating   0          13s
+local-disks-ocs-mon-local-provisioner-8cfzh   0/1     ContainerCreating   0          13s
+local-disks-ocs-mon-local-provisioner-hlkkb   0/1     ContainerCreating   0          13s
+local-storage-operator-8497bd8cb-929kq        1/1     Running             0          7m19s
+ 🐵   ~/Downloads/ocs-files  oc get pod -n local-storage --watch
+NAME                                          READY   STATUS              RESTARTS   AGE
+local-disks-ocs-mon-local-diskmaker-bd7l5     1/1     Running             0          17s
+local-disks-ocs-mon-local-diskmaker-mmcwl     1/1     Running             0          17s
+local-disks-ocs-mon-local-diskmaker-mnl58     1/1     Running             0          17s
+local-disks-ocs-mon-local-provisioner-29hrs   0/1     ContainerCreating   0          17s
+local-disks-ocs-mon-local-provisioner-8cfzh   0/1     ContainerCreating   0          17s
+local-disks-ocs-mon-local-provisioner-hlkkb   0/1     ContainerCreating   0          17s
+local-storage-operator-8497bd8cb-929kq        1/1     Running             0          7m23s
+local-disks-ocs-mon-local-provisioner-hlkkb   1/1     Running             0          18s
+local-disks-ocs-mon-local-provisioner-29hrs   1/1     Running             0          18s
+local-disks-ocs-mon-local-provisioner-8cfzh   1/1     Running             0          18s
+^C%                                                                                                                                                                                                         ✘ 🐵   ~/Downloads/ocs-files  oc logs local-disks-ocs-mon-local-provisioner-hlkkb 
+I0318 15:01:20.608532       1 common.go:320] StorageClass "local-ocs-mon" configured with MountDir "/mnt/local-storage/local-ocs-mon", HostDir "/mnt/local-storage/local-ocs-mon", VolumeMode "Filesystem", FsType "", BlockCleanerCommand ["/scripts/quick_reset.sh"]
+I0318 15:01:20.608681       1 main.go:63] Loaded configuration: {StorageClassConfig:map[local-ocs-mon:{HostDir:/mnt/local-storage/local-ocs-mon MountDir:/mnt/local-storage/local-ocs-mon BlockCleanerCommand:[/scripts/quick_reset.sh] VolumeMode:Filesystem FsType:}] NodeLabelsForPV:[] UseAlphaAPI:false UseJobForCleaning:false MinResyncPeriod:{Duration:5m0s} UseNodeNameOnly:false LabelsForPV:map[storage.openshift.com/local-volume-owner-name:local-disks-ocs-mon storage.openshift.com/local-volume-owner-namespace:local-storage]}
+I0318 15:01:20.608710       1 main.go:64] Ready to run...
+W0318 15:01:20.608719       1 main.go:73] MY_NAMESPACE environment variable not set, will be set to default.
+W0318 15:01:20.608740       1 main.go:79] JOB_CONTAINER_IMAGE environment variable not set.
+I0318 15:01:20.609058       1 common.go:382] Creating client using in-cluster config
+I0318 15:01:20.626263       1 main.go:85] Starting controller
+I0318 15:01:20.626313       1 main.go:100] Starting metrics server at :8080
+I0318 15:01:20.626371       1 controller.go:45] Initializing volume cache
+I0318 15:01:20.832797       1 controller.go:108] Controller started
+E0318 15:01:20.832910       1 discovery.go:201] Error reading directory: open /mnt/local-storage/local-ocs-mon: no such file or directory
+I0318 15:01:30.834122       1 discovery.go:304] Found new volume at host path "/mnt/local-storage/local-ocs-mon/sda" with capacity 10737418240, creating Local PV "local-pv-52dc6c6f", required volumeMode "Filesystem"
+I0318 15:01:30.842778       1 cache.go:55] Added pv "local-pv-52dc6c6f" to cache
+I0318 15:01:30.842811       1 discovery.go:337] Created PV "local-pv-52dc6c6f" for volume at "/mnt/local-storage/local-ocs-mon/sda"
+I0318 15:01:30.847903       1 cache.go:64] Updated pv "local-pv-52dc6c6f" to cache
+ 🐵   ~/Downloads/ocs-files  oc logs local-disks-ocs-mon-local-provisioner-hlkkb -f
+I0318 15:01:20.608532       1 common.go:320] StorageClass "local-ocs-mon" configured with MountDir "/mnt/local-storage/local-ocs-mon", HostDir "/mnt/local-storage/local-ocs-mon", VolumeMode "Filesystem", FsType "", BlockCleanerCommand ["/scripts/quick_reset.sh"]
+I0318 15:01:20.608681       1 main.go:63] Loaded configuration: {StorageClassConfig:map[local-ocs-mon:{HostDir:/mnt/local-storage/local-ocs-mon MountDir:/mnt/local-storage/local-ocs-mon BlockCleanerCommand:[/scripts/quick_reset.sh] VolumeMode:Filesystem FsType:}] NodeLabelsForPV:[] UseAlphaAPI:false UseJobForCleaning:false MinResyncPeriod:{Duration:5m0s} UseNodeNameOnly:false LabelsForPV:map[storage.openshift.com/local-volume-owner-name:local-disks-ocs-mon storage.openshift.com/local-volume-owner-namespace:local-storage]}
+I0318 15:01:20.608710       1 main.go:64] Ready to run...
+W0318 15:01:20.608719       1 main.go:73] MY_NAMESPACE environment variable not set, will be set to default.
+W0318 15:01:20.608740       1 main.go:79] JOB_CONTAINER_IMAGE environment variable not set.
+I0318 15:01:20.609058       1 common.go:382] Creating client using in-cluster config
+I0318 15:01:20.626263       1 main.go:85] Starting controller
+I0318 15:01:20.626313       1 main.go:100] Starting metrics server at :8080
+I0318 15:01:20.626371       1 controller.go:45] Initializing volume cache
+I0318 15:01:20.832797       1 controller.go:108] Controller started
+E0318 15:01:20.832910       1 discovery.go:201] Error reading directory: open /mnt/local-storage/local-ocs-mon: no such file or directory
+I0318 15:01:30.834122       1 discovery.go:304] Found new volume at host path "/mnt/local-storage/local-ocs-mon/sda" with capacity 10737418240, creating Local PV "local-pv-52dc6c6f", required volumeMode "Filesystem"
+I0318 15:01:30.842778       1 cache.go:55] Added pv "local-pv-52dc6c6f" to cache
+I0318 15:01:30.842811       1 discovery.go:337] Created PV "local-pv-52dc6c6f" for volume at "/mnt/local-storage/local-ocs-mon/sda"
+I0318 15:01:30.847903       1 cache.go:64] Updated pv "local-pv-52dc6c6f" to cache
+^C
+ ✘ 🐵   ~/Downloads/ocs-files  oc get pv
+NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM                                                                     STORAGECLASS          REASON   AGE
+local-pv-52dc6c6f                          10Gi       RWO            Delete           Available                                                                             local-ocs-mon                  57s
+local-pv-dc4284e6                          10Gi       RWO            Delete           Available                                                                             local-ocs-mon                  57s
+local-pv-fbbad0e9                          10Gi       RWO            Delete           Available                                                                             local-ocs-mon                  57s
+nfs-registry-storage                       100Gi      RWX            Recycle          Bound       openshift-image-registry/registry-storage                                                                60d
+pvc-00bc303d-3f89-11ea-8b77-424242420411   512Mi      RWO            Delete           Bound       mldtestinitial/postgresql                                                 managed-nfs-storage            52d
+pvc-10386f6f-f3d0-4549-8e30-3401f4bb0c9d   1Gi        RWO            Delete           Bound       dfroehli-opendj-dev/data-backend-eventstore-kafka-0                       managed-nfs-storage            17h
+pvc-1fb9d131-57e8-43a7-a51a-fc59942203a7   1Gi        RWO            Delete           Bound       dfroehli-opendj-dev/data-backend-eventstore-zookeeper-0                   managed-nfs-storage            17h
+pvc-21748330-941a-46de-96cd-b11d60a0d1ca   1Gi        RWO            Delete           Bound       dfroehli-datahub/jupyterhub-db                                            managed-nfs-storage            9d
+pvc-4d58e949-3ea0-4d4c-b588-a81b7c4fbd5d   2Gi        RWO            Delete           Bound       dfroehli-datahub/jupyterhub-nb-dfroehliadm-pvc                            managed-nfs-storage            8d
+pvc-68e30234-8941-4555-8cf1-44c9eb3da349   1Gi        RWO            Delete           Bound       workspaceifh90lyru9fkh6ow/claim-che-workspace-workspaceifh90lyru9fkh6ow   managed-nfs-storage            19h
+pvc-7035a3bd-fa65-46c9-a497-febc26c8bb1c   1Gi        RWO            Delete           Bound       workspacejqsh6fzqr5s86n8e/claim-che-workspace-workspacejqsh6fzqr5s86n8e   managed-nfs-storage            31h
+pvc-92fa967b-3b5e-11ea-9eb0-424242420412   1Gi        RWO            Delete           Bound       oschneid-crw/postgres-data                                                managed-nfs-storage            58d
+pvc-97dee969-8df7-4cda-91b9-6b96b49526c0   1Gi        RWO            Delete           Bound       dfroehli-opendj-dev/service-housekeeping-event-export                     managed-nfs-storage            17h
+pvc-9c283311-d724-41ca-9d25-3e9212d02e97   1Gi        RWO            Delete           Bound       dfroehli-opendj-dev/data-backend-eventstore-kafka-1                       managed-nfs-storage            17h
+pvc-a0497de4-ee79-4420-b7dd-e69d05ab01a6   1Gi        RWO            Delete           Bound       dfroehli-opendj-dev/srv-data-backend-datagrid-1                           managed-nfs-storage            17h
+pvc-a82c9620-cb08-4605-9f84-c78c99b7d2b0   1Gi        RWO            Delete           Bound       dfroehli-opendj-dev/srv-data-backend-datagrid-2                           managed-nfs-storage            17h
+pvc-cc1a6d9d-884b-47ba-9363-7c588f942318   1Gi        RWO            Delete           Bound       dfroehli-opendj-dev/srv-data-backend-datagrid-0                           managed-nfs-storage            17h
+pvc-cfd919fe-fb2d-467f-8344-34d7d955a536   100Mi      RWX            Delete           Bound       bschmeli-rhsso/sso-providers-claim                                        managed-nfs-storage            9d
+pvc-db6145f9-c9ac-4e46-b84a-97c4bd6eafbc   1Gi        RWO            Delete           Bound       workspacerq9qji6ez0zndb7e/claim-che-workspace-workspacerq9qji6ez0zndb7e   managed-nfs-storage            13d
+pvc-decdde9d-19b8-44b2-abde-8823edf9f2aa   3Gi        RWO            Delete           Bound       bschmeli-rhsso/sso-mysql-claim                                            managed-nfs-storage            9d
+pvc-e921464f-fc47-4cdf-9584-34efdc42abcc   2Gi        RWO            Delete           Bound       dfroehli-datahub/jupyterhub-nb-admin-pvc                                  managed-nfs-storage            8d
+pvc-efefcbfa-7ca7-4005-ab16-069e7588824c   2Gi        RWO            Delete           Bound       dfroehli-datahub/jupyterhub-nb-dfroehli-40redhat-2ecom-pvc                managed-nfs-storage            9d
+ 🐵   ~/Downloads/ocs-files  cp local-storage-filesystem.yaml local-storage-block.yaml 
+ 🐵   ~/Downloads/ocs-files  vi local-storage-block.yaml 
+ 🐵   ~/Downloads/ocs-files  oc create -f local-storage-block.yaml
+^C
+ ✘ 🐵   ~/Downloads/ocs-files  vi local-storage-block.yaml          
+ 🐵   ~/Downloads/ocs-files  oc create -f local-storage-block.yaml
+localvolume.local.storage.openshift.io/local-disks-ocs-osd created
+ 🐵   ~/Downloads/ocs-files  oc get pod -n local-storage
+NAME                                          READY   STATUS    RESTARTS   AGE
+local-disks-ocs-mon-local-diskmaker-bd7l5     1/1     Running   0          5m38s
+local-disks-ocs-mon-local-diskmaker-mmcwl     1/1     Running   0          5m38s
+local-disks-ocs-mon-local-diskmaker-mnl58     1/1     Running   0          5m38s
+local-disks-ocs-mon-local-provisioner-29hrs   1/1     Running   0          5m38s
+local-disks-ocs-mon-local-provisioner-8cfzh   1/1     Running   0          5m38s
+local-disks-ocs-mon-local-provisioner-hlkkb   1/1     Running   0          5m38s
+local-disks-ocs-osd-local-diskmaker-4hxpt     1/1     Running   0          9s
+local-disks-ocs-osd-local-diskmaker-qng5n     1/1     Running   0          9s
+local-disks-ocs-osd-local-diskmaker-vzn42     1/1     Running   0          9s
+local-disks-ocs-osd-local-provisioner-47dv8   1/1     Running   0          9s
+local-disks-ocs-osd-local-provisioner-58rtf   1/1     Running   0          9s
+local-disks-ocs-osd-local-provisioner-qf2mg   1/1     Running   0          9s
+local-storage-operator-8497bd8cb-929kq        1/1     Running   0          12m
+ 🐵   ~/Downloads/ocs-files  oc get pv
+NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM                                                                     STORAGECLASS          REASON   AGE
+local-pv-23676bf0                          1863Gi     RWO            Delete           Available                                                                             local-ocs-osd                  48s
+local-pv-52657152                          1863Gi     RWO            Delete           Available                                                                             local-ocs-osd                  48s
+local-pv-52dc6c6f                          10Gi       RWO            Delete           Available                                                                             local-ocs-mon                  6m3s
+local-pv-d9ae968d                          1863Gi     RWO            Delete           Available                                                                             local-ocs-osd                  48s
+local-pv-dc4284e6                          10Gi       RWO            Delete           Available                                                                             local-ocs-mon                  6m3s
+local-pv-fbbad0e9                          10Gi       RWO            Delete           Available                                                                             local-ocs-mon                  6m3s
+nfs-registry-storage                       100Gi      RWX            Recycle          Bound       openshift-image-registry/registry-storage                                                                60d
+pvc-00bc303d-3f89-11ea-8b77-424242420411   512Mi      RWO            Delete           Bound       mldtestinitial/postgresql                                                 managed-nfs-storage            52d
+pvc-10386f6f-f3d0-4549-8e30-3401f4bb0c9d   1Gi        RWO            Delete           Bound       dfroehli-opendj-dev/data-backend-eventstore-kafka-0                       managed-nfs-storage            17h
+pvc-1fb9d131-57e8-43a7-a51a-fc59942203a7   1Gi        RWO            Delete           Bound       dfroehli-opendj-dev/data-backend-eventstore-zookeeper-0                   managed-nfs-storage            17h
+pvc-21748330-941a-46de-96cd-b11d60a0d1ca   1Gi        RWO            Delete           Bound       dfroehli-datahub/jupyterhub-db                                            managed-nfs-storage            9d
+pvc-4d58e949-3ea0-4d4c-b588-a81b7c4fbd5d   2Gi        RWO            Delete           Bound       dfroehli-datahub/jupyterhub-nb-dfroehliadm-pvc                            managed-nfs-storage            8d
+pvc-68e30234-8941-4555-8cf1-44c9eb3da349   1Gi        RWO            Delete           Bound       workspaceifh90lyru9fkh6ow/claim-che-workspace-workspaceifh90lyru9fkh6ow   managed-nfs-storage            19h
+pvc-7035a3bd-fa65-46c9-a497-febc26c8bb1c   1Gi        RWO            Delete           Bound       workspacejqsh6fzqr5s86n8e/claim-che-workspace-workspacejqsh6fzqr5s86n8e   managed-nfs-storage            31h
+pvc-92fa967b-3b5e-11ea-9eb0-424242420412   1Gi        RWO            Delete           Bound       oschneid-crw/postgres-data                                                managed-nfs-storage            58d
+pvc-97dee969-8df7-4cda-91b9-6b96b49526c0   1Gi        RWO            Delete           Bound       dfroehli-opendj-dev/service-housekeeping-event-export                     managed-nfs-storage            17h
+pvc-9c283311-d724-41ca-9d25-3e9212d02e97   1Gi        RWO            Delete           Bound       dfroehli-opendj-dev/data-backend-eventstore-kafka-1                       managed-nfs-storage            17h
+pvc-a0497de4-ee79-4420-b7dd-e69d05ab01a6   1Gi        RWO            Delete           Bound       dfroehli-opendj-dev/srv-data-backend-datagrid-1                           managed-nfs-storage            17h
+pvc-a82c9620-cb08-4605-9f84-c78c99b7d2b0   1Gi        RWO            Delete           Bound       dfroehli-opendj-dev/srv-data-backend-datagrid-2                           managed-nfs-storage            17h
+pvc-cc1a6d9d-884b-47ba-9363-7c588f942318   1Gi        RWO            Delete           Bound       dfroehli-opendj-dev/srv-data-backend-datagrid-0                           managed-nfs-storage            17h
+pvc-cfd919fe-fb2d-467f-8344-34d7d955a536   100Mi      RWX            Delete           Bound       bschmeli-rhsso/sso-providers-claim                                        managed-nfs-storage            9d
+pvc-db6145f9-c9ac-4e46-b84a-97c4bd6eafbc   1Gi        RWO            Delete           Bound       workspacerq9qji6ez0zndb7e/claim-che-workspace-workspacerq9qji6ez0zndb7e   managed-nfs-storage            13d
+pvc-decdde9d-19b8-44b2-abde-8823edf9f2aa   3Gi        RWO            Delete           Bound       bschmeli-rhsso/sso-mysql-claim                                            managed-nfs-storage            9d
+pvc-e921464f-fc47-4cdf-9584-34efdc42abcc   2Gi        RWO            Delete           Bound       dfroehli-datahub/jupyterhub-nb-admin-pvc                                  managed-nfs-storage            8d
+pvc-efefcbfa-7ca7-4005-ab16-069e7588824c   2Gi        RWO            Delete           Bound       dfroehli-datahub/jupyterhub-nb-dfroehli-40redhat-2ecom-pvc                managed-nfs-storage            9d
+ 🐵   ~/Downloads/ocs-files  
+ ✘ 🐵   ~/Downloads/ocs-files  oc get sc
+NAME                            PROVISIONER                                   AGE
+local-ocs-mon                   kubernetes.io/no-provisioner                  7m16s
+local-ocs-osd                   kubernetes.io/no-provisioner                  107s
+managed-nfs-storage (default)   redhat-emea-ssa-team/nfs-client-provisioner   60d

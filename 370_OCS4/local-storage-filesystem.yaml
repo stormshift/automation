@@ -1,0 +1,20 @@
+apiVersion: "local.storage.openshift.io/v1"
+kind: "LocalVolume"
+metadata:
+  name: "local-disks-ocs-mon"
+  namespace: "local-storage"
+spec:
+  nodeSelector:
+    nodeSelectorTerms:
+    - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - compute-0.ocp4.stormshift.coe.muc.redhat.com
+          - compute-1.ocp4.stormshift.coe.muc.redhat.com
+          - compute-2.ocp4.stormshift.coe.muc.redhat.com
+  storageClassDevices:
+    - storageClassName: "local-ocs-mon"
+      volumeMode: Filesystem
+      devicePaths:
+        - /dev/sda
