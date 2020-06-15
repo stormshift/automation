@@ -1,0 +1,190 @@
+---
+# ------------------------------------------------------------------------------
+# This adds Logging to OpenShift Cluster
+# See
+# https://docs.openshift.com/container-platform/4.3/logging/cluster-logging-deploying.html#cluster-logging-deploy-clo-cli_cluster-logging-deploying
+# https://github.com/RedHat-EMEA-SSA-Team/hetzner-ocp4/blob/master/ansible/roles/openshift-4-cluster/tasks/post-install.yml
+
+- name: Add logging via support node
+  hosts: "{{layer3_ocp_name}}support.{{sysctx_dns_domain}}"
+  gather_facts: false
+  vars_files:
+    - cfg/secrets_{{sysctx_instance_name}}.yml
+  vars:
+    logging_storage_class: managed-nfs-storage
+    openshift_install_dir: /root/ocp4install
+  tasks:
+  - name: Create a Namespace for the Elasticsearch Operator
+    k8s:
+      state: present
+      kubeconfig: "/root/ocp4install/auth/kubeconfig"
+      definition:
+        apiVersion: v1
+        kind: Namespace
+        metadata:
+          name: openshift-operators-redhat
+          annotations:
+            openshift.io/node-selector: ""
+          labels:
+            openshift.io/cluster-monitoring: "true"
+
+  - name: Create a Namespace for the Cluster Logging Operator
+    k8s:
+      state: present
+      kubeconfig: "/root/ocp4install/auth/kubeconfig"
+      definition:
+        apiVersion: v1
+        kind: Namespace
+        metadata:
+          name: openshift-logging
+          annotations:
+            openshift.io/node-selector: ""
+          labels:
+            openshift.io/cluster-monitoring: "true"
+
+# Step 3-ab:
+  - name: Create ElasticSearch Operator Group
+    k8s:
+      state: present
+      kubeconfig: "/root/ocp4install/auth/kubeconfig"
+      definition:
+        apiVersion: operators.coreos.com/v1
+        kind: OperatorGroup
+        metadata:
+          name: openshift-operators-redhat
+          namespace: openshift-operators-redhat
+        spec: {}
+
+
+
+# Step 3-cd
+  - name: Create ElasticSearch Operator Subscription
+    k8s:
+      state: present
+      kubeconfig: "/root/ocp4install/auth/kubeconfig"
+      definition:
+        apiVersion: operators.coreos.com/v1alpha1
+        kind: Subscription
+        metadata:
+          name: "elasticsearch-operator"
+          namespace: "openshift-operators-redhat"
+        spec:
+          channel: "4.4"
+          installPlanApproval: "Automatic"
+          source: "redhat-operators"
+          sourceNamespace: "openshift-marketplace"
+          name: "elasticsearch-operator"
+    register: esoperator
+
+# Step 3-e:
+  - name: Wait for elastic operator install to complete
+    shell: "sleep 5s && oc --kubeconfig /root/ocp4install/auth/kubeconfig get ClusterServiceVersion  --all-namespaces --no-headers | grep -v Succeeded | wc -l"
+    register: operatorsNotSucceded
+    until: " '0' in operatorsNotSucceded.stdout"
+    retries: 120
+    changed_when: false
+    when: esoperator is changed
+
+
+
+# Step 4-ab
+  - name: Create Cluster Logging Operator Group
+    k8s:
+      state: present
+      kubeconfig: "/root/ocp4install/auth/kubeconfig"
+      definition:
+        apiVersion: operators.coreos.com/v1
+        kind: OperatorGroup
+        metadata:
+          name: cluster-logging
+          namespace: openshift-logging
+        spec:
+          targetNamespaces:
+          - openshift-logging
+
+# Step 4-cd:
+  - name: Create Cluster Logging Operator Subscription
+    register: logoperator
+    k8s:
+      state: present
+      kubeconfig: "/root/ocp4install/auth/kubeconfig"
+      definition:
+        apiVersion: operators.coreos.com/v1alpha1
+        kind: Subscription
+        metadata:
+          name: cluster-logging
+          namespace: openshift-logging
+        spec:
+          channel: "4.4"
+          name: cluster-logging
+          source: redhat-operators
+          sourceNamespace: openshift-marketplace
+
+# Step 4-e:
+  - name: Wait for logging operator install to complete
+    shell: "sleep 5s && oc --kubeconfig /root/ocp4install/auth/kubeconfig get ClusterServiceVersion  --all-namespaces --no-headers | grep -v Succeeded | wc -l"
+    register: operatorsNotSucceded
+    until: " '0' in operatorsNotSucceded.stdout"
+    retries: 120
+    changed_when: false
+    when: logoperator is changed
+
+# Step 5-a
+  - name: Create a Cluster Logging instance
+    k8s:
+      state: present
+      kubeconfig: "/root/ocp4install/auth/kubeconfig"
+      definition:
+        apiVersion: "logging.openshift.io/v1"
+        kind: "ClusterLogging"
+        metadata:
+          name: "instance"
+          namespace: "openshift-logging"
+        spec:
+          managementState: "Managed"
+          logStore:
+            type: "elasticsearch"
+            elasticsearch:
+              nodeCount: 1
+              storage:
+                storageClassName: "{{logging_storage_class}}"
+                size: 200G
+              redundancyPolicy: "ZeroRedundancy"
+              resources:
+                limits:
+                  cpu: 4
+                  memory: 16Gi
+                requests:
+                  cpu: "0.5"
+                  memory: 16Gi
+          visualization:
+            type: "kibana"
+            kibana:
+              replicas: 1
+          curation:
+            type: "curator"
+            curator:
+              schedule: "30 3 * * *"
+          collection:
+            logs:
+              type: "fluentd"
+              fluentd:
+                resources:
+                  limits:
+                    cpu: 1000m
+                    memory: 1Gi
+                  requests:
+                    cpu: 100m
+                    memory: "0.5Gi"
+
+#
+# TODO: Manually apply
+# https://access.redhat.com/solutions/5000761
+#
+
+
+#  - name: Create ...
+#    k8s:
+#      state: present
+#      kubeconfig: "/root/ocp4install/auth/kubeconfig"
+#      definition:
