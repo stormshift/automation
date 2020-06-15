@@ -6,8 +6,8 @@
 
     useFirewalld: true
     std_gateway: "{{layer3_ocp_network_prefix}}.1"
-    layer3_ocp_version: "4.2.10"
-    layer3_rhcos_version: "4.2.0"
+    layer3_ocp_version: "4.4.3"
+    layer3_rhcos_version: "4.4.3"
     layer3_ocp_master_url: "api.{{layer3_ocp_name}}.{{sysctx_dns_domain}}"
     layer3_ocp_master_apps: "apps.{{layer3_ocp_name}}.{{sysctx_dns_domain}}"
     layer3_ocp_admin_users:
@@ -15,13 +15,9 @@
       - dfroehliadm
       - oschneidadm
       - rbohneadm
-      - rjaiswaladm
 
     layer3_ocp_normal_users:
       - { name: demo-user, pswd: 'demo' }
-      - { name: manuela-dev, pswd: 'manuela' }
-      - { name: manuela-tst, pswd: 'manuela' }
-      - { name: manuela-ops, pswd: 'manuela' }
 
     control_vm_profile:
       cluster: Default
@@ -55,11 +51,11 @@
       cluster: Default
       template: ""
       clone: yes
-      memory: 16GiB
-      memory_guaranteed: 16GiB
+      memory: 32GiB
+      memory_guaranteed: 32GiB
       memory_max: 64GiB
       sockets: 1
-      cores: 4
+      cores: 10
       cpu_threads: 1
       boot_devices:
         - hd

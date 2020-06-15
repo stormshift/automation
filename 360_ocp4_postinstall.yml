@@ -17,6 +17,28 @@
   tasks:
 
 # ------------------------------------------------------------------------------
+# Add Red Hat Internal CA to trust chain
+# (https://docs.openshift.com/container-platform/4.2/networking/configuring-a-custom-pki.html#nw-proxy-configure-object_configuring-a-custom-pki)
+# The CA Chain is in user-ca-bundle ConfigMap, thanks to install
+# config "additionalTrustBundle" (see there). Thus, wee need only
+# to add it to the Cluster Proxy Config
+# ------------------------------------------------------------------------------
+    - name: Add Red Hat Internal CA to trust chain
+      tags: certs
+      k8s:
+        state: present
+        kubeconfig: "/root/ocp4install/auth/kubeconfig"
+        merge_type: merge
+        definition:
+          apiVersion: config.openshift.io/v1
+          kind: Proxy
+          metadata:
+            name: cluster
+          spec:
+            trustedCA:
+              name: "user-ca-bundle"
+
+# ------------------------------------------------------------------------------
 # Install Certs to Ingress Operator
 # ------------------------------------------------------------------------------
 
@@ -96,7 +118,6 @@
             name: htpasswd
             namespace: openshift-config
           type: Opaque
-      when: htpasswd is changed
 
     - name: Create htpasswd identity provider template
       tags: auth,htpasswd
@@ -142,7 +163,7 @@
           name: RedHatInternalSSO
           type: Google
 
-    - name: Push google to identpty_providers
+    - name: Push google to identity_providers
       tags: auth,google
       set_fact:
         identity_roviders: "{{ identity_roviders }} + [ {{ redhatsso_idp }} ]"
@@ -296,12 +317,15 @@
         kubeconfig: "{{ openshift_install_dir }}/auth/kubeconfig"
         definition:
           kind: Deployment
-          apiVersion: extensions/v1beta1
+          apiVersion: apps/v1
           metadata:
             name: nfs-client-provisioner
             namespace: "{{ storage_nfs_target_namespace }}"
           spec:
             replicas: 1
+            selector:
+              matchLabels:
+                app: nfs-client-provisioner
             strategy:
               type: Recreate
             template:
@@ -347,23 +371,21 @@
 
 
 # ------------------------------------------------------------------------------
-# Add Red Hat Internal CA to trust chain
-# (https://docs.openshift.com/container-platform/4.2/networking/configuring-a-custom-pki.html#nw-proxy-configure-object_configuring-a-custom-pki)
-# The CA Chain is in user-ca-bundle ConfigMap, thanks to install
-# config "additionalTrustBundle" (see there). Thus, wee need only
-# to add it to the Cluster Proxy Config
+# Activate pruning jobs
 # ------------------------------------------------------------------------------
-    - name: Add Red Hat Internal CA to trust chain
-      tags: pvs
+    - name: Activate image pruning
+      tags: pruning
       k8s:
         state: present
-        kubeconfig: "/root/ocp4install/auth/kubeconfig"
-        merge_type: merge
+        kubeconfig: "{{ openshift_install_dir }}/auth/kubeconfig"
         definition:
-          apiVersion: config.openshift.io/v1
-          kind: Proxy
+          kind: ImagePruner
+          apiVersion: imageregistry.operator.openshift.io/v1
           metadata:
             name: cluster
           spec:
-            trustedCA:
-              name: "user-ca-bundle"
+            failedJobsHistoryLimit: 3
+            keepTagRevisions: 3
+            schedule: "42 4 * * *"
+            successfulJobsHistoryLimit: 3
+            suspend: false

@@ -165,13 +165,21 @@
   vars_files:
     - cfg/secrets_{{sysctx_instance_name}}.yml
   tasks:
-    - name: Waiting bootstrap to complete
+    - name: Waiting for bootstrap to complete
       command: "/root/bin/openshift-install wait-for bootstrap-complete --dir=/root/ocp4install --log-level debug"
       register: bootstrap_status
       changed_when: false
       retries: 60
       delay: 60
       until: bootstrap_status.rc == 0
+
+    - name: Approving the CSRs for the machines
+      shell:
+        cmd: |
+          {%raw%}/root/bin/oc get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' --kubeconfig /root/ocp4install/auth/kubeconfig | xargs /root/bin/oc --kubeconfig /root/ocp4install/auth/kubeconfig adm certificate approve{%endraw%}
+      register: csr
+      changed_when: "'approved' in csr.stdout"
+      failed_when: "csr.rc!=0 and csr.stderr is not search('one or more CSRs must be specified')"
 
 
 
@@ -247,6 +255,7 @@
           metadata:
             name: cluster
           spec:
+            managementState: Managed
             storage:
               pvc:
                 claim: registry-storage

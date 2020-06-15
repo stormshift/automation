@@ -14,7 +14,8 @@
        idrac_user:      "{{layer0_idrac_user}}"
        idrac_pwd:       "{{layer0_idrac_pwd}}"
        share_name:  "{{sysctx_nfs_share}}"
-       iso_image:  "iso/rhel-server-7.7-x86_64-dvd.iso"
+       iso_image:  "iso/rhel-8.1-x86_64-dvd.iso"
+#       iso_image:  "iso/rhel-server-7.7-x86_64-dvd.iso"
 #nfs://10.32.96.42:/vdo/nfs/stormshift/firmware/PER730_BOOTABLE_19.10.00.99.iso
 
 #       share_user:  "xxxx"i

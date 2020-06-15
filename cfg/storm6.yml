@@ -1,14 +1,17 @@
-  sysctx_instance_name: "stormshift"
+  sysctx_instance_name: "stormshift6"
   sysctx_dns: "10.32.96.1"
   sysctx_gateway: "10.32.111.254"
   sysctx_cidr: "20"
   sysctx_dns_suffix: "coe.muc.redhat.com"
-  sysctx_dns_domain: "stormshift.{{ sysctx_dns_suffix }}"
+  sysctx_dns_domain: "stormshift6.{{ sysctx_dns_suffix }}"
   sysctx_admin_ssh_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDTz8MFjA+JwZQDmkR59fwnhi7eaL41RlYsD7THaa517AmzpS+ERsS4RO3voyqdwCFQWdEQ4LD9st1MpNx5Ap94+5kBKc7jO5tA7RuP/1pwGaRKfGf0i8vX/L6T6F6WGwNcXYkKg+JvMlfEBi+E1MmzVxf6WXEzowxt5rmY/cfQkT5vetdjmgycucMnWaX22rY1JgpdfoL+T8urQIVB4B7EuuA1dj80PeMQIKe6M0WJ6AeEm8Mrbi4z6fbQzcNcA2BdLgs9XUQS0HuxJLYgY8/DA82tMPXtzpcp9iOqIN8fynrYGx6YCIesF+vSxo1qSeTFqPyet5ZfttviyX/kfoPZ hailstorm@hailstormdeploy.coe.muc.redhat.com"
   sysctx_nfs_share: "10.32.96.42:/vdo/nfs/stormshift/"
 
+
 # Path to external CA signed cert on deployer node:
-  sysctx_certs_path: "/home/hailstorm/certs"
+#Sorry, no nice certs for gaiax due to external name
+#  sysctx_certs_path: "/home/hailstorm/certs"
+
   sysctx_proxy: "10.32.96.1:3128"
 
 # Secret stuff stored in ansible vault:
@@ -25,11 +28,11 @@
   layer0_idrac_pwd: "{{vault_layer0_idrac_pwd}}"
 
 
-  layer0_idrac_ip: "10.32.104.92"
-
-  layer1_host_name: "storm3"
-  layer1_host_fqdn: "{{layer1_host_name}}.{{ sysctx_dns_suffix }}"
-  layer1_host_ip_adress: "10.32.105.3"
+# Storm4:
+  layer0_idrac_ip: "10.32.104.72"
+  layer1_host_name: "storm6"
+  layer1_host_fqdn: "{{layer1_host_name}}.coe.muc.redhat.com"
+  layer1_host_ip_adress: "10.32.105.6"
   layer1_host_primary_nic: em1
   layer1_nfs_fqn: "{{layer1_host_fqdn}}"
   layer1_dns: "{{layer1_host_ip_adress}}"
@@ -38,7 +41,7 @@
   layer1_device_nvme3: "pci_0000_84_00_0"
 
 
-  layer2_rhev_engine_ip: "10.32.105.40"
+  layer2_rhev_engine_ip: "10.32.105.140"
   layer2_rhev_engine_fqdn: "rhev.{{sysctx_dns_domain}}"
   layer2_rhev_engine_host_fqdn: "{{layer1_host_fqdn}}"
   layer2_rhev_engine_user: "admin@internal"
@@ -54,20 +57,21 @@
     - { vol: ocp1, size: 100g }
     - { vol: ocp2, size: 100g }
     - { vol: ocp3, size: 100g }
-    - { vol: ocp4, size: 100g }
+    - { vol: ocp4reg, size: 100g }
+    - { vol: ocp4dyn, size: 100g }
 
   layer2_rhev_engine_storage_connection: "{{layer1_nfs_fqn}}:{{layer2_rhev_storage_nfs_path}}/hostedEngine"
 
-  layer3_ocp_bastion_nic_ext: ens2
-  layer3_ocp_bastion_nic_int: ens8
-  layer3_ocp_support_nic:   ens2
+  layer3_ocp_bastion_nic_ext: ens3
+  layer3_ocp_bastion_nic_int: ens2
+  layer3_ocp_support_nic: ens3
 
   layer3_ocp_public_ip:
-    ocp1: 10.32.105.41
-    ocp2: 10.32.105.42
-    ocp3: 10.32.105.43
-    ocp4: 10.32.105.44
-    ocp5: 10.32.105.45
+    ocp1: 10.32.105.141
+    ocp2: 10.32.105.142
+    ocp3: 10.32.105.143
+    ocp4: 10.32.105.144
+    ocp5: 10.32.105.145
 
 
 # see also ocp1..5.yml:

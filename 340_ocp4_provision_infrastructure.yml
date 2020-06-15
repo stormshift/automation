@@ -98,6 +98,10 @@
   vars_files:
     - cfg/secrets_{{sysctx_instance_name}}.yml
   tasks:
+    - name: Subs refresh
+      tags: bastion,slow
+      command: subscription-manager refresh
+
     - name: Remove cloud init
       tags: bastion,slow
       yum:
@@ -255,6 +259,10 @@
   vars_files:
     - cfg/secrets_{{sysctx_instance_name}}.yml
   tasks:
+    - name: Subs refresh
+      tags: bastion,slow
+      command: subscription-manager refresh
+    
     - name: Remove cloud init
       tags: support,slow
       yum:
