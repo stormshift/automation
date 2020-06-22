@@ -18,6 +18,7 @@
 
     layer3_ocp_normal_users:
       - { name: demo-user, pswd: 'demo' }
+    layer3_logging_storage_class: managed-nfs-storage
 
     control_vm_profile:
       cluster: Default

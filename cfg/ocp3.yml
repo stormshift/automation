@@ -22,6 +22,7 @@
       - { name: manuela-dev, pswd: 'manuela' }
       - { name: manuela-tst, pswd: 'manuela' }
       - { name: manuela-ops, pswd: 'manuela' }
+    layer3_logging_storage_class: managed-nfs-storage
 
     control_vm_profile:
       cluster: Default

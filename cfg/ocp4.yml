@@ -23,6 +23,7 @@
       - { name: manuela-dev, pswd: 'manuela' }
       - { name: manuela-tst, pswd: 'manuela' }
       - { name: manuela-ops, pswd: 'manuela' }
+    layer3_logging_storage_class: ocs-storagecluster-ceph-rbd
 
     control_vm_profile:
       cluster: Default
