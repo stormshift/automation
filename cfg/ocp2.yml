@@ -6,6 +6,8 @@
 
     useFirewalld: true
     std_gateway: "{{layer3_ocp_network_prefix}}.1"
+#    layer3_ocp_version: "4.3.18"
+#    layer3_rhcos_version: "4.3.8"
     layer3_ocp_version: "4.4.3"
     layer3_rhcos_version: "4.4.3"
     layer3_ocp_master_url: "api.{{layer3_ocp_name}}.{{sysctx_dns_domain}}"

@@ -181,6 +181,17 @@
       changed_when: "'approved' in csr.stdout"
       failed_when: "csr.rc!=0 and csr.stderr is not search('one or more CSRs must be specified')"
 
+    - name: Wait 10s for additional CSRs to be created
+      pause:
+          seconds: 10
+      
+    - name: Approving the CSRs for the machines again
+      shell:
+        cmd: |
+          {%raw%}/root/bin/oc get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' --kubeconfig /root/ocp4install/auth/kubeconfig | xargs /root/bin/oc --kubeconfig /root/ocp4install/auth/kubeconfig adm certificate approve{%endraw%}
+      register: csr
+      changed_when: "'approved' in csr.stdout"
+      failed_when: "csr.rc!=0 and csr.stderr is not search('one or more CSRs must be specified')"
 
 
 # ------------------------------------------------------------------------------
