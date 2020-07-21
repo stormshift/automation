@@ -1,11 +1,27 @@
     layer3_ocp_name: "ocp4"
     layer3_ocp_bastion_ip: "{{layer3_ocp_public_ip.ocp4}}"
+    layer3_ocp_support_host: "{{layer3_ocp_name}}support.{{sysctx_dns_domain}}"
+    layer3_ocp_support_ip: "172.16.10.5"
+    layer3_ocp_nfs_server: "{{layer3_ocp_support_ip}}"
+    layer3_ocp_nfs_registry_path: "/data/nfs/ocp/pv_registry"
+    layer3_ocp_nfs_dynprov_path: "/data/nfs/ocp/user-pvs"
 
     layer3_ocp_network_prefix: "172.16.10"
     layer3_ocp_mac_prefix: "42:42:42:42:04"
     layer3_ocp_mac_prefix_dash: "42-42-42-42-04"
+    layer3_ocp_control_0_ip: 172.16.10.10
+    layer3_ocp_control_1_ip: 172.16.10.11
+    layer3_ocp_control_2_ip: 172.16.10.12
+    layer3_ocp_compute_0_ip: 172.16.10.20
+    layer3_ocp_compute_1_ip: 172.16.10.21
+    layer3_ocp_compute_2_ip: 172.16.10.22
+    layer3_ocp_bootstrap_ip: 172.16.10.6
 
     useFirewalld: true
+    useDHCP: true
+    useNFS: true
+    usePXE: true
+
     std_gateway: "{{layer3_ocp_network_prefix}}.1"
     layer3_ocp_version: "4.2.10"
     layer3_rhcos_version: "4.2.0"

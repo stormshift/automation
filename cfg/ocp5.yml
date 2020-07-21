@@ -1,30 +1,34 @@
-    layer3_ocp_name: "ocp2"
-    layer3_ocp_bastion_ip: "{{layer3_ocp_public_ip.ocp2}}"
-    layer3_ocp_support_host: "{{layer3_ocp_name}}support.{{sysctx_dns_domain}}"
-    layer3_ocp_support_ip: "172.16.10.5"
+    layer3_ocp_name: "ocp5"
+    layer3_ocp_bastion_ip: "{{layer3_ocp_public_ip.ocp5}}"
+    layer3_ocp_support_host: "{{layer3_ocp_name}}bastion.{{sysctx_dns_domain}}"
+    layer3_ocp_support_ip: "{{layer3_ocp_bastion_ip}}"
     layer3_ocp_nfs_server: "{{layer3_ocp_support_ip}}"
     layer3_ocp_nfs_registry_path: "/data/nfs/ocp/pv_registry"
     layer3_ocp_nfs_dynprov_path: "/data/nfs/ocp/user-pvs"
 
-    layer3_ocp_network_prefix: "172.16.10"
-    layer3_ocp_mac_prefix: "42:42:42:42:02"
-    layer3_ocp_mac_prefix_dash: "42-42-42-42-02"
-    layer3_ocp_control_0_ip: 172.16.10.10
-    layer3_ocp_control_1_ip: 172.16.10.11
-    layer3_ocp_control_2_ip: 172.16.10.12
-    layer3_ocp_compute_0_ip: 172.16.10.20
-    layer3_ocp_compute_1_ip: 172.16.10.21
-    layer3_ocp_compute_2_ip: 172.16.10.22
-    layer3_ocp_bootstrap_ip: 172.16.10.6
+    layer3_ocp_nfs_server: "10.32.105.3"
+    layer3_ocp_nfs_registry_path: "/var/rhev/storage/nfs/ocp5-reg"
+    layer3_ocp_nfs_dynprov_path: "/var/rhev/storage/nfs/ocp5-dyn-nfs"
 
-    useFirewalld: true
-    useDHCP: true
-    useNFS: true
-    usePXE: true
 
-    std_gateway: "{{layer3_ocp_network_prefix}}.1"
-#    layer3_ocp_version: "4.3.18"
-#    layer3_rhcos_version: "4.3.8"
+    layer3_ocp_network_prefix: "10.32.105"
+    layer3_ocp_mac_prefix: "42:42:42:42:05"
+    layer3_ocp_mac_prefix_dash: "42-42-42-42-05"
+    layer3_ocp_control_0_ip: 10.32.105.50
+    layer3_ocp_control_1_ip: 10.32.105.51
+    layer3_ocp_control_2_ip: 10.32.105.52
+    layer3_ocp_compute_0_ip: 10.32.105.53
+    layer3_ocp_compute_1_ip: 10.32.105.54
+    layer3_ocp_compute_2_ip: 10.32.105.55
+    layer3_ocp_bootstrap_ip: 10.32.105.59
+
+
+#    useFirewalld: true
+#    useDHCP: true
+#    useNFS: true
+#    usePXE: true
+
+    std_gateway: "10.32.111.254"
     layer3_ocp_version: "4.4.3"
     layer3_rhcos_version: "4.4.3"
     layer3_ocp_master_url: "api.{{layer3_ocp_name}}.{{sysctx_dns_domain}}"
@@ -32,12 +36,11 @@
     layer3_ocp_admin_users:
       - admin
       - dfroehliadm
-      - oschneidadm
       - rbohneadm
 
     layer3_ocp_normal_users:
       - { name: demo-user, pswd: 'demo' }
-    layer3_logging_storage_class: managed-nfs-storage
+    layer3_logging_storage_class: ocs-storagecluster-ceph-rbd
 
     control_vm_profile:
       cluster: Default
@@ -45,13 +48,13 @@
       clone: yes
       memory: 16GiB
       memory_guaranteed: 16GiB
-      memory_max: 32GiB
+      memory_max: 24GiB
       sockets: 1
       cores: 4
       cpu_threads: 1
       boot_devices:
         - hd
-        - network
+        - cdrom
       disks:
         - size: 120GiB
           name: rhcosdisk
@@ -62,8 +65,8 @@
           activate: true
       nics:
         - name: nic1
-          network: "{{layer3_ocp_name}}-network"
-          profile: "{{layer3_ocp_name}}-network"
+          network: "ovirtmgmt"
+          profile: "ovirtmgmt"
       state: present
 
 
@@ -71,15 +74,15 @@
       cluster: Default
       template: ""
       clone: yes
-      memory: 32GiB
-      memory_guaranteed: 32GiB
+      memory: 16GiB
+      memory_guaranteed: 15GiB
       memory_max: 64GiB
       sockets: 1
-      cores: 10
+      cores: 4
       cpu_threads: 1
       boot_devices:
         - hd
-        - network
+        - cdrom
       disks:
         - size: 120GiB
           name: rhcosdisk
@@ -90,8 +93,8 @@
           activate: true
       nics:
         - name: nic1
-          network: "{{layer3_ocp_name}}-network"
-          profile: "{{layer3_ocp_name}}-network"
+          network: "ovirtmgmt"
+          profile: "ovirtmgmt"
       state: present
 
     vms:
@@ -118,9 +121,6 @@
             - name: nic1
               network: ovirtmgmt
               profile: ovirtmgmt
-            - name: nic2
-              network: "{{layer3_ocp_name}}-network"
-              profile: "{{layer3_ocp_name}}-network"
           cloud_init:
             root_password: "{{ secret_password }}"
             host_name: "{{layer3_ocp_name}}bastion.{{sysctx_dns_domain }}"
@@ -132,63 +132,11 @@
               nic_gateway: "{{sysctx_gateway}}"
               nic_on_boot: true
               nic_name: "{{layer3_ocp_bastion_nic_ext}}"
-            - nic_ip_address: "{{layer3_ocp_network_prefix}}.1"
-              nic_boot_protocol: "static"
-              nic_netmask: "255.255.255.0"
-              nic_gateway: "{{layer3_ocp_network_prefix}}.1"
-              nic_on_boot: true
-              nic_name: "{{layer3_ocp_bastion_nic_int}}"
-
-      - name: "{{layer3_ocp_name}}support"
-        tag: ocpsupport
-        profile:
-          state: running
-          cluster: Default
-          template: rhel8
-          clone: yes
-          memory: 1GiB
-          memory_guaranteed: 1GiB
-          memory_max: 4GiB
-          sockets: 1
-          cores: 2
-          cpu_threads: 1
-          disks:
-            - size: 10GiB
-              name: rhel8disk
-              name_prefix: false
-              storage_domain: data
-              interface: virtio
-            - size: 100GiB
-              name: data
-              name_prefix: true
-              storage_domain: data
-              interface: virtio
-
-          nics:
-            - name: nic1
-              network: "{{layer3_ocp_name}}-network"
-              profile: "{{layer3_ocp_name}}-network"
-          cloud_init:
-            root_password: "{{ secret_password }}"
-            host_name: "{{layer3_ocp_name}}support.{{sysctx_dns_domain }}"
-            dns_servers: "{{ layer1_dns }}"
-            custom_script: |
-              growpart:
-                mode: auto
-              resizefs:
-                  resize_rootfs: true
-          cloud_init_nics:
-            - nic_ip_address: "{{layer3_ocp_network_prefix}}.5"
-              nic_boot_protocol: "static"
-              nic_netmask: "255.255.255.0"
-              nic_gateway: "{{layer3_ocp_network_prefix}}.1"
-              nic_on_boot: true
-              nic_name: "{{layer3_ocp_bastion_nic_ext}}"
-
 
       - name: "{{layer3_ocp_name}}bootstrap"
         tag: ocpcontrol
         profile: "{{ control_vm_profile }}"
+        cd_iso: "rhcos_install-{{layer3_ocp_name}}bootstrap.iso"
         nics:
           - name: nic1
             mac_address: "{{layer3_ocp_mac_prefix}}:06"
@@ -196,6 +144,7 @@
       - name: "{{layer3_ocp_name}}control-0"
         tag: ocpcontrol
         profile: "{{ control_vm_profile }}"
+        cd_iso: "rhcos_install-{{layer3_ocp_name}}control-0.iso"
         nics:
           - name: nic1
             mac_address: "{{layer3_ocp_mac_prefix}}:10"
@@ -203,6 +152,7 @@
       - name: "{{layer3_ocp_name}}control-1"
         tag: ocpcontrol
         profile: "{{ control_vm_profile }}"
+        cd_iso: "rhcos_install-{{layer3_ocp_name}}control-1.iso"
         nics:
           - name: nic1
             mac_address: "{{layer3_ocp_mac_prefix}}:11"
@@ -210,11 +160,13 @@
       - name: "{{layer3_ocp_name}}control-2"
         tag: ocpcontrol
         profile: "{{ control_vm_profile }}"
+        cd_iso: "rhcos_install-{{layer3_ocp_name}}control-2.iso"
         nics:
           - name: nic1
             mac_address: "{{layer3_ocp_mac_prefix}}:12"
 
       - name: "{{layer3_ocp_name}}compute-0"
+        cd_iso: "rhcos_install-{{layer3_ocp_name}}compute-0.iso"
         tag: ocpcompute
         profile: "{{ compute_vm_profile }}"
         nics:
@@ -224,6 +176,7 @@
       - name: "{{layer3_ocp_name}}compute-1"
         tag: ocpcompute
         profile: "{{ compute_vm_profile }}"
+        cd_iso: "rhcos_install-{{layer3_ocp_name}}compute-1.iso"
         nics:
           - name: nic1
             mac_address: "{{layer3_ocp_mac_prefix}}:21"
@@ -231,6 +184,7 @@
       - name: "{{layer3_ocp_name}}compute-2"
         tag: ocpcompute
         profile: "{{ compute_vm_profile }}"
+        cd_iso: "rhcos_install-{{layer3_ocp_name}}compute-2.iso"
         nics:
           - name: nic1
             mac_address: "{{layer3_ocp_mac_prefix}}:22"

@@ -75,3 +75,12 @@ all:
               ocp4support.stormshift.coe.muc.redhat.com
             vars:
               ansible_ssh_common_args: '-o ProxyJump=root@ocp4bastion.stormshift.coe.muc.redhat.com -o StrictHostKeyChecking=no'
+
+      ocp5:
+        children:
+          ocp5bastion:
+            hosts:
+              ocp5bastion.stormshift.coe.muc.redhat.com
+          ocp5support:
+            hosts:
+              ocp5bastion.stormshift.coe.muc.redhat.com
