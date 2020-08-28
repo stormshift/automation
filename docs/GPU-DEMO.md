@@ -40,7 +40,7 @@ This KfDef triggers the builds of the GPU notebooks due to the ```- cuda``` para
           - cuda
 ...
 ```
-Navigate in the OpenShift Admin Console to ```Build -> Builds` and watch the notebook builds until the finish. (this will take some time)
+Navigate in the OpenShift Admin Console to ```Build -> Builds``` and watch the notebook builds until the finish. (this will take some time)
 
 ### Lauch Jupyter Hub
 
@@ -65,6 +65,11 @@ If no GPU is free, you will see ``` [Warning] 0/6 nodes are available: 6 Insuffi
 
 Download the demo notebook on your laptop/desktop:
 [tensorflow-with-gpu.ipynb](files/tensorflow-with-gpu.ipynb)
+
+```
+curl -O https://raw.githubusercontent.com/DanielFroehlich/stormshift/master/docs/files/tensorflow-with-gpu.ipynb
+```
+
 
 In the Jupyter Hub select ```[Upload]```, and upload the previously downloaded notebook ```tensorflow-with-gpu.ipynb```:
 
