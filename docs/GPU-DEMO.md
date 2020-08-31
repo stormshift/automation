@@ -90,10 +90,41 @@ Anyhoe, here a few tips:
 
 
 ## GPU based model training
+For showing an end to end model training you can the Keras example [OCR model for reading Captchas](https://keras.io/examples/vision/captcha_ocr/)
+
+- Upload the notebook [captcha_ocr.ipynb](files/captcha_ocr.ipynb)
+- Ensure you have Tensorflow 2.3.0  installed: ```!pip install tensorflow-gpu==2.3.0```
+- Step through notebook. The explanation are pretty good.
+- During the training phase show how fast the model is learning:
+
+```
+...
+Epoch 5/100
+59/59 [==============================] - 7s 120ms/step - loss: 16.3321 - val_loss: 16.4150
+Epoch 6/100
+59/59 [==============================] - 7s 124ms/step - loss: 16.3303 - val_loss: 16.4162
+Epoch 7/100
+59/59 [==============================] - 8s 130ms/step - loss: 16.3219 - val_loss: 16.4019
+...
+Epoch 13/100
+59/59 [==============================] - 9s 157ms/step - loss: 11.0869 - val_loss: 7.7286
+Epoch 14/100
+59/59 [==============================] - 9s 155ms/step - loss: 5.9264 - val_loss: 3.6818
+Epoch 15/100
+59/59 [==============================] - 8s 129ms/step - loss: 2.8195 - val_loss: 1.5599
+Epoch 16/100
+59/59 [==============================] - 9s 153ms/step - loss: 1.4770 - val_loss: 0.7692
+Epoch 17/100
+59/59 [==============================] - 8s 138ms/step - loss: 0.8761 - val_loss: 0.3705
+...
+```
+
+
+## Show Tensorflow Jobs using a GPU
+
 TBD
 
-## Show TF-Jobs using GPU
-TBD
+
 
 
 
