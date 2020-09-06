@@ -3,7 +3,15 @@
 # StormShift GPU Demo
 Showcase the availability and performance of GPUs on OpenShift.
 
-## Check the availability of a GPU before you start
+- [Check GPUs](#check-gpus)
+- [CPU vs. GPU performance](#cpu-vs-gpu-performance)
+- [GPU based model training](#gpu-based-model-training)
+- [Tensorflow Jobs using GPUs](#tensorflow-jobs-using-gpus)
+
+
+## Check GPUs
+
+Check the availability of GPUs before you start
 
 ### Quick view at the operator
 
@@ -169,7 +177,10 @@ Allocated resources:
                          Free GPU ^^^               ^^^
 ```
 
-## Brief performance tests of CPUs vs GPU with TensorFlow
+## CPU vs. GPU performance
+
+Brief performance tests of CPUs vs GPU with TensorFlow
+
 Note, the demo flow contains a few workarounds due to few issues with Open Data Hub 0.7.0. 
 
 ### Install Open Data Hub 
@@ -284,7 +295,9 @@ Epoch 17/100
 ```
 
 
-## Show Tensorflow Jobs using a GPU
+## Tensorflow Jobs using GPUs
+
+Show Tensorflow Jobs using GPUs.
 
 Clone the tensorflow-playground repo:
 ```
