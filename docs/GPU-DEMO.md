@@ -57,10 +57,9 @@ oc logs nvidia-device-plugin-validation -n gpu-operator-resources
 
 ## Expected output:
 > Using CUDA Device [0]: Tesla K20Xm
-> GPU Device has SM 3.5 compute capability
-[Vector addition of 50000 elements]
-Copy input data from the host memory to the CUDA device
-CUDA kernel launch with 196 blocks of 256 threads
+> GPU Devicegpu-mnist-jobs below:
+
+launch with 196 blocks of 256 threads
 Copy output data from the CUDA device to the host memory
 Test PASSED
 Done
@@ -78,7 +77,9 @@ oc exec -it nvidia-driver-daemonset-c8h5w nvidia-smi
 ```
 
 Expected results with a idle GPU:
-```
+```gpu-mnist-jobs below:
+
+
 +-----------------------------------------------------------------------------+
 | NVIDIA-SMI 440.64.00    Driver Version: 440.64.00    CUDA Version: 10.2     |
 |-------------------------------+----------------------+----------------------+
