@@ -2,28 +2,27 @@
     layer3_ocp_bastion_ip: "{{layer3_ocp_public_ip.ocp5}}"
     layer3_ocp_support_host: "{{layer3_ocp_name}}bastion.{{sysctx_dns_domain}}"
     layer3_ocp_support_ip: "{{layer3_ocp_bastion_ip}}"
-    layer3_ocp_nfs_server: "{{layer3_ocp_support_ip}}"
-    layer3_ocp_nfs_registry_path: "/data/nfs/ocp/pv_registry"
-    layer3_ocp_nfs_dynprov_path: "/data/nfs/ocp/user-pvs"
 
-    layer3_ocp_nfs_server: "10.32.105.3"
+    layer3_ocp_nfs_server: "192.168.11"
     layer3_ocp_nfs_registry_path: "/var/rhev/storage/nfs/ocp5-reg"
     layer3_ocp_nfs_dynprov_path: "/var/rhev/storage/nfs/ocp5-dyn-nfs"
 
 
-    layer3_ocp_network_prefix: "10.32.105"
+    layer3_ocp_network_prefix: "192.168.11"
     layer3_ocp_mac_prefix: "42:42:42:42:05"
     layer3_ocp_mac_prefix_dash: "42-42-42-42-05"
-    layer3_ocp_control_0_ip: 10.32.105.50
-    layer3_ocp_control_1_ip: 10.32.105.51
-    layer3_ocp_control_2_ip: 10.32.105.52
-    layer3_ocp_compute_0_ip: 10.32.105.53
-    layer3_ocp_compute_1_ip: 10.32.105.54
-    layer3_ocp_compute_2_ip: 10.32.105.55
-    layer3_ocp_bootstrap_ip: 10.32.105.59
+    layer3_ocp_control_0_ip: 192.168.11.50
+    layer3_ocp_control_1_ip: 192.168.11.51
+    layer3_ocp_control_2_ip: 192.168.11.52
+    layer3_ocp_compute_0_ip: 192.168.11.53
+    layer3_ocp_compute_1_ip: 192.168.11.54
+    layer3_ocp_compute_2_ip: 192.168.11.55
+    layer3_ocp_bootstrap_ip: 192.168.11.56
+    layer3_ocp_bastion_ip_int: 192.168.11.59
+    layer3_ocp_virtualnetwork: "COE10G"
 
 
-#    useFirewalld: true
+    useFirewalld: true
 #    useDHCP: true
 #    useNFS: true
 #    usePXE: true
@@ -65,8 +64,8 @@
           activate: true
       nics:
         - name: nic1
-          network: "ovirtmgmt"
-          profile: "ovirtmgmt"
+          network: "{{layer3_ocp_virtualnetwork}}"
+          profile: "{{layer3_ocp_virtualnetwork}}"
       state: present
 
 
@@ -93,8 +92,8 @@
           activate: true
       nics:
         - name: nic1
-          network: "ovirtmgmt"
-          profile: "ovirtmgmt"
+          network: "{{layer3_ocp_virtualnetwork}}"
+          profile: "{{layer3_ocp_virtualnetwork}}"
       state: present
 
     vms:
@@ -121,6 +120,9 @@
             - name: nic1
               network: ovirtmgmt
               profile: ovirtmgmt
+            - name: nic2
+              network: "{{layer3_ocp_virtualnetwork}}"
+              profile: "{{layer3_ocp_virtualnetwork}}"
           cloud_init:
             root_password: "{{ secret_password }}"
             host_name: "{{layer3_ocp_name}}bastion.{{sysctx_dns_domain }}"
@@ -132,6 +134,13 @@
               nic_gateway: "{{sysctx_gateway}}"
               nic_on_boot: true
               nic_name: "{{layer3_ocp_bastion_nic_ext}}"
+            - nic_ip_address: "{{layer3_ocp_bastion_ip_int}}"
+              nic_boot_protocol: "static"
+              nic_netmask: "255.255.255.0"
+              nic_gateway: "{{layer3_ocp_bastion_ip_int}}"
+              nic_on_boot: true
+              nic_name: "{{layer3_ocp_bastion_nic_int}}"
+
 
       - name: "{{layer3_ocp_name}}bootstrap"
         tag: ocpcontrol

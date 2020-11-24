@@ -1,0 +1,8 @@
+Storm 5:
+
+enp132s0f0
+enp132s0f1
+
+
+nmcli con show
+nmcli device status

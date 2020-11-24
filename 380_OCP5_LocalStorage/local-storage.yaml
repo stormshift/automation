@@ -56,6 +56,36 @@ spec:
         - /dev/mapper/vg_sataraid-ocp_local_file38
         - /dev/mapper/vg_sataraid-ocp_local_file39
         - /dev/mapper/vg_sataraid-ocp_local_file40
+        - /dev/mapper/vg_sataraid-ocp_local_file41
+        - /dev/mapper/vg_sataraid-ocp_local_file42
+        - /dev/mapper/vg_sataraid-ocp_local_file43
+        - /dev/mapper/vg_sataraid-ocp_local_file44
+        - /dev/mapper/vg_sataraid-ocp_local_file45
+        - /dev/mapper/vg_sataraid-ocp_local_file46
+        - /dev/mapper/vg_sataraid-ocp_local_file47
+        - /dev/mapper/vg_sataraid-ocp_local_file48
+        - /dev/mapper/vg_sataraid-ocp_local_file49
+        - /dev/mapper/vg_sataraid-ocp_local_file50
+        - /dev/mapper/vg_sataraid-ocp_local_file51
+        - /dev/mapper/vg_sataraid-ocp_local_file52
+        - /dev/mapper/vg_sataraid-ocp_local_file53
+        - /dev/mapper/vg_sataraid-ocp_local_file54
+        - /dev/mapper/vg_sataraid-ocp_local_file55
+        - /dev/mapper/vg_sataraid-ocp_local_file56
+        - /dev/mapper/vg_sataraid-ocp_local_file57
+        - /dev/mapper/vg_sataraid-ocp_local_file58
+        - /dev/mapper/vg_sataraid-ocp_local_file59
+        - /dev/mapper/vg_sataraid-ocp_local_file60
+        - /dev/mapper/vg_sataraid-ocp_local_file61
+        - /dev/mapper/vg_sataraid-ocp_local_file62
+        - /dev/mapper/vg_sataraid-ocp_local_file63
+        - /dev/mapper/vg_sataraid-ocp_local_file64
+        - /dev/mapper/vg_sataraid-ocp_local_file65
+        - /dev/mapper/vg_sataraid-ocp_local_file66
+        - /dev/mapper/vg_sataraid-ocp_local_file67
+        - /dev/mapper/vg_sataraid-ocp_local_file68
+        - /dev/mapper/vg_sataraid-ocp_local_file69
+        - /dev/mapper/vg_sataraid-ocp_local_file70
     - storageClassName: "local-ssd-block-storm5"
       volumeMode: Block
       devicePaths:
@@ -79,3 +109,13 @@ spec:
         - /dev/mapper/vg_sataraid-ocp_local_file117
         - /dev/mapper/vg_sataraid-ocp_local_file118
         - /dev/mapper/vg_sataraid-ocp_local_file119
+        - /dev/mapper/vg_sataraid-ocp_local_file120
+        - /dev/mapper/vg_sataraid-ocp_local_file121
+        - /dev/mapper/vg_sataraid-ocp_local_file122
+        - /dev/mapper/vg_sataraid-ocp_local_file123
+        - /dev/mapper/vg_sataraid-ocp_local_file124
+        - /dev/mapper/vg_sataraid-ocp_local_file125
+        - /dev/mapper/vg_sataraid-ocp_local_file126
+        - /dev/mapper/vg_sataraid-ocp_local_file127
+        - /dev/mapper/vg_sataraid-ocp_local_file128
+        - /dev/mapper/vg_sataraid-ocp_local_file129

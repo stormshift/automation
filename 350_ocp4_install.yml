@@ -7,7 +7,7 @@
 # https://docs.openshift.com/container-platform/4.2/installing/installing_bare_metal/installing-bare-metal.html
 # The "Step" commentes below refer to the different section headings of the installation instructions
 - name: Install OpenShift4 from support node
-  hosts: "{{layer3_ocp_name}}support.{{sysctx_dns_domain}}"
+  hosts: "{{layer3_ocp_support_host}}"
   gather_facts: false
   vars_files:
     - cfg/secrets_{{sysctx_instance_name}}.yml
@@ -113,6 +113,7 @@
 # ------------------------------------------------------------------------------
     - name: Provide PXE Menu
       tags: rhcos,pxe
+      when: usePXE is defined
       template:
         src: templates/ocp4pxe_menu.j2
         dest: /var/lib/tftpboot/pxelinux.cfg/{{item.mac}}
@@ -160,7 +161,7 @@
 # Step: Wait for bootstrap to complete
 # ------------------------------------------------------------------------------
 - name: Post deployment stuff
-  hosts: "{{layer3_ocp_name}}support.{{sysctx_dns_domain}}"
+  hosts: "{{layer3_ocp_support_host}}"
   gather_facts: false
   vars_files:
     - cfg/secrets_{{sysctx_instance_name}}.yml
@@ -173,6 +174,10 @@
       delay: 60
       until: bootstrap_status.rc == 0
 
+# From:
+# https://docs.openshift.com/container-platform/4.4/installing/installing_bare_metal/installing-bare-metal.html#installation-approve-csrs_installing-bare-metal
+# oc get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' | xargs oc adm certificate approve
+
     - name: Approving the CSRs for the machines
       shell:
         cmd: |
@@ -184,7 +189,7 @@
     - name: Wait 10s for additional CSRs to be created
       pause:
           seconds: 10
-      
+
     - name: Approving the CSRs for the machines again
       shell:
         cmd: |
@@ -229,8 +234,8 @@
             capacity:
               storage: 100Gi
             nfs:
-              path: /data/nfs/ocp/pv_registry
-              server: 172.16.10.5
+              path: "{{layer3_ocp_nfs_registry_path}}"
+              server: "{{layer3_ocp_nfs_server}}"
             persistentVolumeReclaimPolicy: Recycle
             claimRef:
               name: registry-storage

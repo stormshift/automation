@@ -19,13 +19,13 @@ $TTL    60
 
 
 ; A records of Nodes/Host-names - might be done by DHCP
-control-0.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	86400 IN A 172.16.10.10
-control-1.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	86400 IN A 172.16.10.11
-control-2.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	86400 IN A 172.16.10.12
-compute-0.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	86400 IN A 172.16.10.20
-compute-1.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	86400 IN A 172.16.10.21
-compute-2.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	86400 IN A 172.16.10.22
-bootstrap.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	86400 IN A 172.16.10.6
+control-0.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	86400 IN A {{layer3_ocp_control_0_ip}}
+control-1.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	86400 IN A {{layer3_ocp_control_1_ip}}
+control-2.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	86400 IN A {{layer3_ocp_control_2_ip}}
+compute-0.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	86400 IN A {{layer3_ocp_compute_0_ip}}
+compute-1.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	86400 IN A {{layer3_ocp_compute_1_ip}}
+compute-2.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	86400 IN A {{layer3_ocp_compute_2_ip}}
+bootstrap.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	86400 IN A {{layer3_ocp_bootstrap_ip}}
 
 ; SRV Records
 ; _service._proto.name. 		TTL    class SRV priority weight port target.
@@ -34,13 +34,13 @@ _etcd-server-ssl._tcp.{{layer3_ocp_name}}.{{sysctx_dns_domain}}  86400 IN    SRV
 _etcd-server-ssl._tcp.{{layer3_ocp_name}}.{{sysctx_dns_domain}}  86400 IN    SRV 0        10     2380 etcd-2.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.
 
 ; Additional A records to the Node/Host-names
-etcd-0.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	86400 IN A 172.16.10.10
-etcd-1.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	86400 IN A 172.16.10.11
-etcd-2.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	86400 IN A 172.16.10.12
+etcd-0.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	86400 IN A {{layer3_ocp_control_0_ip}}
+etcd-1.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	86400 IN A {{layer3_ocp_control_1_ip}}
+etcd-2.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	86400 IN A {{layer3_ocp_control_2_ip}}
 
-*.apps.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	   86400 IN A 172.16.10.1
-api.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	     86400 IN A 172.16.10.1
-api-int.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.   86400 IN A 172.16.10.1
+*.apps.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	   86400 IN A {{layer3_ocp_bastion_ip}}
+api.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.	     86400 IN A {{layer3_ocp_bastion_ip}}
+api-int.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.   86400 IN A {{layer3_ocp_bastion_ip_int}}
 
-support.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.    86400 IN  A 172.16.10.5
-{{layer3_ocp_name}}support.{{layer3_ocp_name}}.{{sysctx_dns_domain}}. 86400   IN  A 172.16.10.5
+support.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.    86400 IN  A {{layer3_ocp_support_ip}}
+{{layer3_ocp_name}}support.{{layer3_ocp_name}}.{{sysctx_dns_domain}}. 86400   IN  A {{layer3_ocp_support_ip}}

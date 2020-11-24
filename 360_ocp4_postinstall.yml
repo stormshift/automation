@@ -7,7 +7,7 @@
 # https://github.com/RedHat-EMEA-SSA-Team/hetzner-ocp4/blob/master/ansible/roles/openshift-4-cluster/tasks/post-install.yml
 
 - name: Configure OpenShift4 from support node
-  hosts: "{{layer3_ocp_name}}support.{{sysctx_dns_domain}}"
+  hosts: "{{layer3_ocp_support_host}}"
   gather_facts: false
   vars_files:
     - cfg/secrets_{{sysctx_instance_name}}.yml
@@ -344,14 +344,14 @@
                       - name: PROVISIONER_NAME
                         value: redhat-emea-ssa-team/nfs-client-provisioner
                       - name: NFS_SERVER
-                        value: "172.16.10.5"
+                        value: "{{layer3_ocp_nfs_server}}"
                       - name: NFS_PATH
-                        value: "/data/nfs/ocp/user-pvs"
+                        value: "{{layer3_ocp_nfs_dynprov_path}}"
                 volumes:
                   - name: nfs-client-root
                     nfs:
-                      server: "172.16.10.5"
-                      path: "/data/nfs/ocp/user-pvs"
+                      server: "{{layer3_ocp_nfs_server}}"
+                      path: "{{layer3_ocp_nfs_dynprov_path}}"
 
     - name: Storage Class
       tags: nfsprov

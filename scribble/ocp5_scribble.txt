@@ -1,0 +1,24 @@
+
+OCP5 Scribble notes:
+
+
+[root@ocp5bastion /var/www/html]#
+
+cp rhcos-4.4.3-x86_64-metal-bios.raw.gz rhcos-4.4.3-x86_64-metal.x86_64.raw.gz
+
+
+[root@ocp5bastion html]#
+firewall-cmd --zone=public --permanent --add-port 22623/tcp
+firewall-cmd --zone=public --permanent --add-port 6443/tcp
+firewall-cmd --reload
+
+
+#Local storage:
+pvcreate /dev/sdb
+vgcreate vg_sataraid  /dev/sdb
+for i in {110..119}
+do
+lvcreate  --size 10G -n ocp_local_file$i vg_sataraid
+done
+
+/dev/mapper/vg_sataraid-ocp_local_file1
