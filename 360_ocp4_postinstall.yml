@@ -13,9 +13,11 @@
     - cfg/secrets_{{sysctx_instance_name}}.yml
   vars:
     storage_nfs_target_namespace: openshift-nfs-provisioner
-    openshift_install_dir: /root/ocp4install
+    openshift_install_dir: "{{layer3_openshift_install_dir}}"
   tasks:
 
+    - debug:
+        msg: "{{openshift_install_dir}}/auth/kubeconfig"
 # ------------------------------------------------------------------------------
 # Add Red Hat Internal CA to trust chain
 # (https://docs.openshift.com/container-platform/4.2/networking/configuring-a-custom-pki.html#nw-proxy-configure-object_configuring-a-custom-pki)
@@ -27,7 +29,8 @@
       tags: certs
       k8s:
         state: present
-        kubeconfig: "/root/ocp4install/auth/kubeconfig"
+        kubeconfig: "{{openshift_install_dir}}/auth/kubeconfig"
+        validate_certs: false
         merge_type: merge
         definition:
           apiVersion: config.openshift.io/v1
@@ -47,7 +50,8 @@
       when: sysctx_certs_path is defined
       k8s:
         state: present
-        kubeconfig: "/root/ocp4install/auth/kubeconfig"
+        kubeconfig: "{{openshift_install_dir}}/auth/kubeconfig"
+        validate_certs: false
         definition:
           apiVersion: v1
           kind: Secret
@@ -64,7 +68,8 @@
       when: sysctx_certs_path is defined
       k8s:
         state: present
-        kubeconfig: "/root/ocp4install/auth/kubeconfig"
+        kubeconfig: "{{openshift_install_dir}}/auth/kubeconfig"
+        validate_certs: false
         merge_type: merge
         definition:
           apiVersion: operator.openshift.io/v1
@@ -108,7 +113,8 @@
       tags: auth,htpasswd
       k8s:
         state: present
-        kubeconfig: "/root/ocp4install/auth/kubeconfig"
+        kubeconfig: "{{openshift_install_dir}}/auth/kubeconfig"
+        validate_certs: false
         definition:
           apiVersion: v1
           data:
@@ -139,7 +145,8 @@
       tags: auth,google
       k8s:
         state: present
-        kubeconfig: "/root/ocp4install/auth/kubeconfig"
+        kubeconfig: "{{openshift_install_dir}}/auth/kubeconfig"
+        validate_certs: false
         definition:
           apiVersion: v1
           data:
@@ -172,7 +179,8 @@
       tags: auth
       k8s:
         state: present
-        kubeconfig: "/root/ocp4install/auth/kubeconfig"
+        kubeconfig: "{{openshift_install_dir}}/auth/kubeconfig"
+        validate_certs: false
         definition:
             apiVersion: config.openshift.io/v1
             kind: OAuth
@@ -185,12 +193,13 @@
       tags: auth
       k8s:
         state: present
-        kubeconfig: "/root/ocp4install/auth/kubeconfig"
+        kubeconfig: "{{openshift_install_dir}}/auth/kubeconfig"
+        validate_certs: false
         definition:
           kind: ClusterRoleBinding
           apiVersion: rbac.authorization.k8s.io/v1
           metadata:
-            name: "{{ item }}-cluster-admin"
+            name: "cluster-admin-{{ item }}"
           subjects:
           - apiGroup: rbac.authorization.k8s.io
             kind: User
@@ -210,6 +219,7 @@
       k8s:
         state: present
         kubeconfig: "{{ openshift_install_dir }}/auth/kubeconfig"
+        validate_certs: false
         definition:
           kind: Namespace
           apiVersion: v1
@@ -221,6 +231,7 @@
       k8s:
         state: present
         kubeconfig: "{{ openshift_install_dir }}/auth/kubeconfig"
+        validate_certs: false
         definition:
           kind: ServiceAccount
           apiVersion: v1
@@ -233,6 +244,7 @@
       k8s:
         state: present
         kubeconfig: "{{ openshift_install_dir }}/auth/kubeconfig"
+        validate_certs: false
         definition:
           kind: ClusterRole
           apiVersion: rbac.authorization.k8s.io/v1
@@ -257,6 +269,7 @@
       k8s:
         state: present
         kubeconfig: "{{ openshift_install_dir }}/auth/kubeconfig"
+        validate_certs: false
         definition:
           kind: ClusterRoleBinding
           apiVersion: rbac.authorization.k8s.io/v1
@@ -276,6 +289,7 @@
       k8s:
         state: present
         kubeconfig: "{{ openshift_install_dir }}/auth/kubeconfig"
+        validate_certs: false
         definition:
           kind: Role
           apiVersion: rbac.authorization.k8s.io/v1
@@ -292,6 +306,7 @@
       k8s:
         state: present
         kubeconfig: "{{ openshift_install_dir }}/auth/kubeconfig"
+        validate_certs: false
         definition:
           kind: RoleBinding
           apiVersion: rbac.authorization.k8s.io/v1
@@ -308,13 +323,14 @@
 
     - name: Add SCC hostmount-anyuid to nfs-client-provisioner
       tags: nfsprov
-      command: "/root/bin/oc adm policy add-scc-to-user hostmount-anyuid -n {{ storage_nfs_target_namespace }} -z nfs-client-provisioner --config {{ openshift_install_dir }}/auth/kubeconfig"
+      command: "oc adm policy add-scc-to-user hostmount-anyuid -n {{ storage_nfs_target_namespace }} -z nfs-client-provisioner --config {{ openshift_install_dir }}/auth/kubeconfig"
 
     - name: Deploy nfs-provisioner
       tags: nfsprov
       k8s:
         state: present
         kubeconfig: "{{ openshift_install_dir }}/auth/kubeconfig"
+        validate_certs: false
         definition:
           kind: Deployment
           apiVersion: apps/v1
@@ -358,6 +374,7 @@
       k8s:
         state: present
         kubeconfig: "{{ openshift_install_dir }}/auth/kubeconfig"
+        validate_certs: false
         definition:
           apiVersion: storage.k8s.io/v1
           kind: StorageClass
@@ -378,6 +395,7 @@
       k8s:
         state: present
         kubeconfig: "{{ openshift_install_dir }}/auth/kubeconfig"
+        validate_certs: false
         definition:
           kind: ImagePruner
           apiVersion: imageregistry.operator.openshift.io/v1

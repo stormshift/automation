@@ -5,34 +5,11 @@ all:
   children:
       idracs:
          hosts:
-            10.32.104.92
+            10.32.104.72
       layer1:
         hosts:
             storm3.coe.muc.redhat.com
 
-      ocp1:
-        children:
-          ocp1bastion:
-            hosts:
-              ocp1bastion.stormshift.coe.muc.redhat.com
-          ocp1nodes:
-            children:
-                ocp1masters:
-                  hosts:
-                    ocp1master1:
-                    ocp1master2:
-                    ocp1master3:
-            hosts:
-              ocp1inf1:
-              ocp1inf2:
-              ocp1inf3:
-              ocp1app1:
-              ocp1app2:
-              ocp1app3:
-              ocp1app4:
-            vars:
-    #          ansible_ssh_common_args: '-o ProxyCommand="ssh -W %h:%p -q root@ocp1bastion.hailstorm5.coe.muc.redhat.com"'
-              ansible_ssh_common_args: '-o ProxyJump=root@ocp1bastion.stormshift.coe.muc.redhat.com -o StrictHostKeyChecking=no'
 
 # -----------------------
 # ----------------------- OCP2

@@ -25,7 +25,7 @@
   layer0_idrac_pwd: "{{vault_layer0_idrac_pwd}}"
 
 
-  layer0_idrac_ip: "10.32.104.92"
+  layer0_idrac_ip: "10.32.104.72"
 
   layer1_host_name: "storm3"
   layer1_host_fqdn: "{{layer1_host_name}}.{{ sysctx_dns_suffix }}"
@@ -47,14 +47,13 @@
 
   layer2_rhev_storage_nfs_path: /var/rhev/storage/nfs
   layer2_rhev_storage_nfs_vols:
-    - { vol: hostedEngine, size: 100g }
-    - { vol: data, size: 3072g }
-    - { vol: export, size: 50g }
-    - { vol: iso, size: 50g }
-    - { vol: ocp1, size: 100g }
-    - { vol: ocp2, size: 100g }
-    - { vol: ocp3, size: 100g }
-    - { vol: ocp4, size: 100g }
+    - { vol: rhev_engine, size: 100g }
+    - { vol: rhev_data, size: 2048g }
+    - { vol: rhev_export, size: 50g }
+    - { vol: rhev_iso, size: 50g }
+    - { vol: ocp1-dyn-nfs, size: 100g }
+    - { vol: ocp2-dyn-nfs, size: 100g }
+    - { vol: ocp5-dyn-nfs, size: 100g }
 
   layer2_rhev_engine_storage_connection: "{{layer1_nfs_fqn}}:{{layer2_rhev_storage_nfs_path}}/hostedEngine"
 
@@ -63,8 +62,6 @@
   layer3_ocp_support_nic:   ens2
 
   layer3_ocp_public_ip:
-    ocp1: 10.32.105.41
-    ocp2: 10.32.105.42
     ocp3: 10.32.105.43
     ocp4: 10.32.105.44
     ocp5: 10.32.105.45

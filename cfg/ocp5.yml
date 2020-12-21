@@ -28,6 +28,7 @@
 #    usePXE: true
 
     std_gateway: "10.32.111.254"
+    layer3_openshift_install_dir: "/root/ocp4install"
     layer3_ocp_version: "4.4.3"
     layer3_rhcos_version: "4.4.3"
     layer3_ocp_master_url: "api.{{layer3_ocp_name}}.{{sysctx_dns_domain}}"

@@ -1,0 +1,106 @@
+---
+# ------------------------------------------------------------------------------
+# This performs the OpenShift V4 Installation, following the "RHV IPI" Installation approach
+# which is documented here:
+# https://docs.openshift.com/container-platform/4.6/installing/installing_rhv/installing-rhv-default.html
+
+
+- name: Configure Layer1
+  hosts: layer1
+  gather_facts: false
+  vars_files:
+    - cfg/secrets_{{sysctx_instance_name}}.yml
+  tasks:
+# -------------------------- DNS stuff  ---------------------
+
+    - name: Add DNS entries
+      tags: dns
+      blockinfile:
+        path: /etc/named/{{ sysctx_dns_domain }}.zone
+        marker: "; {mark} ANSIBLE MANAGED BLOCK {{layer3_ocp_name}}"
+        block: |
+          *.apps.{{layer3_ocp_name}}.{{sysctx_dns_domain}}.      IN A {{layer3_ocp_ingress_ip}}
+          api.{{layer3_ocp_name}}.{{sysctx_dns_domain}}. IN A {{layer3_ocp_api_ip}}
+      register: dns
+
+    - name: Restart DNS
+      tags: dns
+      service:
+        name: named
+        enabled: yes
+        state: restarted
+      when: dns is changed
+
+# -------------------------- storage stuff  ---------------------
+    - name: Create logical volume for dyn-nfs
+      tags: storage
+      lvol:
+        vg: sataraid
+        lv: "{{layer3_ocp_name}}-dyn-nfs"
+        size: "100g"
+        state: present
+
+    - name: Create filesystem for dyn-nfs
+      tags: storage
+      filesystem:
+        fstype: xfs
+        dev: "/dev/mapper/sataraid-{{layer3_ocp_name}}--dyn--nfs"
+
+    - name: Create mount point
+      tags: storage
+      file:
+        path: "{{layer3_ocp_nfs_dynprov_path}}"
+        owner: root
+        group: root
+        mode: "0777"
+        state: directory
+
+    - name: Mount file systems for dyn-nfs
+      tags: storage
+      mount:
+        path: "{{layer3_ocp_nfs_dynprov_path}}"
+        src: "/dev/mapper/sataraid-{{layer3_ocp_name}}--dyn--nfs"
+        fstype: xfs
+        state: mounted
+
+# -------------------------- nfs export stuff  ---------------------
+    - name: Export nfs directory
+      tags: nfs
+      lineinfile:
+        path: /etc/exports
+        line: '{{layer3_ocp_nfs_dynprov_path}} *(async,wdelay,rw)'
+        create: yes
+      register: nfs
+
+    - name: Restart nfs
+      tags: nfs
+      service:
+        name: nfs-server
+        enabled: yes
+        state: restarted
+      when: nfs is changed
+
+- name: Install OpenShift4 via RHEV IPI
+  hosts: "localhost"
+  gather_facts: false
+  vars_files:
+    - cfg/secrets_{{sysctx_instance_name}}.yml
+  tasks:
+
+    - name: Create directories
+      tags: install
+      file:
+        path: "{{layer3_openshift_install_dir}}"
+        state: directory
+
+    - name: Provide install config
+      tags: install
+      template:
+        src: templates/ocp4install-config-rhv-ipi.j2.yaml
+        dest: "{{layer3_openshift_install_dir}}/install-config.yaml"
+
+    - name: Create cluster (Coffee time - watch {{layer3_openshift_install_dir}}/.openshift_install.log)
+      tags: install
+      command: /home/hailstorm/ocp{{layer3_ocp_version}}binaries/openshift-install create cluster --dir={{layer3_openshift_install_dir}}
+      args:
+        creates: "{{layer3_openshift_install_dir}}/.openshift_install_state.json"

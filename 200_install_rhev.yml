@@ -22,18 +22,32 @@
       name: '*'
       state: disabled
 
+# ---- RHEV 4.3
+#  - name: Enable Required Repos
+#    tags: repos,slow
+#    rhsm_repository:
+#      name:
+#        - rhel-7-server-rpms
+#        - rhel-7-server-ansible-2-rpms
+#        - rhel-7-server-extras-rpms
+#        - rhel-7-server-supplementary-rpms
+#        - rhel-7-server-rhv-4.2-manager-rpms
+#        - rhel-7-server-rhv-4-manager-tools-rpms
+#        - rhel-7-server-rhv-4-mgmt-agent-rpms
+#        - jb-eap-7-for-rhel-7-server-rpms
+#      state: enabled
+
+# ---- RHEV 4.4
   - name: Enable Required Repos
     tags: repos,slow
     rhsm_repository:
       name:
-        - rhel-7-server-rpms
-        - rhel-7-server-ansible-2-rpms
-#        - rhel-7-server-extras-rpms
-        - rhel-7-server-supplementary-rpms
-        - rhel-7-server-rhv-4.2-manager-rpms
-        - rhel-7-server-rhv-4-manager-tools-rpms
-        - rhel-7-server-rhv-4-mgmt-agent-rpms
-        - jb-eap-7-for-rhel-7-server-rpms
+      - rhel-8-for-x86_64-baseos-rpms
+      - rhel-8-for-x86_64-appstream-rpms
+      - rhv-4-mgmt-agent-for-rhel-8-x86_64-rpms
+      - fast-datapath-for-rhel-8-x86_64-rpms
+      - ansible-2.9-for-rhel-8-x86_64-rpms
+      - advanced-virt-for-rhel-8-x86_64-rpms
       state: enabled
 
   - name: Updating all packages to latest

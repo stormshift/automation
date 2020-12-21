@@ -50,9 +50,9 @@ enp132s0f1: 192.168.15.233
 
 192.168.0.0/20
 
-sudo nmcli con add con-name coe10g type bond ifname bond0 bond.options "mode=802.3ad"
-sudo nmcli con add type ethernet ifname enp132s0f0 master bond0
-sudo nmcli con add type ethernet ifname enp132s0f1 master bond0
+nmcli con add con-name coe10g type bond ifname bond0 bond.options "mode=802.3ad"
+nmcli con add type ethernet ifname enp132s0f0 master bond0
+nmcli con add type ethernet ifname enp132s0f1 master bond0
 
 #ifcfg-bond-slave-enp132s0f0
 TYPE=Ethernet
