@@ -54,6 +54,17 @@ nmcli con add con-name coe10g type bond ifname bond0 bond.options "mode=802.3ad"
 nmcli con add type ethernet ifname enp132s0f0 master bond0
 nmcli con add type ethernet ifname enp132s0f1 master bond0
 
+nmcli con mod coe10g ip4 192.168.11.5/20 gw4 192.168.11.59
+nmcli con mod coe10g ipv4.dns 192.168.11.59
+nmcli con mod coe10g ethernet.mtu 9000
+nmcli con mod coe10g ipv4.method static
+nmcli general hostname storm5-10g.ocp5.stormshift.coe.muc.redhat.com
+
+ ip 192.168.11.5
+ gw 192.168.11.59
+ nm 255.255.240.0:storm5-10g.ocp5.stormshift.coe.muc.redhat.com:bond0:none:9000
+
+
 #ifcfg-bond-slave-enp132s0f0
 TYPE=Ethernet
 NAME=bond-slave-enp132s0f0

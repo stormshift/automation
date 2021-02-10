@@ -22,3 +22,11 @@ lvcreate  --size 10G -n ocp_local_file$i vg_sataraid
 done
 
 /dev/mapper/vg_sataraid-ocp_local_file1
+
+
+sudo coreos-installer install --copy-network --insecure-ignition --ignition-url=http://192.168.11.59:8080/worker.ign /dev/sda
+
+
+> oc get csr
+NAME        AGE     SIGNERNAME                                    REQUESTOR                                                                   CONDITION
+csr-rxbqt   4m37s   kubernetes.io/kube-apiserver-client-kubelet   system:serviceaccount:openshift-machine-config-operator:node-bootstrapper   Pending

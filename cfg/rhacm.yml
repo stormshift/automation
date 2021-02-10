@@ -19,6 +19,10 @@
       - admin
       - dfroehliadm
       - rbohneadm
+      - manuela-ops
 
     layer3_ocp_normal_users:
       - { name: demo-user, pswd: 'demo' }
+      - { name: manuela-dev, pswd: 'manuela' }
+      - { name: manuela-tst, pswd: 'manuela' }
+      - { name: manuela-ops, pswd: 'manuela' }
