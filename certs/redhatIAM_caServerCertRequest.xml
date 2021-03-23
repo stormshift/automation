@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<CertEnrollmentRequest>
+    <Attributes/>
+    <ProfileID>caServerCert</ProfileID>
+    <Renewal>false</Renewal>
+    <RemoteHost></RemoteHost>
+    <RemoteAddress></RemoteAddress>
+    <Input id="i1">
+        <ClassID>certReqInputImpl</ClassID>
+        <Name>Certificate Request Input</Name>
+        <Attribute name="cert_request_type">
+            <Value>pkcs10</Value>
+            <Descriptor>
+                <Syntax>cert_request_type</Syntax>
+                <Description>Certificate Request Type</Description>
+            </Descriptor>
+        </Attribute>
+        <Attribute name="cert_request">
+            <Value>
+<!-- INSERT-PKCS10-CSR-HERE WITHOUT-HEADER-TRAILER-HERE-->
+<!-- BEGIN ANSIBLE MANAGED BLOCK -->
+MIIQTDCCDjQCAQAwXTEQMA4GA1UECgwHUmVkIEhhdDEfMB0GA1UECwwWU29sdXRp
+b25BcmNoaXRlY3RzRGFjaDEoMCYGA1UEAwwfKi5zdG9ybXNoaWZ0LmNvZS5tdWMu
+cmVkaGF0LmNvbTCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBAMb34CyH
+o3IrYCbDbKYuxeZQYYSWvsRCs7jvDitmK9xX7RiCt4/eEfrcf06YW52B/xzTiSdZ
+LQDrFE5jfhq/2o8BH5NbeqkuvaeSy0JFp6UA+RKQOoA71CK/7Barb7obH7DIbLfn
+H7VRHCokQncAaK0J8EIX5GM9Fb5dtwxHKwgsWw8gQDHZth/5cJiBgerZra/IPgfG
++h4FaWdm7Ejr1sTLb15LtwsfbBRNG9wjPdR0qFMg9oU8Ioe4lXl0UCV0ve9ACZmo
+EBV+gk4Cw4PJYgtXxujfoMtAuTseIgJzaPny/EOYbgieDO1qo0uZ9BmONedIQguI
+7cffzGaEX/Mb9O0gFMdqpVoz8m+GfiQCuFiVwURv/gOFZj9jB/khT1bulEkcJcni
+YsCQ4iGmApvtXCta3FTZ9jT030rNXVbP4a+LQNer740n2AZoSQTx+rs9vS9UOi3+
+bMJgHot+Is/ncZy6z5Unt0AUrYXCRCTAVby36ERkLSwwtCH/yVPY+v56ubQxriAE
+xVuvrtlO6BKtWzmTXmp/Qh01Ut952CLWIOIMxeYpZBy8AMe8cUVTrLHSeAsCJ0vY
+ld0jye+A2blIwASOPxc4UIh3M+ER54OF63CovuRq4nlhcyIsj4UFcPCjvxfTP1Ge
++I6I7GxUrT1x+gIQvJCmBPFSf7Yy0+/p/iXFAgMBAAGggguoMIILpAYJKoZIhvcN
+AQkOMYILlTCCC5EwggtyBgNVHREEggtpMIILZYIicmhldi5zdG9ybXNoaWZ0LmNv
+ZS5tdWMucmVkaGF0LmNvbYIlbW9uaXRvci5zdG9ybXNoaWZ0LmNvZS5tdWMucmVk
+aGF0LmNvbYIpKi5hcHBzLm9jcDEuc3Rvcm1zaGlmdC5jb2UubXVjLnJlZGhhdC5j
+b22CJmFwaS5vY3AxLnN0b3Jtc2hpZnQuY29lLm11Yy5yZWRoYXQuY29tgikqLmFw
+cHMub2NwMi5zdG9ybXNoaWZ0LmNvZS5tdWMucmVkaGF0LmNvbYImYXBpLm9jcDIu
+c3Rvcm1zaGlmdC5jb2UubXVjLnJlZGhhdC5jb22CKSouYXBwcy5vY3AzLnN0b3Jt
+c2hpZnQuY29lLm11Yy5yZWRoYXQuY29tgiZhcGkub2NwMy5zdG9ybXNoaWZ0LmNv
+ZS5tdWMucmVkaGF0LmNvbYIpKi5hcHBzLm9jcDQuc3Rvcm1zaGlmdC5jb2UubXVj
+LnJlZGhhdC5jb22CJmFwaS5vY3A0LnN0b3Jtc2hpZnQuY29lLm11Yy5yZWRoYXQu
+Y29tgikqLmFwcHMub2NwNS5zdG9ybXNoaWZ0LmNvZS5tdWMucmVkaGF0LmNvbYIm
+YXBpLm9jcDUuc3Rvcm1zaGlmdC5jb2UubXVjLnJlZGhhdC5jb22CKSouYXBwcy5v
+Y3A2LnN0b3Jtc2hpZnQuY29lLm11Yy5yZWRoYXQuY29tgiZhcGkub2NwNi5zdG9y
+bXNoaWZ0LmNvZS5tdWMucmVkaGF0LmNvbYIpKi5hcHBzLm9jcDcuc3Rvcm1zaGlm
+dC5jb2UubXVjLnJlZGhhdC5jb22CJmFwaS5vY3A3LnN0b3Jtc2hpZnQuY29lLm11
+Yy5yZWRoYXQuY29tgikqLmFwcHMub2NwOC5zdG9ybXNoaWZ0LmNvZS5tdWMucmVk
+aGF0LmNvbYImYXBpLm9jcDguc3Rvcm1zaGlmdC5jb2UubXVjLnJlZGhhdC5jb22C
+KSouYXBwcy5vY3A5LnN0b3Jtc2hpZnQuY29lLm11Yy5yZWRoYXQuY29tgiZhcGku
+b2NwOS5zdG9ybXNoaWZ0LmNvZS5tdWMucmVkaGF0LmNvbYIqKi5hcHBzLm9jcDEw
+LnN0b3Jtc2hpZnQuY29lLm11Yy5yZWRoYXQuY29tgidhcGkub2NwMTAuc3Rvcm1z
+aGlmdC5jb2UubXVjLnJlZGhhdC5jb22CKiouYXBwcy5vY3AxMS5zdG9ybXNoaWZ0
+LmNvZS5tdWMucmVkaGF0LmNvbYIqKi5hcHBzLm9jcDEyLnN0b3Jtc2hpZnQuY29l
+Lm11Yy5yZWRoYXQuY29tgioqLmFwcHMub2NwMTMuc3Rvcm1zaGlmdC5jb2UubXVj
+LnJlZGhhdC5jb22CKiouYXBwcy5vY3AxNC5zdG9ybXNoaWZ0LmNvZS5tdWMucmVk
+aGF0LmNvbYIqKi5hcHBzLm9jcDE1LnN0b3Jtc2hpZnQuY29lLm11Yy5yZWRoYXQu
+Y29tgikqLmFwcHMuZGV2MS5zdG9ybXNoaWZ0LmNvZS5tdWMucmVkaGF0LmNvbYIp
+Ki5hcHBzLmRldjIuc3Rvcm1zaGlmdC5jb2UubXVjLnJlZGhhdC5jb22CKSouYXBw
+cy5kZXYzLnN0b3Jtc2hpZnQuY29lLm11Yy5yZWRoYXQuY29tgikqLmFwcHMudHN0
+MS5zdG9ybXNoaWZ0LmNvZS5tdWMucmVkaGF0LmNvbYIpKi5hcHBzLnRzdDIuc3Rv
+cm1zaGlmdC5jb2UubXVjLnJlZGhhdC5jb22CKSouYXBwcy50c3QzLnN0b3Jtc2hp
+ZnQuY29lLm11Yy5yZWRoYXQuY29tgikqLmFwcHMucHJkMS5zdG9ybXNoaWZ0LmNv
+ZS5tdWMucmVkaGF0LmNvbYIpKi5hcHBzLnByZDIuc3Rvcm1zaGlmdC5jb2UubXVj
+LnJlZGhhdC5jb22CKSouYXBwcy5wcmQzLnN0b3Jtc2hpZnQuY29lLm11Yy5yZWRo
+YXQuY29tgioqLmFwcHMucmhhY20uc3Rvcm1zaGlmdC5jb2UubXVjLnJlZGhhdC5j
+b22CJ2FwaS5yaGFjbS5zdG9ybXNoaWZ0LmNvZS5tdWMucmVkaGF0LmNvbYIoKi5h
+cHBzLmh1Yi5zdG9ybXNoaWZ0LmNvZS5tdWMucmVkaGF0LmNvbYIpKi5hcHBzLm1t
+Z3Quc3Rvcm1zaGlmdC5jb2UubXVjLnJlZGhhdC5jb22CKSouYXBwcy5sZHMxLnN0
+b3Jtc2hpZnQuY29lLm11Yy5yZWRoYXQuY29tgikqLmFwcHMubGRzMi5zdG9ybXNo
+aWZ0LmNvZS5tdWMucmVkaGF0LmNvbYIpKi5hcHBzLmZkYzEuc3Rvcm1zaGlmdC5j
+b2UubXVjLnJlZGhhdC5jb22CKSouYXBwcy5mZGMyLnN0b3Jtc2hpZnQuY29lLm11
+Yy5yZWRoYXQuY29tgikqLmFwcHMuY2RjMS5zdG9ybXNoaWZ0LmNvZS5tdWMucmVk
+aGF0LmNvbYIpKi5hcHBzLmNkYzIuc3Rvcm1zaGlmdC5jb2UubXVjLnJlZGhhdC5j
+b22CKSouYXBwcy5lZGdlLnN0b3Jtc2hpZnQuY29lLm11Yy5yZWRoYXQuY29tgioq
+LmFwcHMuZWRnZTEuc3Rvcm1zaGlmdC5jb2UubXVjLnJlZGhhdC5jb22CKiouYXBw
+cy5lZGdlMi5zdG9ybXNoaWZ0LmNvZS5tdWMucmVkaGF0LmNvbYIuKi5hcHBzLmVk
+Z2UtZmFyMS5zdG9ybXNoaWZ0LmNvZS5tdWMucmVkaGF0LmNvbYIuKi5hcHBzLmVk
+Z2UtZmFyMi5zdG9ybXNoaWZ0LmNvZS5tdWMucmVkaGF0LmNvbYIxKi5hcHBzLmVk
+Z2UtcmVtb3RlMS5zdG9ybXNoaWZ0LmNvZS5tdWMucmVkaGF0LmNvbYIxKi5hcHBz
+LmVkZ2UtcmVtb3RlMi5zdG9ybXNoaWZ0LmNvZS5tdWMucmVkaGF0LmNvbYIsKi5h
+cHBzLmNlbnRyYWwuc3Rvcm1zaGlmdC5jb2UubXVjLnJlZGhhdC5jb22CLSouYXBw
+cy5jZW50cmFsMS5zdG9ybXNoaWZ0LmNvZS5tdWMucmVkaGF0LmNvbYItKi5hcHBz
+LmNlbnRyYWwyLnN0b3Jtc2hpZnQuY29lLm11Yy5yZWRoYXQuY29tghlzdG9ybTIu
+Y29lLm11Yy5yZWRoYXQuY29tghsqLnN0b3JtMi5jb2UubXVjLnJlZGhhdC5jb22C
+GXN0b3JtMy5jb2UubXVjLnJlZGhhdC5jb22CGyouc3Rvcm0zLmNvZS5tdWMucmVk
+aGF0LmNvbYIZc3Rvcm00LmNvZS5tdWMucmVkaGF0LmNvbYIbKi5zdG9ybTQuY29l
+Lm11Yy5yZWRoYXQuY29tghlzdG9ybTUuY29lLm11Yy5yZWRoYXQuY29tghsqLnN0
+b3JtNS5jb2UubXVjLnJlZGhhdC5jb22CGXN0b3JtNi5jb2UubXVjLnJlZGhhdC5j
+b22CGyouc3Rvcm02LmNvZS5tdWMucmVkaGF0LmNvbYIZc3Rvcm03LmNvZS5tdWMu
+cmVkaGF0LmNvbYIbKi5zdG9ybTcuY29lLm11Yy5yZWRoYXQuY29tghlzdG9ybTgu
+Y29lLm11Yy5yZWRoYXQuY29tghsqLnN0b3JtOC5jb2UubXVjLnJlZGhhdC5jb22C
+GXN0b3JtOS5jb2UubXVjLnJlZGhhdC5jb22CGyouc3Rvcm05LmNvZS5tdWMucmVk
+aGF0LmNvbYIac3Rvcm0xMC5jb2UubXVjLnJlZGhhdC5jb22CHCouc3Rvcm0xMC5j
+b2UubXVjLnJlZGhhdC5jb20wDgYDVR0PAQH/BAQDAgXgMAkGA1UdEwQCMAAwDQYJ
+KoZIhvcNAQELBQADggIBALlAiBP1wrBPGDCnXKbBHddUng0uPTJpeEsX/8A69FQR
+dZCZfdRkZM7sNjdzZVaiz1Wkt6g4P4Ys0JEEX80pZC/miKI6TuN+OY1q/QhyD71S
+qBmLcMIHOcA2iRGuuNFUA6f0QiGOhWN4L7pwKKJOfiaMIYZoSp2z/U78cAajNPlH
+xkj606iF3KGaP8lnI4fcIKGy9bXEhh/6ucMJXNgMWvFAPR5Hq9b4NxRp14O3aQLU
+NuHFf9C8j/LMEQDogk4fJHYOgR0bspdgF62Lv+0WOZuFFDBvw6yRANCJRwRfSAiO
+Fnt8ViPD4g+Mpgta6FugSI1qYMLHoSSMrDca8Y3jWVeEvYLx1mLFR7PhLPjvlGlb
+h5DH6wTzGvjmNyvzGKgY2yjvxHim9q2uUFNQ9efNqrAWYA+rhohlOvO1I77Pi/7T
+5sC58PA3rkiUS8gsqietkUqiWRdMgRHVmksbe/80ZCJOvjypm7KVU1bi8JWayM6u
+zx3reh5LG3QKaT/QVGJ95reu9M9hT3El6CfTXIJMqWqgQNCRl8KcPoYBRSmPyOp1
+uKHPC6/o1w2ywySIO++NwQY0rcDjA7PtHWJJe3NofKXJER9/GBB/EQUnukJxhGdF
+BwfZHsES2jvPzHlpnz36pVU5Kp7RXXuwdxTZc6I5Iyy4X6TKPs6pyNMIzCcEyom9
+<!-- END ANSIBLE MANAGED BLOCK -->
+            </Value>
+<Descriptor>
+    <Syntax>cert_request</Syntax>
+    <Description>Certificate Request</Description>
+</Descriptor>
+</Attribute>
+</Input>
+<Input id="i2">
+<ClassID>submitterInfoInputImpl</ClassID>
+<Name>Requestor Information</Name>
+<Attribute name="requestor_name">
+<Value>Daniel Froehlich</Value>
+<Descriptor>
+    <Syntax>string</Syntax>
+    <Description>Requestor Name</Description>
+</Descriptor>
+</Attribute>
+<Attribute name="requestor_email">
+<Value>dfroehli@redhat.com</Value>
+<Descriptor>
+    <Syntax>string</Syntax>
+    <Description>Requestor Email</Description>
+</Descriptor>
+</Attribute>
+<Attribute name="requestor_phone">
+<Value>+4917610248433</Value>
+<Descriptor>
+    <Syntax>string</Syntax>
+    <Description>Requestor Phone</Description>
+</Descriptor>
+</Attribute>
+</Input>
+</CertEnrollmentRequest>
