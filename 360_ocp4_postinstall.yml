@@ -139,7 +139,7 @@
     - name: Push htpasswd_idp to identity_providers
       tags: auth,htpasswd
       set_fact:
-        identity_roviders: "{{ identity_roviders }} + [ {{ htpasswd_idp }} ]"
+        identity_roviders: "{{ identity_providers }} + [ {{ htpasswd_idp }} ]"
 
     - name: Create google secret secret
       tags: auth,google
