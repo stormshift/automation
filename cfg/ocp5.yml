@@ -37,6 +37,9 @@
       - admin
       - dfroehliadm
       - rbohneadm
+      - sbergsteadm
+      - sfroemeradm
+      - rjaiswaladm
 
     layer3_ocp_normal_users:
       - { name: demo-user, pswd: 'demo' }
