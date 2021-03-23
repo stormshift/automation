@@ -19,7 +19,7 @@ networking:
   - 172.30.0.0/16
 platform:
   none: {}
-pullSecret: '{{lookup('file', '/home/hailstorm/ocp4binaries/pull-secret.txt') }}'
+pullSecret: '{{lookup('file', '/home/stormshift/ocp4binaries/pull-secret.txt') }}'
 sshKey: '{{sysctx_admin_ssh_key}}'
 {% if sysctx_certs_path is defined %}
 additionalTrustBundle: |

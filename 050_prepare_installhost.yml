@@ -69,7 +69,7 @@
       when: sysctx_certs_path is defined
       tags: openshift,ansible
       lineinfile:
-          path: /home/hailstorm/.bashrc
+          path: /home/stormshift/.bashrc
           line: "export K8S_AUTH_SSL_CA_CERT={{sysctx_certs_path}}/redhat-pki-ca-chain.crt"
 
     - name: prepare pki

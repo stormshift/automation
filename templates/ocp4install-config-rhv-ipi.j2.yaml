@@ -32,7 +32,7 @@ platform:
     ovirt_storage_domain_id: 4665b9ab-a632-4436-817d-2de8f1c7e363
     vnicProfileID: 0000000a-000a-000a-000a-000000000398
 publish: External
-pullSecret: '{{lookup('file', '/home/hailstorm/ocp4binaries/pull-secret.txt') }}'
+pullSecret: '{{lookup('file', '/home/stormshift/ocp4binaries/pull-secret.txt') }}'
 sshKey: '{{sysctx_admin_ssh_key}}'
 {% if sysctx_certs_path is defined %}
 additionalTrustBundle: |

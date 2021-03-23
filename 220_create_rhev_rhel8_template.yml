@@ -39,7 +39,7 @@
         format: cow
         alias: rhel8disk
         state: present
-        upload_image_path: /home/hailstorm/coeNfs/hailstorm/iso/rhel-8.1-x86_64-kvm.qcow2
+        upload_image_path: /home/stormshift/coeNfs/hailstorm/iso/rhel-8.1-x86_64-kvm.qcow2
         size: 10GiB
         storage_domain: "data"
         wait: true
