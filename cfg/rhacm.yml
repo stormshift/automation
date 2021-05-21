@@ -14,7 +14,7 @@
     usePXE: false
     useIPI_RHV: true
 
-    layer3_openshift_install_dir: "/home/stormshift/{{layer3_ocp_name}}_install"
+    layer3_openshift_install_dir: "/root/{{layer3_ocp_name}}_install"
     layer3_ocp_admin_users:
       - admin
       - dfroehliadm

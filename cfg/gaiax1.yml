@@ -10,7 +10,7 @@
 
 # Path to external CA signed cert on deployer node:
 #Sorry, no nice certs for gaiax due to external name
-#  sysctx_certs_path: "/home/stormshift/certs"
+#  sysctx_certs_path: "/root/certs"
 
   sysctx_proxy: "10.32.96.1:3128"
 

@@ -19,7 +19,7 @@
     - name: Transfer binaries
       tags: binaries,slow
       copy:
-        src: /home/stormshift/ocp4binaries
+        src: /root/ocp4binaries
         dest: /root/
 
     - name: Create directories

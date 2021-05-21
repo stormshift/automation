@@ -101,6 +101,6 @@
 
     - name: Create cluster (Coffee time - watch {{layer3_openshift_install_dir}}/.openshift_install.log)
       tags: install
-      command: /home/stormshift/ocp{{layer3_ocp_version}}binaries/openshift-install create cluster --dir={{layer3_openshift_install_dir}}
+      command: /root/ocp{{layer3_ocp_version}}binaries/openshift-install create cluster --dir={{layer3_openshift_install_dir}}
       args:
         creates: "{{layer3_openshift_install_dir}}/.openshift_install_state.json"

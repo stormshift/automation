@@ -57,19 +57,22 @@
     - name: Prepare for openshift ansible part2
       tags: openshift,ansible
       pip:
-        name: openshift
+        name: openshift, passlib
         extra_args: --user
 
     - name: Install ansible roles
       tags: ansible, roles
       shell: ansible-galaxy install redhatinsights.insights-client
 
+    - name: Install ansible roles
+      tags: ansible, roles
+      shell:  ansible-galaxy collection install ansible.posix community.general
 
     - name: Add CA Certs for openshift ansible modules
       when: sysctx_certs_path is defined
       tags: openshift,ansible
       lineinfile:
-          path: /home/stormshift/.bashrc
+          path: /root/.bashrc
           line: "export K8S_AUTH_SSL_CA_CERT={{sysctx_certs_path}}/redhat-pki-ca-chain.crt"
 
     - name: prepare pki

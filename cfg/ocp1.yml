@@ -5,7 +5,7 @@
     layer3_ocp_support_ip: "127.0.0.1"
     layer3_ocp_ingress_ip: 10.32.105.41
     layer3_ocp_api_ip: 10.32.105.48
-    layer3_ocp_num_worker: 3
+    layer3_ocp_num_worker: 0
     layer3_ocp_version: "46"
 
     layer3_ocp_nfs_server: "storm3.coe.muc.redhat.com"
@@ -18,7 +18,7 @@
     usePXE: false
     useIPI_RHV: true
 
-    layer3_openshift_install_dir: "/home/stormshift/{{layer3_ocp_name}}_install"
+    layer3_openshift_install_dir: "/root/{{layer3_ocp_name}}_install"
     layer3_ocp_admin_users:
       - admin
       - dfroehliadm
@@ -33,7 +33,7 @@
       - { name: manuela-tst, pswd: 'manuela' }
       - { name: manuela-ops, pswd: 'manuela' }
 
-
+# --------------- Obsolete stuff from UPI install - ignore and check install config template
     master_vm_profile:
       cluster: Default
       template: rhel7

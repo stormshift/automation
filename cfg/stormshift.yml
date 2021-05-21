@@ -8,7 +8,7 @@
   sysctx_nfs_share: "10.32.96.42:/vdo/nfs/stormshift/"
 
 # Path to external CA signed cert on deployer node:
-  sysctx_certs_path: "/home/stormshift/certs"
+  sysctx_certs_path: "/root/certs"
   sysctx_proxy: "10.32.96.1:3128"
 
 # Secret stuff stored in ansible vault:

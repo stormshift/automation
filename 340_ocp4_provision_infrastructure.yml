@@ -251,7 +251,7 @@
     - name: Copy SSH Keys to bastion
       tags: bastion,misc
       copy:
-        src: /home/stormshift/.ssh/{{ item}}
+        src: /root/.ssh/{{ item}}
         mode: preserve
         dest: /root/.ssh/
       with_items:
