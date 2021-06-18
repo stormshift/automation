@@ -6,6 +6,7 @@ intel_iommu=on
 sriov
 
 
+
 # Run CMD from master against all nodes:
 ansible -i stc-git/inventory -a "rm /usr/lib/tmpfiles.d/cleanup-cni.conf" nodes
 
