@@ -1,19 +1,31 @@
 apiVersion: v1
 metadata:
-  name: "{{layer3_ocp_name}}"
-baseDomain: "{{sysctx_dns_domain}}"
-compute:
-- architecture: amd64
-  hyperthreading: Disabled
-  name: worker
-  platform: {}
-  replicas: {{layer3_ocp_num_worker}}
+ name: {{layer3_ocp_name}}
+baseDomain: {{sysctx_dns_domain}}
 controlPlane:
   architecture: amd64
   hyperthreading: Disabled
   name: control
-  platform: {}
+  platform:
+    ovirt:
+      cpu:
+        cores: {{layer3_ocp_control_cores}}
+        sockets: 1
+      memoryMB: {{layer3_ocp_control_memoryMB}}
+      vmType: high_performance
   replicas: 3
+compute:
+- architecture: amd64
+  hyperthreading: Disabled
+  name: worker
+  platform:
+    ovirt:
+      cpu:
+        cores: {{layer3_ocp_compute_cores}}
+        sockets: 1
+      memoryMB: {{layer3_ocp_compute_memoryMB}}
+      vmType: high_performance
+  replicas: {{layer3_ocp_num_worker}}
 networking:
   clusterNetwork:
   - cidr: 10.128.0.0/14
