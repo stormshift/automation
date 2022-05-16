@@ -3,15 +3,15 @@
 
     layer3_ocp_support_host: "localhost"
     layer3_ocp_support_ip: "127.0.0.1"
-    layer3_ocp_ingress_ip: "10.32.105.41"
-    layer3_ocp_api_ip: "10.32.105.48"
-    layer3_ocp_num_worker: "3"
-    layer3_ocp_version: "46"
+    layer3_ocp_ingress_ip: "10.32.105.56"
+    layer3_ocp_api_ip: "10.32.105.57"
+    layer3_ocp_num_worker: "0"
+    layer3_ocp_version: "49"
 
     layer3_ocp_control_cores: "4"
-    layer3_ocp_control_memoryMB: "65536"
-    layer3_ocp_compute_cores: "12"
-    layer3_ocp_compute_memoryMB: "65536"
+    layer3_ocp_control_memoryMB: "24576"
+    layer3_ocp_compute_cores: "4"
+    layer3_ocp_compute_memoryMB: "24576"
 
     layer3_ocp_nfs_server: "storm3.coe.muc.redhat.com"
     layer3_ocp_nfs_registry_path: "---not-needed---"
@@ -23,17 +23,10 @@
     usePXE: false
     useIPI_RHV: true
 
-    layer3_openshift_install_dir: "/tmp/{{layer3_ocp_name}}_install"
+    layer3_openshift_install_dir: "/root/{{layer3_ocp_name}}_install"
     layer3_ocp_admin_users:
       - admin
       - dfroehliadm
-      - oschneidadm
-      - rbohneadm
-      - sbergsteadm
-      - rjaiswaladm
 
     layer3_ocp_normal_users:
       - { name: demo-user, pswd: 'demo' }
-      - { name: manuela-dev, pswd: 'manuela' }
-      - { name: manuela-tst, pswd: 'manuela' }
-      - { name: manuela-ops, pswd: 'manuela' }

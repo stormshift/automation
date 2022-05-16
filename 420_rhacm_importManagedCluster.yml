@@ -16,7 +16,7 @@
     rhacm_managed_cluster_url: "https://api.{{layer3_ocp_name}}.{{sysctx_dns_domain}}:6443"
     rhacm_managed_cluster_admin_user: "admin"
     rhacm_managed_cluster_admin_pswd: "{{secret_password}}"
-    rhacm_hub_cluster_url: "https://api.rhacm.{{sysctx_dns_domain}}:6443"
+    rhacm_hub_cluster_url: "https://api.mmgt.{{sysctx_dns_domain}}:6443"
     rhacm_hub_cluster_admin_user: "admin"
     rhacm_hub_cluster_admin_pswd: "{{secret_password}}"
 

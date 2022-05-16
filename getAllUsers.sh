@@ -1,5 +1,5 @@
 
-for cluster in ocp1 ocp3 ocp4 ocp5 rhacm
+for cluster in ocp2 ocp3 ocp4 ocp5 rhacm
 do
   echo "Getting users for $cluster"
   oc login -u admin -p $PSWD --server=https://api.$cluster.stormshift.coe.muc.redhat.com:6443

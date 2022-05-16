@@ -1,14 +1,14 @@
-    layer3_ocp_name: "rhacm"
+    layer3_ocp_name: "mmgt"
     layer3_ocp_support_host: "localhost"
     layer3_ocp_ingress_ip: 10.32.105.46
     layer3_ocp_api_ip: 10.32.105.47
     layer3_ocp_num_worker: 3
-    layer3_ocp_version: "48"
+    layer3_ocp_version: "49"
 
     layer3_ocp_control_cores: "4"
     layer3_ocp_control_memoryMB: "16384"
     layer3_ocp_compute_cores: "8"
-    layer3_ocp_compute_memoryMB: "16384"
+    layer3_ocp_compute_memoryMB: "32768"
 
     layer3_ocp_nfs_server: "storm3.coe.muc.redhat.com"
     layer3_ocp_nfs_dynprov_path: "/var/rhev/storage/nfs/{{layer3_ocp_name}}-dyn-nfs"
@@ -28,7 +28,7 @@
       #- manuela-ops
 
     layer3_ocp_normal_users:
-      #- { name: demo-user, pswd: 'demo' }
+      - { name: demo-user, pswd: 'demo' }
       #- { name: manuela-dev, pswd: 'manuela' }
       #- { name: manuela-tst, pswd: 'manuela' }
       #- { name: manuela-ops, pswd: 'manuela' }

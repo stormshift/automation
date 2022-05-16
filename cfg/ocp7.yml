@@ -1,10 +1,10 @@
-    layer3_ocp_name: "ocp1"
+    layer3_ocp_name: "ocp7"
     layer3_ocp_bastion_ip: "{{layer3_ocp_public_ip.ocp1}}"
 
     layer3_ocp_support_host: "localhost"
     layer3_ocp_support_ip: "127.0.0.1"
-    layer3_ocp_ingress_ip: "10.32.105.41"
-    layer3_ocp_api_ip: "10.32.105.48"
+    layer3_ocp_ingress_ip: "10.32.105.52"
+    layer3_ocp_api_ip: "10.32.105.53"
     layer3_ocp_num_worker: "0"
     layer3_ocp_version: "49"
 
@@ -15,7 +15,7 @@
 
     layer3_ocp_nfs_server: "storm3.coe.muc.redhat.com"
     layer3_ocp_nfs_registry_path: "---not-needed---"
-    layer3_ocp_nfs_dynprov_path: "/var/rhev/storage/nfs/ocp1-dyn-nfs"
+    layer3_ocp_nfs_dynprov_path: "/var/rhev/storage/nfs/ocp7-dyn-nfs"
 
     useFirewalld: false
     useDHCP: false

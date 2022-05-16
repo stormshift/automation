@@ -9,11 +9,7 @@
       rhsm_repository:
         name:
           - rhel-7-server-rpms
-          - rhel-7-server-extras-rpms
-          - rhel-7-server-ansible-2-rpms
-          - rhel-7-server-rhv-4.2-manager-rpms
-          - rhel-7-server-openstack-12-tools-rpms
-          - rhel-7-server-ose-3.11-rpms
+          - rhel-8-for-x86_64-appstream-rpms
       become: true
 
     - name: Install required packages
@@ -57,7 +53,7 @@
     - name: Prepare for openshift ansible part2
       tags: openshift,ansible
       pip:
-        name: openshift, passlib
+        name: openshift, passlib, pyOpenSSL
         extra_args: --user
 
     - name: Install ansible roles
@@ -66,7 +62,7 @@
 
     - name: Install ansible roles
       tags: ansible, roles
-      shell:  ansible-galaxy collection install ansible.posix community.general
+      shell:  ansible-galaxy collection install ansible.posix community.general community.crypto
 
     - name: Add CA Certs for openshift ansible modules
       when: sysctx_certs_path is defined
