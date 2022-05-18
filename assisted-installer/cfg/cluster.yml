@@ -1,0 +1,17 @@
+  vmname:  "ocp5"
+  layer3_ocp_name: "ocp5"
+  kubeconfig: "kubeconfig-noingress"
+  cd_iso: "discovery_image_ocp5.iso"
+  ocp_nodes:
+    - control1
+    - control2
+    - control3
+
+  layer3_ocp_admin_users:
+    - admin
+    - dfroehliadm
+    - rbohneadm
+    - sbergsteadm
+
+  layer3_ocp_normal_users:
+    - { name: demo-user, pswd: 'demo' }
