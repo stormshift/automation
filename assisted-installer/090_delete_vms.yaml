@@ -11,23 +11,21 @@
 
   vars:
     engine_user: admin@internal
-    engine_password: "{{secret_password}}"
+    engine_password: '{{secret_password}}'
     engine_url: https://{{layer2_rhev_engine_fqdn}}/ovirt-engine/api
-  #  wait_for_ip: true
+    #  wait_for_ip: true
     debug_vm_create: true
-    
 
   tasks:
-
     - name: Obtain SSO token
       ovirt_auth:
-        url: "{{ engine_url }}" 
-        username: "{{ engine_user }}"
-        password: "{{ engine_password }}"
+        url: '{{ engine_url }}'
+        username: '{{ engine_user }}'
+        password: '{{ engine_password }}'
 
     - name: Delete VM
       ovirt_vm:
-        auth: "{{ ovirt_auth }}"
+        auth: '{{ ovirt_auth }}'
         state: absent
-        name: "{{ vmname }}-{{ item }}"
-      loop: "{{ocp_nodes}}"
+        name: '{{ vmname }}-{{ item.key }}'
+      loop: '{{ ocp_nodes | dict2items }}'
