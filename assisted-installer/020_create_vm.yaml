@@ -11,70 +11,67 @@
 
   vars:
     engine_user: admin@internal
-    engine_password: "{{secret_password}}"
+    engine_password: '{{secret_password}}'
     engine_url: https://{{layer2_rhev_engine_fqdn}}/ovirt-engine/api
-  #  wait_for_ip: true
+    #  wait_for_ip: true
     debug_vm_create: true
 
-
   tasks:
-
     - name: Obtain SSO token
       ovirt_auth:
-        url: "{{ engine_url }}" 
-        username: "{{ engine_user }}"
-        password: "{{ engine_password }}"
+        url: '{{ engine_url }}'
+        username: '{{ engine_user }}'
+        password: '{{ engine_password }}'
 
     - name: Create VM
       ovirt_vm:
-        auth: "{{ ovirt_auth }}"
+        auth: '{{ ovirt_auth }}'
         state: present
-        name: "{{ vmname }}-{{ item }}"
-        operating_system: "rhcos_x64"
+        name: '{{ vmname }}-{{ item.key }}'
+        operating_system: 'rhcos_x64'
         cluster: Default
-        boot_devices: ["cdrom", "hd"]
-        cd_iso: "{{ cd_iso }}"
+        boot_devices: ['cdrom', 'hd']
+        cd_iso: '{{ cd_iso }}'
         cpu_cores: 8
-        memory: "32GiB"
-        memory_guaranteed: "32GiB"
-        memory_max: "32GiB"
-        nics:  
-          - name: "nic1"
-            profile_name: "ovirtmgmt" 
+        memory: '32GiB'
+        memory_guaranteed: '32GiB'
+        memory_max: '32GiB'
+        nics:
+          - name: 'nic1'
+            profile_name: 'ovirtmgmt'
         graphical_console:
           headless_mode: no
-          protocol: ["spice"] 
-          disconnect_action: "none"
+          protocol: ['spice']
+          disconnect_action: 'none'
         cloud_init:
-          host_name: "{{ vmname }}"
-      loop: "{{ocp_nodes}}"
+          host_name: '{{ vmname }}'
+      loop: '{{ ocp_nodes | dict2items }}'
 
     - name: Create Disk
       ovirt_disk:
-        auth: "{{ ovirt_auth }}"
-        name: "{{ vmname }}-{{ item }}-disk"
-        vm_name: "{{ vmname }}-{{ item }}"
+        auth: '{{ ovirt_auth }}'
+        name: '{{ vmname }}-{{ item }}-disk'
+        vm_name: '{{ vmname }}-{{ item }}'
         size: 120GiB
         format: cow
         interface: virtio_scsi
         storage_domain: data
-      loop: "{{ocp_nodes}}"
+      loop: '{{ ocp_nodes | dict2items }}'
 
-    - name: Boot VM 
+    - name: Boot VM
       ovirt_vm:
-        auth: "{{ ovirt_auth }}"
-        name: "{{ vmname }}-{{ item }}"
+        auth: '{{ ovirt_auth }}'
+        name: '{{ vmname }}-{{ item }}'
+        host: '{{ item.value }}'
         state: running
-      loop: "{{ocp_nodes}}"
-
+      loop: '{{ ocp_nodes | dict2items }}'
 
     - name: Gather information about all VMs which names start with stefan
       ovirt_vm_info:
-        auth: "{{ ovirt_auth }}"
+        auth: '{{ ovirt_auth }}'
         pattern: name="{{ vmname }}*"
       register: result
 
     - name: Print all VMs which names start with ocp
       ansible.builtin.debug:
-        msg: "{{ result.ovirt_vms }}"
-
+        msg: '{{ result.ovirt_vms }}'

@@ -1,17 +1,17 @@
-  vmname:  "ocp5"
-  layer3_ocp_name: "ocp5"
-  kubeconfig: "kubeconfig-noingress"
-  cd_iso: "discovery_image_ocp5.iso"
-  ocp_nodes:
-    - control1
-    - control2
-    - control3
+vmname: 'ocp5'
+layer3_ocp_name: 'ocp5'
+kubeconfig: 'kubeconfig-noingress'
+cd_iso: 'discovery_image_ocp5.iso'
+ocp_nodes:
+    - control-0: storm2.coe.muc.redhat.com
+    - control-1: storm5.coe.muc.redhat.com
+    - control-2: storm6.coe.muc.redhat.com
 
-  layer3_ocp_admin_users:
+layer3_ocp_admin_users:
     - admin
     - dfroehliadm
     - rbohneadm
     - sbergsteadm
 
-  layer3_ocp_normal_users:
+layer3_ocp_normal_users:
     - { name: demo-user, pswd: 'demo' }
