@@ -1,2 +1,3 @@
 cfg/secrets.yml
 clouds.yml
+assisted-installer/vault-password-file

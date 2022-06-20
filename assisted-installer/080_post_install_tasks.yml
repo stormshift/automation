@@ -1,0 +1,139 @@
+
+#
+# Prerequisites to run this playbook
+# - kubeconfig file in place
+# - KUBECONFIG is set
+#
+
+---
+- name: Post install tasks
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars_files:
+    - cfg/secrets_stormshift.yml
+    - ../cfg/stormshift.yml
+    - cfg/cluster.yml
+
+  vars:
+    engine_user: admin@internal
+
+
+  tasks:
+
+
+# ------------------------------------------------------------------------------
+# Configure authentication
+# ------------------------------------------------------------------------------
+    - name: "Set Identify Providers to empty"
+      set_fact:
+        identity_providers: "[]"
+      tags: auth
+
+    - name: Add admin users to htpasswd file
+      tags: auth,htpasswd
+      local_action:
+        module: htpasswd
+        path: /tmp/htpasswd.{{layer3_ocp_name}}
+        name: "{{item}}"
+        password: "{{secret_password}}"
+      with_items: "{{layer3_ocp_admin_users}}"
+      register: htpasswd
+
+
+    - name: Create htpasswd secret
+      tags: auth,htpasswd
+      k8s:
+        state: present
+        kubeconfig: "{{kubeconfig}}"
+        validate_certs: false
+        definition:
+          apiVersion: v1
+          data:
+            htpasswd: "{{ lookup('file', '/tmp/htpasswd.{{layer3_ocp_name}}') | b64encode }}"
+          kind: Secret
+          metadata:
+            name: htpasswd
+            namespace: openshift-config
+          type: Opaque
+
+    - name: Create htpasswd identity provider template
+      tags: auth,htpasswd
+      set_fact:
+        htpasswd_idp:
+          htpasswd:
+            fileData:
+              name: htpasswd
+          mappingMethod: claim
+          name: Local
+          type: HTPasswd
+
+    - name: Push htpasswd_idp to identity_providers
+      tags: auth,htpasswd
+      set_fact:
+        identity_providers: "{{ identity_providers }} + [ {{ htpasswd_idp }} ]"
+
+    - name: Configure identity providers
+      tags: auth
+      k8s:
+        state: present
+        kubeconfig: "{{kubeconfig}}"
+        validate_certs: false
+        definition:
+            apiVersion: config.openshift.io/v1
+            kind: OAuth
+            metadata:
+              name: cluster
+            spec:
+              identityProviders: "{{ identity_providers }}"
+
+    - name: Add cluster-admin role to admins
+      tags: auth
+      k8s:
+        state: present
+        kubeconfig: "{{kubeconfig}}"
+        validate_certs: false
+        definition:
+          kind: ClusterRoleBinding
+          apiVersion: rbac.authorization.k8s.io/v1
+          metadata:
+            name: "cluster-admin-{{ item }}"
+          subjects:
+          - apiGroup: rbac.authorization.k8s.io
+            kind: User
+            name: "{{ item }}"
+          roleRef:
+            kind: ClusterRole
+            name: "cluster-admin"
+      with_items: "{{layer3_ocp_admin_users}}"
+
+# ------------------------------------------------------------------------------
+# Install Certs to Ingress Operator
+# ------------------------------------------------------------------------------
+
+    - name: Create secret with certificates
+      tags: certs
+      k8s:
+        state: present
+        src: cfg/stormshift-router-certs.yaml
+        kubeconfig: "{{kubeconfig}}"
+        validate_certs: false
+
+
+    - name: Patch ingresscontroller/default
+      tags: certs
+      k8s:
+        state: present
+        kubeconfig: "{{kubeconfig}}"
+        validate_certs: false
+        merge_type: merge
+        definition:
+          apiVersion: operator.openshift.io/v1
+          kind: IngressController
+          metadata:
+            name: default
+            namespace: openshift-ingress-operator
+          spec:
+            defaultCertificate:
+              name: stormshift-router-certs
