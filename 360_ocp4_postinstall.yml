@@ -21,11 +21,29 @@
 # ------------------------------------------------------------------------------
 # Add Red Hat Internal CA to trust chain
 # (https://docs.openshift.com/container-platform/4.2/networking/configuring-a-custom-pki.html#nw-proxy-configure-object_configuring-a-custom-pki)
-# The CA Chain is in user-ca-bundle ConfigMap, thanks to install
-# config "additionalTrustBundle" (see there). Thus, wee need only
-# to add it to the Cluster Proxy Config
+# In IPI Installs, the CA Chain is already in user-ca-bundle ConfigMap, thanks to install
+# config "additionalTrustBundle" (see there).
+# In Non-IPI Installs (e.g. Assisted Installer), we need to add it. so no harm to add it now:
+    - name: Add Red Hat Internal CA to user-ca-bundle
+      tags: certs
+      k8s:
+        state: present
+        kubeconfig: "{{openshift_install_dir}}/auth/kubeconfig"
+        validate_certs: false
+        merge_type: merge
+        definition:
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: user-ca-bundle
+            namespace: openshift-config
+          data:
+            ca-bundle.crt: |
+              {{lookup('file', '{{sysctx_certs_path}}/redhat-pki-ca-chain.crt') | indent(0,true) }}
+
+# Now add it to the Cluster Proxy Config
 # ------------------------------------------------------------------------------
-    - name: Add Red Hat Internal CA to trust chain
+    - name: Add user-ca-bundle to cluster proxy config
       tags: certs
       k8s:
         state: present
