@@ -50,8 +50,8 @@
     - name: Create Disk
       ovirt_disk:
         auth: '{{ ovirt_auth }}'
-        name: '{{ vmname }}-{{ item }}-disk'
-        vm_name: '{{ vmname }}-{{ item }}'
+        name: '{{ vmname }}-{{ item.key }}-disk'
+        vm_name: '{{ vmname }}-{{ item.key }}'
         size: 120GiB
         format: cow
         interface: virtio_scsi
@@ -61,7 +61,7 @@
     - name: Boot VM
       ovirt_vm:
         auth: '{{ ovirt_auth }}'
-        name: '{{ vmname }}-{{ item }}'
+        name: '{{ vmname }}-{{ item.key }}'
         host: '{{ item.value }}'
         state: running
       loop: '{{ ocp_nodes | dict2items }}'
