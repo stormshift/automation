@@ -41,7 +41,7 @@ platform:
     ingress_vip: "{{layer3_ocp_ingress_ip}}"
     ovirt_cluster_id: 1bac0328-d989-11e9-b14a-00163e34b4e4
     ovirt_network_name: ovirtmgmt
-    ovirt_storage_domain_id: 4665b9ab-a632-4436-817d-2de8f1c7e363
+    ovirt_storage_domain_id: 0c2d5fff-fe37-4bf0-8cd4-9eb916e2a88f
     vnicProfileID: 0000000a-000a-000a-000a-000000000398
 publish: External
 pullSecret: '{{lookup('file', '/root/ocp4binaries/pull-secret.txt') }}'
