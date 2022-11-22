@@ -235,6 +235,7 @@
 # ------------------------------------------------------------------------------
     - name: Create Namespace
       tags: nfsprov
+      when: useDynNFS is defined and useDynNFS
       k8s:
         state: present
         kubeconfig: "{{ openshift_install_dir }}/auth/kubeconfig"
@@ -247,6 +248,7 @@
 
     - name: Create ServiceAccount
       tags: nfsprov
+      when: useDynNFS is defined and useDynNFS
       k8s:
         state: present
         kubeconfig: "{{ openshift_install_dir }}/auth/kubeconfig"
@@ -260,6 +262,7 @@
 
     - name: Create ClusteRole nfs-client-provisioner-runner
       tags: nfsprov
+      when: useDynNFS is defined and useDynNFS
       k8s:
         state: present
         kubeconfig: "{{ openshift_install_dir }}/auth/kubeconfig"
@@ -285,6 +288,7 @@
 
     - name: Create ClusteRoleBinding nfs-client-provisioner-runner <-> nfs-client-provisioner
       tags: nfsprov
+      when: useDynNFS is defined and useDynNFS
       k8s:
         state: present
         kubeconfig: "{{ openshift_install_dir }}/auth/kubeconfig"
@@ -305,6 +309,7 @@
 
     - name: Create Role leader-locking-nfs-client-provisioner
       tags: nfsprov
+      when: useDynNFS is defined and useDynNFS
       k8s:
         state: present
         kubeconfig: "{{ openshift_install_dir }}/auth/kubeconfig"
@@ -322,6 +327,7 @@
 
     - name: Create RoleBinding leader-locking-nfs-client-provisioner <-> nfs-client-provisioner
       tags: nfsprov
+      when: useDynNFS is defined and useDynNFS
       k8s:
         state: present
         kubeconfig: "{{ openshift_install_dir }}/auth/kubeconfig"
@@ -341,11 +347,13 @@
             apiGroup: rbac.authorization.k8s.io
 
     - name: Add SCC hostmount-anyuid to nfs-client-provisioner
+      when: useDynNFS is defined and useDynNFS
       tags: nfsprov
       command: "oc adm policy add-scc-to-user hostmount-anyuid -n {{ storage_nfs_target_namespace }} -z nfs-client-provisioner --kubeconfig {{ openshift_install_dir }}/auth/kubeconfig"
 
     - name: Deploy nfs-provisioner
       tags: nfsprov
+      when: useDynNFS is defined and useDynNFS
       k8s:
         state: present
         kubeconfig: "{{ openshift_install_dir }}/auth/kubeconfig"
@@ -390,6 +398,7 @@
 
     - name: Storage Class
       tags: nfsprov
+      when: useDynNFS is defined and useDynNFS
       k8s:
         state: present
         kubeconfig: "{{ openshift_install_dir }}/auth/kubeconfig"

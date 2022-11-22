@@ -34,6 +34,7 @@
 # -------------------------- storage stuff  ---------------------
     - name: Create logical volume for dyn-nfs
       tags: storage
+      when: useDynNFS is defined and useDynNFS 
       lvol:
         vg: sataraid
         lv: "{{layer3_ocp_name}}-dyn-nfs"
@@ -42,12 +43,14 @@
 
     - name: Create filesystem for dyn-nfs
       tags: storage
+      when: useDynNFS is defined and useDynNFS
       filesystem:
         fstype: xfs
         dev: "/dev/mapper/sataraid-{{layer3_ocp_name}}--dyn--nfs"
 
     - name: Create mount point
       tags: storage
+      when: useDynNFS is defined and useDynNFS
       file:
         path: "{{layer3_ocp_nfs_dynprov_path}}"
         owner: root
@@ -57,6 +60,7 @@
 
     - name: Mount file systems for dyn-nfs
       tags: storage
+      when: useDynNFS is defined and useDynNFS
       mount:
         path: "{{layer3_ocp_nfs_dynprov_path}}"
         src: "/dev/mapper/sataraid-{{layer3_ocp_name}}--dyn--nfs"
@@ -66,6 +70,7 @@
 # -------------------------- nfs export stuff  ---------------------
     - name: Export nfs directory
       tags: nfs
+      when: useDynNFS is defined and useDynNFS
       lineinfile:
         path: /etc/exports
         line: '{{layer3_ocp_nfs_dynprov_path}} *(async,wdelay,rw)'
@@ -74,12 +79,14 @@
 
     - name: Restart nfs
       tags: nfs
+      when: useDynNFS is defined and useDynNFS
       service:
         name: nfs-server
         enabled: yes
         state: restarted
       when: nfs is changed
 
+# ---------------------------- Here we go --------------------
 - name: Install OpenShift4 via RHEV IPI
   hosts: "localhost"
   gather_facts: false

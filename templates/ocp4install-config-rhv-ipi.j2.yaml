@@ -13,7 +13,7 @@ controlPlane:
         sockets: 1
       memoryMB: {{layer3_ocp_control_memoryMB}}
       vmType: high_performance
-  replicas: 3
+  replicas: {{layer3_ocp_num_control}}
 compute:
 - architecture: amd64
   hyperthreading: Disabled
