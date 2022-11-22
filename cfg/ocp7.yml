@@ -6,6 +6,7 @@
     layer3_ocp_ingress_ip: "10.32.105.52"
     layer3_ocp_api_ip: "10.32.105.53"
     layer3_ocp_num_worker: "0"
+    layer3_ocp_num_control: "3"
     layer3_ocp_version: "49"
 
     layer3_ocp_control_cores: "4"

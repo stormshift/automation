@@ -6,6 +6,10 @@ controlPlane:
   architecture: amd64
   hyperthreading: Disabled
   name: control
+{% if layer3_ocp_num_control == 1 %}
+  bootstrapInPlace:
+    installationDisk: /dev/sda
+{% endif %}
   platform:
     ovirt:
       cpu:
