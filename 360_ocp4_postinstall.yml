@@ -104,7 +104,7 @@
 # ------------------------------------------------------------------------------
     - name: "Set Identify Providers to empty"
       set_fact:
-        identity_providers: "[]"
+        identity_providers: []
       tags: auth
 
     - name: Add admin users to htpasswd file
@@ -158,7 +158,7 @@
     - name: Push htpasswd_idp to identity_providers
       tags: auth,htpasswd
       set_fact:
-        identity_providers: "{{ identity_providers }} + [ {{ htpasswd_idp }} ]"
+        identity_providers: "{{ identity_providers + [ htpasswd_idp ] }}"
 
     - name: Create google secret secret
       tags: auth,google
@@ -192,7 +192,7 @@
     - name: Push google to identity_providers
       tags: auth,google
       set_fact:
-        identity_providers: "{{ identity_providers }} + [ {{ redhatsso_idp }} ]"
+        identity_providers: "{{ identity_providers + [ redhatsso_idp ] }}"
 
     - name: Configure identity providers
       tags: auth
