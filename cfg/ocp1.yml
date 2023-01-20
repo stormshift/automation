@@ -23,6 +23,7 @@
     useNFS: false
     usePXE: false
     useIPI_RHV: true
+    useDynNFS: false
 
     layer3_openshift_install_dir: "/root/{{layer3_ocp_name}}_install"
     layer3_ocp_admin_users:
