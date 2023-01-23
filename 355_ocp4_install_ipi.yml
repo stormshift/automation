@@ -34,7 +34,7 @@
 # -------------------------- storage stuff  ---------------------
     - name: Create logical volume for dyn-nfs
       tags: storage
-      when: useDynNFS is defined and useDynNFS 
+      when: useDynNFS is defined and useDynNFS
       lvol:
         vg: sataraid
         lv: "{{layer3_ocp_name}}-dyn-nfs"
@@ -79,12 +79,11 @@
 
     - name: Restart nfs
       tags: nfs
-      when: useDynNFS is defined and useDynNFS
+      when: useDynNFS is defined and useDynNFS and nfs is changed
       service:
         name: nfs-server
         enabled: yes
         state: restarted
-      when: nfs is changed
 
 # ---------------------------- Here we go --------------------
 - name: Install OpenShift4 via RHEV IPI
@@ -105,6 +104,13 @@
       template:
         src: templates/ocp4install-config-rhv-ipi.j2.yaml
         dest: "{{layer3_openshift_install_dir}}/install-config.yaml"
+
+    - name: Backup install config for later reference
+      tags: install
+      ansible.builtin.copy:
+        src: "{{layer3_openshift_install_dir}}/install-config.yaml"
+        dest: "{{layer3_openshift_install_dir}}/install-config.yaml.orig"
+        remote_src: yes
 
     - name: Create cluster (Coffee time - watch {{layer3_openshift_install_dir}}/.openshift_install.log)
       tags: install
