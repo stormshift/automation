@@ -18,6 +18,12 @@ controlPlane:
       memoryMB: {{layer3_ocp_control_memoryMB}}
       vmType: high_performance
   replicas: {{layer3_ocp_num_control}}
+
+{% if layer3_ocp_capabilities is defined %}
+capabilities:
+  {{layer3_ocp_capabilities}}
+{% endif %}
+  
 compute:
 - architecture: amd64
   hyperthreading: Disabled

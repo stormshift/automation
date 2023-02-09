@@ -5,14 +5,21 @@
     layer3_ocp_support_ip: "127.0.0.1"
     layer3_ocp_ingress_ip: "10.32.105.42"
     layer3_ocp_api_ip: "10.32.105.49"
-    layer3_ocp_num_worker: "3"
+    layer3_ocp_num_worker: "0"
     layer3_ocp_num_control: "3"
-    layer3_ocp_version: "410"
+    layer3_ocp_version: "412"
 
-    layer3_ocp_control_cores: "4"
+    layer3_ocp_control_cores: "8"
     layer3_ocp_control_memoryMB: "32768"
     layer3_ocp_compute_cores: "8"
     layer3_ocp_compute_memoryMB: "32768"
+    layer3_ocp_capabilities:
+      baselineCapabilitySet: None
+      additionalEnabledCapabilities:
+      - CSISnapshot
+      - Console
+      - Storage
+
 
     layer3_ocp_nfs_server: "storm3.coe.muc.redhat.com"
     layer3_ocp_nfs_dynprov_path: "/var/rhev/storage/nfs/{{layer3_ocp_name}}-dyn-nfs"
