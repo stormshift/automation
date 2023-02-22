@@ -1,0 +1,10 @@
+    layer3_name: "ushift2"
+    layer3_vm_cores: "2"
+    layer3_vm_memory: "2 GiB"
+    layer3_vm_template: "rhel87"
+    layer4_update_os_to_latest: false
+
+# Set this to false to prep everything, but do not actually install
+# Nice for "dnf install microshift" demos
+    actually_install: true
+    deploy_sample_workload: true

@@ -23,6 +23,7 @@
   sysctx_registry_token: "{{vault_sysctx_registry_token}}"
   layer0_idrac_user: "{{vault_layer0_idrac_user}}"
   layer0_idrac_pwd: "{{vault_layer0_idrac_pwd}}"
+  sysctx_pull_secret: "{{vault_sysctx_pull_secret}}"
 
 
   layer0_idrac_ip: "10.32.104.72"

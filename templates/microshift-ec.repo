@@ -1,0 +1,14 @@
+[microshift-v4.12.ec]
+name=MicroShift 4.12 Dev Preview EC RPMs
+baseurl=https://mirror.openshift.com/pub/openshift-v4/x86_64/microshift/ocp-dev-preview/latest-4.12/el8/os/
+enabled=0
+gpgcheck=0
+skip_if_unavailable=0
+
+
+[microshift-v4.13.ec]
+name=MicroShift 4.13 EarlyAccess EC RPMs
+baseurl=https://mirror.openshift.com/pub/openshift-v4/x86_64/microshift/ocp-dev-preview/latest-4.13/el8/os/
+enabled=0
+gpgcheck=0
+skip_if_unavailable=0
