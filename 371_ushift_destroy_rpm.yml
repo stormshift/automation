@@ -1,0 +1,36 @@
+---
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+- name: Delete VM on RHV
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - cfg/secrets_{{sysctx_instance_name}}.yml
+  vars:
+    engine_user: admin@internal
+    engine_password: "{{secret_password}}"
+    engine_url: https://{{layer2_rhev_engine_fqdn}}/ovirt-engine/api
+  tasks:
+    - name: Login to RHV
+      tags: always
+      ovirt_auth:
+        url: '{{ engine_url }}'
+        username: '{{ engine_user }}'
+        password: '{{ engine_password }}'
+
+    - name: Stop VM
+      tags: vm
+      ovirt_vm:
+        auth: '{{ ovirt_auth }}'
+        state: stopped
+        name: '{{layer3_name}}'
+        cluster: Default
+
+    - name: Remove VM
+      tags: vm
+      ovirt_vm:
+        auth: '{{ ovirt_auth }}'
+        state: absent
+        name: '{{layer3_name}}'
+        cluster: Default
