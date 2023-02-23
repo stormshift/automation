@@ -7,4 +7,4 @@
 # Set this to false to prep everything, but do not actually install
 # Nice for "dnf install microshift" demos
     actually_install: false
-    deploy_sample_workload: true
+    deploy_sample_workload: false

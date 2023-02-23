@@ -1,6 +1,6 @@
     layer3_name: "ushift2"
-    layer3_vm_cores: "2"
-    layer3_vm_memory: "2 GiB"
+    layer3_vm_cores: "4"
+    layer3_vm_memory: "16 GiB"
     layer3_vm_template: "rhel87"
     layer4_update_os_to_latest: false
 
