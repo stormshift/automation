@@ -46,24 +46,22 @@
         pattern: name="{{layer3_name}}"
         follow: ["nics.reported_devices"]
       register: result
-      until: result.ovirt_vms[0].nics[0].reported_devices[0].ips[0].address is defined
+      until:
+        result.ovirt_vms[0].nics[0].reported_devices[0].ips is defined
+        and result.ovirt_vms[0].nics[0].reported_devices[0].ips | length > 1
       retries: 60
       delay: 1
-
-    - name: Debugging 1
-      tags: vm
-      debug:
-        msg: "{{ result | json_query('ovirt_vms[0].nicsXXX[0].reported_devices[0].ips[?version==`v4`].address') }}"
-
-    - name: Debugging 2
-      tags: vm
-      debug:
-        var: result.ovirt_vms[0].nics
 
     - name: Capture IP address
       tags: vm, dns
       set_fact:
-        layer3_ip: "{{ result.ovirt_vms[0].nics[0].reported_devices[0].ips[0].address}}"
+        layer3_ip: "{{ result | json_query('ovirt_vms[0].nics[0].reported_devices[0].ips[?version==`v4`].address') }}"
+
+    - name: Debug
+      tags: vm
+      debug:
+        msg: "VM IP adress: {{ layer3_ip }}"
+
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
