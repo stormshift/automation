@@ -7,7 +7,7 @@
     layer3_ocp_api_ip: "10.32.105.50"
     layer3_ocp_num_worker: "3"
     layer3_ocp_num_control: "3"
-    layer3_ocp_version: "412"
+    layer3_ocp_version: "411"
 
     layer3_ocp_control_cores: "4"
     layer3_ocp_control_memoryMB: "32768"

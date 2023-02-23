@@ -7,19 +7,13 @@
     layer3_ocp_api_ip: "10.32.105.129"
     layer3_ocp_num_worker: "0"
     layer3_ocp_num_control: "1"
-    layer3_ocp_version: "412"
+    layer3_ocp_version: "410"
 
     layer3_ocp_control_cores: "8"
     layer3_ocp_control_memoryMB: "24576"
     layer3_ocp_compute_cores: "4"
     layer3_ocp_compute_memoryMB: "24576"
 
-    layer3_ocp_capabilities:
-      baselineCapabilitySet: None
-      additionalEnabledCapabilities:
-      - CSISnapshot
-      - Console
-      - Storage
 
     layer3_ocp_nfs_server: "storm3.coe.muc.redhat.com"
     layer3_ocp_nfs_registry_path: "---not-needed---"
