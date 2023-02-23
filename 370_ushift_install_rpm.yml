@@ -55,7 +55,7 @@
     - name: Capture IP address
       tags: vm, dns
       set_fact:
-        layer3_ip: "{{ result | json_query('ovirt_vms[0].nics[0].reported_devices[0].ips[?version==`v4`].address') }}"
+        layer3_ip: "{{ result | json_query('ovirt_vms[0].nics[0].reported_devices[0].ips[?version==`v4`].address') | join }}"
 
     - name: Debug
       tags: vm
