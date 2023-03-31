@@ -125,7 +125,7 @@
       when: rhsm_repo_list is defined
       rhsm_repository:
         state: enabled
-        name: {{rhsm_repo_list}}
+        name: "{{rhsm_repo_list}}"
 
     - name: Prepare for engineering candidate Repos
       tags: repos
