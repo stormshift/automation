@@ -8,3 +8,4 @@
 # Nice for "dnf install microshift" demos
     actually_install: yes
     deploy_sample_workload: false
+    enable_v413_repos: "0"

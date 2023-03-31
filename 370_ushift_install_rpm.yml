@@ -100,7 +100,7 @@
     - cfg/secrets_{{sysctx_instance_name}}.yml
   tasks:
     - name: Set hostname
-      tags: rhsm
+      tags: hostname
       hostname:
         name: "{{layer3_name}}.{{ sysctx_dns_domain }}"
 
@@ -113,15 +113,19 @@
 # Not needed with simple content access activated:
 #        pool_ids: "{{ sysctx_rhsm_poolid_virt}}"
 
+#
+# RHEL 92 todo:  work around
+# Devices file sys_serial 213e7b6b-8441-44d0-ae26-3df55bab3844 PVID MDHwM81ex62inauoWm3U415rXNZCQigI last seen on /dev/sda2 not found.
+# by:
+#While awaiting a fix this can be bypassed by setting use_devicesfile=0 inside of /etc/lvm/lvm.conf
+
+
     - name: Enable Repos
-      tags: repos, slow
+      tags: rhsm, repos, slow
+      when: rhsm_repo_list is defined
       rhsm_repository:
         state: enabled
-        name:
-          - rhel-8-for-x86_64-appstream-rpms
-          - rhel-8-for-x86_64-baseos-rpms
-          - rhocp-4.12-for-rhel-8-x86_64-rpms
-          - fast-datapath-for-rhel-8-x86_64-rpms
+        name: {{rhsm_repo_list}}
 
     - name: Prepare for engineering candidate Repos
       tags: repos
