@@ -260,6 +260,16 @@
         enabled: yes
         state: started
 
+    - name: Replace localhost in kubeconfig with FQDN
+      when: actually_install
+      tags: install, post
+      lineinfile:
+        path: /var/lib/microshift/resources/kubeadmin/kubeconfig
+        regexp: "(.*)server: https://(127.0.0.1|localhost):6443"
+        line: '\1server: https://{{layer3_name}}.{{ sysctx_dns_domain }}:6443'
+        backrefs: true
+        backup: true
+
     - name: Copy kubeconfig to root user on VM
       when: actually_install
       tags: install, post
@@ -269,14 +279,6 @@
         dest: /root/.kube/config
         mode: 600
 
-    - name: Replace localhost in kubeconfig with FQDN
-      when: actually_install
-      tags: install, post
-      lineinfile:
-        path: /root/.kube/config
-        search_string: "    server: https://127.0.0.1:6443"
-        line: "    server: https://{{layer3_name}}.{{ sysctx_dns_domain }}:6443"
-        backup: true
 
     - name: Fetch kubeconfig from VM to deploy node
       when: actually_install
