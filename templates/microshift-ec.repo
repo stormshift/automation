@@ -15,7 +15,7 @@ skip_if_unavailable=0
 
 [microshift-v4.13.rc]
 name=MicroShift 4.13 EarlyAccess rc RPMs
-baseurl=https://mirror.openshift.com/pub/openshift-v4/x86_64/microshift/ocp/latest-4.13/latest-4.13/el9/os/
+baseurl=https://mirror.openshift.com/pub/openshift-v4/x86_64/microshift/ocp/latest-4.13/el9/os/
 enabled={{enable_v413_repos}}
 gpgcheck=0
 skip_if_unavailable=0
