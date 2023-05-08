@@ -116,6 +116,7 @@
 
     - name: Disable SWAP since kubernetes can't work with swap enabled (1/2)
       tags: swap
+      changed_when: false
       shell: |
         swapoff -a
 
@@ -123,8 +124,8 @@
       tags: swap
       replace:
         path: /etc/fstab
-        regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
-        replace: '# \1'
+        regexp: '^([^#].*?\sswap\s.*)$'
+        replace: '#\1'
 
 #
 # RHEL 92 todo:  work around
@@ -146,11 +147,11 @@
         state: enabled
         name: "{{rhsm_repo_list}}"
 
-    - name: Prepare for engineering candidate Repos
+    - name: Prepare for candidate Repos
       tags: repos
       template:
-        src: templates/microshift-ec.repo
-        dest: /etc/yum.repos.d/microshift-ec.repo
+        src: templates/microshift-candidate.repo
+        dest: /etc/yum.repos.d/microshift-candidate.repo
 
     - name: Update baseos
       tags: upd, slow
