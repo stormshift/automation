@@ -115,10 +115,12 @@
 
 
     - name: Disable SWAP since kubernetes can't work with swap enabled (1/2)
+      tags: swap
       shell: |
         swapoff -a
 
     - name: Disable SWAP in fstab since kubernetes can't work with swap enabled (2/2)
+      tags: swap
       replace:
         path: /etc/fstab
         regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
@@ -130,6 +132,12 @@
 # by:
 #While awaiting a fix this can be bypassed by setting use_devicesfile=0 inside of /etc/lvm/lvm.conf
 
+    - name: Workaround Devices files not found by changing LVM Configure
+      tags: lvmcfg
+      replace:
+        path: /etc/lvm/lvm.conf
+        regexp: '# use_devicesfile = 1'
+        replace: 'use_devicesfile = 0'
 
     - name: Enable Repos
       tags: rhsm, repos, slow
