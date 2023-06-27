@@ -8,7 +8,7 @@
 # Nice for "dnf install microshift" demos
     actually_install: true
     deploy_sample_workload: true
-    enable_v413_repos: "0"
+    dev_preview_enable: "0"
     rhsm_repo_list:
           - rhel-8-for-x86_64-appstream-rpms
           - rhel-8-for-x86_64-baseos-rpms
