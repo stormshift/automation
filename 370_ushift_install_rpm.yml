@@ -148,6 +148,7 @@
         name: "{{rhsm_repo_list}}"
 
     - name: Prepare for candidate Repos
+      when: dev_preview_version is defined
       tags: repos
       template:
         src: templates/microshift-candidate.repo
