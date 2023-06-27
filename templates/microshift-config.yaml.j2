@@ -2,7 +2,12 @@ dns:
   baseDomain: {{layer3_name}}.{{ sysctx_dns_domain }}
 network:
   clusterNetwork:
+{% if dev_preview_version is defined and '4.14' in dev_preview_version %}
+    - 10.42.0.0/16
+{% else %}
     - cidr: 10.42.0.0/16
+{% endif %}
+
   serviceNetwork:
     - 10.43.0.0/16
   serviceNodePortRange: 30000-32767

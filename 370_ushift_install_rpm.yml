@@ -297,12 +297,19 @@
         dest: "/root/{{layer3_name}}_install/kubeconfig"
         flat: true
 
-    - name: Deploy sample Workload
+    - name: Deploy sample workload
       tags: post,sample
-      when: deploy_sample_workload
+      when: actually_install and deploy_sample_workload
       delegate_to: 127.0.0.1
       kubernetes.core.k8s:
         kubeconfig: "/root/{{layer3_name}}_install/kubeconfig"
         validate_certs: false
         state: present
         definition: "{{ lookup('template', 'templates/microshift-sample-app.yaml.j2') }}"
+
+    - name: Prepare sample workload
+      tags: post,sample
+      when: not (actually_install and deploy_sample_workload)
+      template:
+        src: templates/microshift-sample-app.yaml.j2
+        dest: /root/sample-app.yaml
