@@ -2,7 +2,7 @@ dns:
   baseDomain: {{layer3_name}}.{{ sysctx_dns_domain }}
 network:
   clusterNetwork:
-{% if dev_preview_version is defined and '4.14' in dev_preview_version and dev_preview_enable = '1' %}
+{% if dev_preview_version is defined and '4.14' in dev_preview_version and dev_preview_enable == '1' %}
     - 10.42.0.0/16
 {% else %}
     - cidr: 10.42.0.0/16
