@@ -23,7 +23,7 @@ controlPlane:
 capabilities:
   {{layer3_ocp_capabilities}}
 {% endif %}
-  
+
 compute:
 - architecture: amd64
   hyperthreading: Disabled
@@ -54,7 +54,7 @@ platform:
     ovirt_storage_domain_id: 0c2d5fff-fe37-4bf0-8cd4-9eb916e2a88f
     vnicProfileID: 0000000a-000a-000a-000a-000000000398
 publish: External
-pullSecret: '{{lookup('file', '/root/ocp4binaries/pull-secret.txt') }}'
+pullSecret: '{{lookup('file', '/root/pull-secret.txt') }}'
 sshKey: '{{sysctx_admin_ssh_key}}'
 {% if sysctx_certs_path is defined %}
 additionalTrustBundle: |
