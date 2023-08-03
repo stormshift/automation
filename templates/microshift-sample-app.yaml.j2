@@ -39,6 +39,7 @@ spec:
       containers:
         - name: nginx
           image: nginxinc/nginx-unprivileged
+          imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
             runAsNonRoot: true

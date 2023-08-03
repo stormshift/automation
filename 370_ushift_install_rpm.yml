@@ -110,6 +110,7 @@
         state: present
         username: "{{ sysctx_rhsm_user}}"
         password: "{{ sysctx_rhsm_pswd}}"
+        force_register: true
 # Not needed with simple content access activated:
 #        pool_ids: "{{ sysctx_rhsm_poolid_virt}}"
 
