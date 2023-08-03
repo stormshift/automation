@@ -7,7 +7,7 @@
     layer3_ocp_api_ip: "10.32.105.49"
     layer3_ocp_num_worker: "0"
     layer3_ocp_num_control: "3"
-    layer3_ocp_version: "412"
+    layer3_ocp_version: "413"
 
     layer3_ocp_control_cores: "8"
     layer3_ocp_control_memoryMB: "32768"
@@ -19,6 +19,7 @@
       - CSISnapshot
       - Console
       - Storage
+      - marketplace
 
 
     layer3_ocp_nfs_server: "storm3.coe.muc.redhat.com"
