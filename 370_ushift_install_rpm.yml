@@ -232,6 +232,12 @@
         src: templates/microshift-config.yaml.j2
         dest: /etc/microshift/config.yaml
 
+    - name: Provide lvmd config file
+      tags: prep,ushift
+      template:
+        src: templates/microshift-lvmd.yaml.j2
+        dest: /etc/microshift/lvmd.yaml
+
     - name: Firewall add cluster network to trusted zone
       tags: prep, firewall
       firewalld:
@@ -311,7 +317,6 @@
 
     - name: Prepare sample workload
       tags: post,sample
-      when: not (actually_install and deploy_sample_workload)
       template:
         src: templates/microshift-sample-app.yaml.j2
         dest: /root/sample-app.yaml
