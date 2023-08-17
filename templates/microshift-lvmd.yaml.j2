@@ -1,9 +1,10 @@
-socket-name: /run/topolvm/lvmd.sock
+socket-name: /run/lvmd/lvmd.socket
 device-classes:
-  - name: thin
+  - name: default
+    volume-group: rhel
+    default: true
     spare-gb: 0
+    type: thin
     thin-pool:
       name: thin
       overprovision-ratio: 10
-    type: thin
-    volume-group: rhel

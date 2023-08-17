@@ -225,6 +225,13 @@
         owner: root
         group: root
 
+    - name: Create LVM thin pool
+      tags: prep,ushift,storage
+      lvol:
+        vg: rhel
+        lv: thin
+        size: 16G
+        opts: --thin
 
     - name: Provide MicroShift config file
       tags: prep,ushift
@@ -237,6 +244,7 @@
       template:
         src: templates/microshift-lvmd.yaml.j2
         dest: /etc/microshift/lvmd.yaml
+
 
     - name: Firewall add cluster network to trusted zone
       tags: prep, firewall
@@ -304,6 +312,22 @@
         src: /root/.kube/config
         dest: "/root/{{layer3_name}}_install/kubeconfig"
         flat: true
+
+    - name: Deploy VolumeSnapshotClass
+      tags: post,vsc
+      when: actually_install
+      delegate_to: 127.0.0.1
+      kubernetes.core.k8s:
+        kubeconfig: "/root/{{layer3_name}}_install/kubeconfig"
+        validate_certs: false
+        state: present
+        definition: "{{ lookup('template', 'templates/microshift-volumeSnapShotClass.yaml.j2') }}"
+
+    - name: Prepare VolumeSnapshotClass
+      tags: post,vsc
+      template:
+        src: templates/microshift-volumeSnapShotClass.yaml.j2
+        dest: /root/volumeSnapshotClass.yaml
 
     - name: Deploy sample workload
       tags: post,sample
