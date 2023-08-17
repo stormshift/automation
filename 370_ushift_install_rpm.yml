@@ -344,3 +344,9 @@
       template:
         src: templates/microshift-sample-app.yaml.j2
         dest: /root/sample-app.yaml
+
+    - name: Prepare sample volumeSnapshot
+      tags: post,sample
+      template:
+        src: templates/microshift-sample-volumeSnapshot.yaml.j2
+        dest: /root/sample-volumeSnapshot.yaml
