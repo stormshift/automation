@@ -1,4 +1,4 @@
-    layer3_name: "ushift1"
+    layer3_name: "ushift7"
     layer3_vm_cores: "2"
     layer3_vm_memory: "2 GiB"
     layer3_vm_template: "rhel92"
