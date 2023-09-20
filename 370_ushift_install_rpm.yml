@@ -181,7 +181,7 @@
     - name: Enable and start cockpit
       tags: prep
       service:
-        name: cockpit
+        name: cockpit.socket
         enabled: yes
         state: started
 
