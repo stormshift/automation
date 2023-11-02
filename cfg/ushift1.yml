@@ -10,16 +10,16 @@
     deploy_sample_workload: true
 
 # DEV-Preview versions (EC/RC builds):
-    dev_preview_enable: "1"
+    dev_preview_enable: "0"
 # EC Builds:
-#    dev_preview_repo: "https://mirror.openshift.com/pub/openshift-v4/x86_64/microshift/ocp-dev-preview/"
+    dev_preview_repo: "https://mirror.openshift.com/pub/openshift-v4/x86_64/microshift/ocp-dev-preview/"
 # RC Builds:
-    dev_preview_repo: "https://mirror.openshift.com/pub/openshift-v4/x86_64/microshift/ocp/"
+#    dev_preview_repo: "https://mirror.openshift.com/pub/openshift-v4/x86_64/microshift/ocp/"
 #For a list, see: https://mirror.openshift.com/pub/openshift-v4/x86_64/microshift/ocp-dev-preview/
 
-    dev_preview_version: "latest-4.14"
-    dev_preview_dependencies: "4.14-el9-beta"
+    dev_preview_version: "latest-4.15"
+    dev_preview_dependencies: "4.15-el9-beta"
 
     rhsm_repo_list:
-          - rhocp-4.13-for-rhel-9-x86_64-rpms
+          - rhocp-4.14-for-rhel-9-x86_64-rpms
           - fast-datapath-for-rhel-9-x86_64-rpms
