@@ -62,8 +62,8 @@
 # ------------------------------------------------------------------------------
 # Install Certs to Ingress Operator
 # ------------------------------------------------------------------------------
-
-    - name: Create secret with certificates
+# https://docs.openshift.com/container-platform/4.14/security/certificates/replacing-default-ingress-certificate.html
+    - name: Create secret with certificates for ingress
       tags: certs
       when: sysctx_certs_path is defined
       k8s:
@@ -98,7 +98,49 @@
           spec:
             defaultCertificate:
               name: stormshift-router-certs
+# ------------------------------------------------------------------------------
+# Install Certs to API Operator
+# ------------------------------------------------------------------------------
+# Docs for this: https://docs.openshift.com/container-platform/4.14/security/certificates/api-server.html
+    - name: Create secret with certificates for API
+      tags: certs
+      when: sysctx_certs_path is defined
+      k8s:
+        state: present
+        kubeconfig: "{{openshift_install_dir}}/auth/kubeconfig"
+        validate_certs: false
+        definition:
+          apiVersion: v1
+          kind: Secret
+          data:
+            tls.crt: "{{  lookup('file', '{{sysctx_certs_path}}/stormshift_fullchain.crt', rstrip=false) | b64encode }}"
+            tls.key: "{{  lookup('file', '{{sysctx_certs_path}}/stormshift.key', rstrip=false)  | b64encode }}"
+          metadata:
+            name: stormshift-api-server-cert
+            namespace: openshift-config
+          type: kubernetes.io/tls
 
+    - name: Patch cert into apiserver
+      tags: certs
+      when: sysctx_certs_path is defined
+      k8s:
+        state: present
+        kubeconfig: "{{openshift_install_dir}}/auth/kubeconfig"
+        validate_certs: false
+        merge_type: merge
+        definition:
+          apiVersion: config.openshift.io/v1
+          kind: APIServer
+          metadata:
+            name: cluster
+          spec:
+            servingCerts:
+              namedCertificates:
+              - names:
+                - api.{{layer3_ocp_name}}.{{sysctx_dns_domain}}
+                servingCertificate:
+                  name: stormshift-api-server-cert
+            
 # ------------------------------------------------------------------------------
 # Configure authentication
 # ------------------------------------------------------------------------------
