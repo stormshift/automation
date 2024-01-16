@@ -140,7 +140,10 @@
                 - api.{{layer3_ocp_name}}.{{sysctx_dns_domain}}
                 servingCertificate:
                   name: stormshift-api-server-cert
-            
+# TODO: need to remove "certificate-authority-data" from local kubeconfig
+# as it creates the self signed cert which is no longer validate.
+# Should do that at the end of this playbook not to shoot ourself in the failedJobsHistoryLimit
+
 # ------------------------------------------------------------------------------
 # Configure authentication
 # ------------------------------------------------------------------------------
@@ -477,3 +480,16 @@
             schedule: "42 4 * * *"
             successfulJobsHistoryLimit: 3
             suspend: false
+
+# ------------------------------------------------------------------------------
+# Kubeconfig update:
+# ------------------------------------------------------------------------------
+    - name: Remove self signed CA from kubeconfig because we have a nice API server cert which is in the trust root of the system
+      tags: post,certs
+      when: sysctx_certs_path is defined
+      delegate_to: 127.0.0.1
+      ansible.builtin.lineinfile:
+        path: "{{ openshift_install_dir }}/auth/kubeconfig"
+        regexp: 'certificate-authority-data'
+        state: absent
+        backup: true
