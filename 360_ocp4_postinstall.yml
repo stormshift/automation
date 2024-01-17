@@ -140,9 +140,11 @@
                 - api.{{layer3_ocp_name}}.{{sysctx_dns_domain}}
                 servingCertificate:
                   name: stormshift-api-server-cert
-# TODO: need to remove "certificate-authority-data" from local kubeconfig
+# Note: need to remove "certificate-authority-data" from local kubeconfig
 # as it creates the self signed cert which is no longer validate.
-# Should do that at the end of this playbook not to shoot ourself in the failedJobsHistoryLimit
+# This is done at that at the end of this playbook
+# not to shoot ourself in the foot because of a maybe invalid kubeconifg
+
 
 # ------------------------------------------------------------------------------
 # Configure authentication
