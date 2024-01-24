@@ -12,9 +12,9 @@
 # DEV-Preview versions (EC/RC builds):
     dev_preview_enable: "1"
 # EC Builds:
-    dev_preview_repo: "https://mirror.openshift.com/pub/openshift-v4/x86_64/microshift/ocp-dev-preview/"
+#    dev_preview_repo: "https://mirror.openshift.com/pub/openshift-v4/x86_64/microshift/ocp-dev-preview/"
 # RC Builds:
-#    dev_preview_repo: "https://mirror.openshift.com/pub/openshift-v4/x86_64/microshift/ocp/"
+    dev_preview_repo: "https://mirror.openshift.com/pub/openshift-v4/x86_64/microshift/ocp/"
 #For a list, see: https://mirror.openshift.com/pub/openshift-v4/x86_64/microshift/ocp-dev-preview/
 
     dev_preview_version: "latest-4.15"

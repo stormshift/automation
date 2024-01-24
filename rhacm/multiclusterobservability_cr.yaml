@@ -10,9 +10,12 @@ spec:
     enableMetrics: true # EnableMetrics indicates the observability addon push metrics to hub server
     interval: 60 # Interval for the observability addon push metrics to hub server
   enableDownSampling: true
-  retentionResolution1h: 14d # How long to retain samples of 1 hour in bucket
-  retentionResolution5m: 7d
-  retentionResolutionRaw: 3d
+  advanced:
+    retentionConfig:
+      retentionInLocal: 48h
+      retentionResolutionRaw: 30d
+      retentionResolution5m: 180d
+      retentionResolution1h: 365d
   storageConfig: # Specifies the storage to be used by Observability
     metricObjectStorage:
       name: thanos-object-storage
