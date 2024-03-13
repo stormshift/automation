@@ -1,0 +1,35 @@
+kind: AppProject
+apiVersion: argoproj.io/v1alpha1
+metadata:
+  name: default
+  namespace: openshift-gitops
+spec:
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  destinations:
+  - namespace: '*'
+    server: '*'
+  sourceRepos:
+  - '*'
+---
+kind: Application
+apiVersion: argoproj.io/v1alpha1
+metadata:
+  name: guestbook
+  namespace: openshift-gitops
+spec:
+  destination:
+    namespace: guestbook
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    directory:
+      recurse: true
+    path: guestbook
+    repoURL: https://github.com/argoproj/argocd-example-apps
+  syncPolicy:
+    automated: {}
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true

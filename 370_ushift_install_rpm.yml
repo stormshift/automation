@@ -339,14 +339,13 @@
         state: present
         definition: "{{ lookup('template', 'templates/microshift-sample-app.yaml.j2') }}"
 
-    - name: Prepare sample workload
+    - name: Prepare demos
       tags: post,sample
       template:
-        src: templates/microshift-sample-app.yaml.j2
-        dest: /root/sample-app.yaml
-
-    - name: Prepare sample volumeSnapshot
-      tags: post,sample
-      template:
-        src: templates/microshift-sample-volumeSnapshot.yaml.j2
-        dest: /root/sample-volumeSnapshot.yaml
+        src: templates/{{item}}
+        dest: /root/{{item}}
+      loop:
+        - microshift-sample-app.yaml
+        - microshift-olm-demo.yaml
+        - microshift-gitops-demo.yaml
+        - microshift-sample-volumeSnapshot.yaml

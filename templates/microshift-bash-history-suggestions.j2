@@ -1,8 +1,11 @@
 # These commands are handy for MicroShift Demos:
 dnf install microshift
+dnf install microshift-olm
+dnf install microshift-gitops
 systemctl enable --now microshift
 oc config set-context --current --namespace=
 cp -pnf /var/lib/microshift/resources/kubeadmin/kubeconfig ~/.kube/config
 systemctl status microshift
+systemctl restart microshift
 oc get pods -A
 oc get nodes

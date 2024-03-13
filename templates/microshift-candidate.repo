@@ -6,8 +6,8 @@ gpgcheck=0
 skip_if_unavailable=0
 
 
-[microshift-{{dev_preview_version}}-dependencies-{{dev_preview_dependencies}}]
-name=OpenShift Dependencies V4.15-el9-beta
+[microshift-{{dev_preview_version}}-dependencies]
+name=OpenShift Dependencies
 baseurl=https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rpms/{{dev_preview_dependencies}}/
 enabled={{dev_preview_enable}}
 gpgcheck=0

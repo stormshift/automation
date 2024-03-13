@@ -1,13 +1,13 @@
 kind: Namespace
 apiVersion: v1
 metadata:
-  name: storage-example
+  name: demo-app
 ---
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: sample-pvc
-  namespace: storage-example
+  namespace: demo-app
 spec:
   accessModes:
     - ReadWriteOnce
@@ -18,8 +18,8 @@ spec:
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: sample
-  namespace: storage-example
+  name: sample-nginx
+  namespace: demo-app
 spec:
   replicas: 1
   strategy:
@@ -61,7 +61,7 @@ kind: Service
 apiVersion: v1
 metadata:
   name: nginx
-  namespace: storage-example
+  namespace: demo-app
 spec:
   selector:
     app: nginx
@@ -77,8 +77,10 @@ kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
   name: nginx
-  namespace: storage-example
+  namespace: demo-app
 spec:
+  host: "{{layer3_name}}.{{ sysctx_dns_domain }}"
+  path: "/nginx"
   port:
     targetPort: http
   to:

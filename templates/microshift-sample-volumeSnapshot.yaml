@@ -2,7 +2,7 @@ apiVersion: snapshot.storage.k8s.io/v1
 kind: VolumeSnapshot
 metadata:
   name: my-snap1
-  namespace: storage-example
+  namespace: demo-app
 spec:
   volumeSnapshotClassName: topolvm-snapclass
   source:
