@@ -9,3 +9,4 @@ systemctl status microshift
 systemctl restart microshift
 oc get pods -A
 oc get nodes
+curl {{layer3_name}}.{{ sysctx_dns_domain }}/nginx
