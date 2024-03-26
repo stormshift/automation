@@ -1,6 +1,6 @@
     layer3_name: "ushift5"
-    layer3_vm_cores: "2"
-    layer3_vm_memory: "2 GiB"
+    layer3_vm_cores: "4"
+    layer3_vm_memory: "6 GiB"
     layer3_vm_template: "rhel92"
     layer4_update_os_to_latest: false
 
@@ -23,3 +23,4 @@
     rhsm_repo_list:
           - rhocp-4.14-for-rhel-9-x86_64-rpms
           - fast-datapath-for-rhel-9-x86_64-rpms
+          - gitops-1.12-for-rhel-9-x86_64-rpms

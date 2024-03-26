@@ -23,3 +23,4 @@
     rhsm_repo_list:
           - rhocp-4.13-for-rhel-9-x86_64-rpms
           - fast-datapath-for-rhel-9-x86_64-rpms
+          - gitops-1.12-for-rhel-9-x86_64-rpms
