@@ -27,9 +27,12 @@ spec:
     directory:
       recurse: true
     path: app
-    repoURL: https://github.com/siamaksade/openshift-gitops-getting-started
+    repoURL: https://github.com/DanielFroehlich/openshift-gitops-getting-started
   syncPolicy:
-    automated: {}
+    automated:
+      selfHeal: true
+      prune: true
+      allowEmpty: true
     syncOptions:
     - CreateNamespace=true
     - ServerSideApply=true
