@@ -1,0 +1,24 @@
+---
+- name: dump-inventory
+  hosts: all
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Collect vars
+      ansible.builtin.set_fact:
+        value_of_vars_to_dump: "{{ value_of_vars_to_dump|default({}) | combine( {item: lookup('vars', item)} ) }}"
+      with_items:
+        - inventory_hostname
+        - inventory_hostname_short
+        - stormshift_cluster_name
+        - stormshift_global_variable_example
+        - network_ip_address
+
+    - name: Dump vars
+      ansible.builtin.debug:
+        var: value_of_vars_to_dump
+
+    # # - name: Dump ansible vars
+    # #   debug: var=vars
+    # # - name: Dump env variables
+    # #   debug: var=ansible_env

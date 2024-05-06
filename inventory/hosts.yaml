@@ -1,0 +1,29 @@
+---
+
+# Single Node example
+cluster_ocp11:
+  vars:
+    # you can definde vars here, or in group_vars/cluster_ocp1.yaml
+    stormshift_cluster_type: sno
+  hosts:
+    ocp11-control-1:
+      # you can definde vars here, or in host_vars/ocp11-control-1.yaml
+      network_ip_address: 127.0.0.1
+      network_mac_address: dummy
+
+# Multi Node example
+cluster_ocp1:
+  vars:
+    # you can definde vars here, or in group_vars/cluster_ocp1.yaml
+    stormshift_cluster_type: classic
+    stormshift_cluster_name: ocp1
+  hosts:
+    ocp1-control-1:
+      # you can definde vars here, or in host_vars/ocp1-control-1.yaml
+      network_ip_address: 127.0.0.1
+      network_mac_address: dummy
+    ocp1-control-2:
+    ocp1-control-3:
+    ocp1-worker-1:
+    ocp1-worker-2:
+    ocp1-worker-3:
