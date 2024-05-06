@@ -27,14 +27,15 @@ podman push quay.coe.muc.redhat.com/stormshift/automation-execution-environment:
  * Add execution environment to stormshift organisation
  * Add project `stormshift-automation` with this repo to the stormshift organisation as well.
  * Add `stormshift-inventory` inventory
-    * Add source `automation-repo` based on `Source from project`
+    * Add source `automation-repo` based on `Source from project`:
+        * Important - Inventory file: `inventory/hosts.yml`
+        ![aap-inventory-source-repo.png](media-asset/aap-inventory-source-repo.png)
 
 
 ## Ansible inventory structure (folder: `inventory/`)
 
 Documentation:
  * <https://docs.ansible.com/ansible/latest/inventory_guide/intro_inventory.html#organizing-host-and-group-variables>
- *
 
 How do dump the entire inventory locally:
 
@@ -45,12 +46,9 @@ ansible-navigator run dump-inventory.yaml --list-hosts
 How to dump vars of a host locally:
 
 ```
-ansible-navigator run dump-inventory.yaml -l <host>
+ansible-navigator run dump-inventory.yaml --limit common-pattern*
+```
 
-
-
---limit common-pattern*
-
-https://docs.ansible.com/ansible/latest/inventory_guide/intro_patterns.html#common-patterns
+* common-pattern: https://docs.ansible.com/ansible/latest/inventory_guide/intro_patterns.html#common-patterns
 
 
