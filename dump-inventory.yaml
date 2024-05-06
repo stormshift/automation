@@ -13,6 +13,7 @@
         - stormshift_cluster_name
         - stormshift_global_variable_example
         - network_ip_address
+      ignore_errors: true
 
     - name: Dump vars
       ansible.builtin.debug:
