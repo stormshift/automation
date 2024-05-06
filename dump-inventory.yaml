@@ -6,7 +6,7 @@
   tasks:
     - name: Collect vars
       ansible.builtin.set_fact:
-        value_of_vars_to_dump: "{{ value_of_vars_to_dump|default({}) | combine( {item: lookup('vars', item)} ) }}"
+        value_of_vars_to_dump: "{{ value_of_vars_to_dump|default({}) | combine( {item: lookup('vars', item, default='')} ) }}"
       with_items:
         - inventory_hostname
         - inventory_hostname_short
