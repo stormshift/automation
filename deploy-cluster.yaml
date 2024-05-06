@@ -1,0 +1,58 @@
+---
+- name: Pre-deploy cluster
+  hosts: "cluster_{{ stormshift_cluster_name }}[0]"
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Debug information
+      ansible.builtin.debug:
+        msg:
+          - "Run aggainst {{inventory_hostname}}, vars:"
+          - " - stormshift_cluster_type: {{ stormshift_cluster_type}}"
+          - " - stormshift_cluster_name: {{ stormshift_cluster_name}}"
+        verbosity: 1
+
+    - name: "Include pre-deploy-cluster-{{ stormshift_cluster_type }}"
+      include_role:
+        name: cluster
+        tasks_from: "pre-deploy-cluster-{{ stormshift_cluster_type }}"
+
+- name: Deploy cluster
+  hosts: "cluster_{{ stormshift_cluster_name }}"
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Debug information
+      ansible.builtin.debug:
+        msg:
+          - "Run aggainst {{inventory_hostname}}, vars:"
+          - " - stormshift_cluster_type: {{ stormshift_cluster_type}}"
+          - " - stormshift_cluster_name: {{ stormshift_cluster_name}}"
+        verbosity: 1
+
+    - name: "Include deploy-cluster-{{ stormshift_cluster_type }}"
+      include_role:
+        name: cluster
+        tasks_from: "deploy-cluster-{{ stormshift_cluster_type }}"
+
+- name: Post-deploy cluster
+  hosts: "cluster_{{ stormshift_cluster_name }}[0]"
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Debug information
+      ansible.builtin.debug:
+        msg:
+          - "Run aggainst {{inventory_hostname}}, vars:"
+          - " - stormshift_cluster_type: {{ stormshift_cluster_type}}"
+          - " - stormshift_cluster_name: {{ stormshift_cluster_name}}"
+        verbosity: 1
+
+    - name: "Include post-deploy-cluster-{{ stormshift_cluster_type }}"
+      include_role:
+        name: cluster
+        tasks_from: "post-deploy-cluster-{{ stormshift_cluster_type }}"
+

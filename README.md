@@ -2,24 +2,6 @@
 
 Ansible based, of course!
 
-## How to build execution env.
-
-```bash
-
-podman login registry.redhat.io
-export VERSION=$(date +%Y%m%d%H%M)
-
-ansible-builder build \
-    --verbosity 3 \
-    --container-runtime podman \
-    --tag quay.coe.muc.redhat.com/stormshift/automation-execution-environment:$VERSION
-
-podman login quay.coe.muc.redhat.com
-podman push quay.coe.muc.redhat.com/stormshift/automation-execution-environment:$VERSION
-
-
-```
-
 ## Ansible Automation Platform Configuration
 
  * Create `stormshift` organisation
@@ -31,6 +13,26 @@ podman push quay.coe.muc.redhat.com/stormshift/automation-execution-environment:
         * Important - Inventory file: `inventory/hosts.yml`
         ![aap-inventory-source-repo.png](media-asset/aap-inventory-source-repo.png)
 
+## Ansible playbook and role structure/idea
+
+ * One playbook to rule them all:
+    * `deploy-cluster.yaml`
+    * `destroy-cluster.yaml`
+ * Playbook is splitted into 3 steps aka plays:
+    * pre-deploy - runs against hosts[0] - only the first one
+    * deploy instances/vm's - runs against all hosts to create and start all VM's
+    * post-deploy - runs against hosts[0] - only the first one
+ * Main role called cluster
+   * Main tasks files:
+      * `pre-deploy-cluster-{{ cluster_type (sno|classic) }}.yaml`
+      * `deploy-cluster-{{ cluster_type (sno|classic) }}.yaml`
+      * `post-deploy-cluster-{{ cluster_type (sno|classic) }}.yaml`
+
+## Run playbooks local
+
+```bash
+ansible-navigator run ./deploy-cluster.yaml -e @development-example.vars  -v
+```
 
 ## Ansible inventory structure (folder: `inventory/`)
 
@@ -51,4 +53,17 @@ ansible-navigator run dump-inventory.yaml --limit common-pattern*
 
 * common-pattern: https://docs.ansible.com/ansible/latest/inventory_guide/intro_patterns.html#common-patterns
 
+## How to build execution env.
 
+```bash
+podman login registry.redhat.io
+export VERSION=$(date +%Y%m%d%H%M)
+
+ansible-builder build \
+    --verbosity 3 \
+    --container-runtime podman \
+    --tag quay.coe.muc.redhat.com/stormshift/automation-execution-environment:$VERSION
+
+podman login quay.coe.muc.redhat.com
+podman push quay.coe.muc.redhat.com/stormshift/automation-execution-environment:$VERSION
+```

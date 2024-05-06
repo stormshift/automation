@@ -1,0 +1,6 @@
+---
+
+- name: Plain pass
+  ansible.builtin.fail:
+  ignore_errors: true
+
