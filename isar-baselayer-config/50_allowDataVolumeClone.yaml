@@ -1,0 +1,32 @@
+# This adds data volume clone permissions as a Role,
+# and then grants it to all serviceaccouns and users
+# for stormshift templates:
+# See:
+# https://docs.openshift.com/container-platform/4.13/virt/virtual_machines/cloning_vms/virt-enabling-user-permissions-to-clone-datavolumes.html#virt-creating-rbac-cloning-dvs_virt-enabling-user-permissions-to-clone-datavolumes
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cdi.datavolume-cloner.addedBy-dfroehli
+rules:
+- apiGroups: ["cdi.kubevirt.io"]
+  resources: ["datavolumes/source"]
+  verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: allow-all-datavolume-clone
+  namespace: stormshift-vm-templates
+subjects:
+# All Service Accounts in all Namespaces:
+  - kind: Group
+    name: system:serviceaccounts
+    apiGroup: rbac.authorization.k8s.io
+# All authenticated users:
+  - kind: Group
+    name: system:authenticated
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: cdi.datavolume-cloner.addedBy-dfroehli
+  apiGroup: rbac.authorization.k8s.io

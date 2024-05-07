@@ -1,3 +1,4 @@
+# This creates the namespaces:
 kind: Namespace
 apiVersion: v1
 metadata:
