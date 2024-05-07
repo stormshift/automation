@@ -1,0 +1,29 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  annotations:
+    openshift.io/description: "Contains VM templates used by StormShift"
+    openshift.io/display-name: "stormshift-vm-templates"
+    openshift.io/requester: dfroehli@redhat.com
+  name: stormshift-vm-templates
+spec:
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  annotations:
+    openshift.io/description: "Contains VMs running microshift instances"
+    openshift.io/display-name: "stormshift-microshift"
+    openshift.io/requester: dfroehli@redhat.com
+  name: stormshift-microshift
+spec:
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  annotations:
+    openshift.io/description: "Contains VMs running openshift clusters"
+    openshift.io/display-name: "stormshift-openshift"
+    openshift.io/requester: dfroehli@redhat.com
+  name: stormshift-microshift
+spec:
