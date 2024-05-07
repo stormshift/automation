@@ -1,0 +1,28 @@
+apiVersion: k8s.cni.cncf.io/v1
+kind: NetworkAttachmentDefinition
+metadata:
+  annotations:
+    k8s.v1.cni.cncf.io/resourceName: bridge.network.kubevirt.io/coe-bridge
+  name: coe-bridge
+  namespace: stormshift-vm-templates
+spec:
+  config: '{"name":"coe-bridge","type":"cnv-bridge","cniVersion":"0.3.1","bridge":"coe-bridge","macspoofchk":true,"ipam":{}}'
+---
+apiVersion: k8s.cni.cncf.io/v1
+kind: NetworkAttachmentDefinition
+metadata:
+  annotations:
+    k8s.v1.cni.cncf.io/resourceName: bridge.network.kubevirt.io/coe-bridge
+  name: coe-bridge
+  namespace: stormshift-openshift
+spec:
+  config: '{"name":"coe-bridge","type":"cnv-bridge","cniVersion":"0.3.1","bridge":"coe-bridge","macspoofchk":true,"ipam":{}}'
+apiVersion: k8s.cni.cncf.io/v1
+kind: NetworkAttachmentDefinition
+metadata:
+  annotations:
+    k8s.v1.cni.cncf.io/resourceName: bridge.network.kubevirt.io/coe-bridge
+  name: coe-bridge
+  namespace: stormshift-microshift
+spec:
+  config: '{"name":"coe-bridge","type":"cnv-bridge","cniVersion":"0.3.1","bridge":"coe-bridge","macspoofchk":true,"ipam":{}}'
