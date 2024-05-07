@@ -31,7 +31,7 @@ spec:
             name: root-disk
           interfaces:
             - bridge: {}
-#              macAddress: '02:d8:6d:00:00:06'
+              macAddress: '0E:C0:EF:20:69:27'
               model: virtio
               name: net-0
         clock:
