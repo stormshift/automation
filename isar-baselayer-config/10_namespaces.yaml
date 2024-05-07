@@ -25,5 +25,5 @@ metadata:
     openshift.io/description: "Contains VMs running openshift clusters"
     openshift.io/display-name: "stormshift-openshift"
     openshift.io/requester: dfroehli@redhat.com
-  name: stormshift-microshift
+  name: stormshift-openshift
 spec:
