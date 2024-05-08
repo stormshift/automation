@@ -1,0 +1,37 @@
+apiVersion: v1alpha1
+kind: AgentConfig
+metadata:
+  name: {{ stormshift_cluster_name }}
+rendezvousIP: {{ network_ip_address }}
+hosts:
+{% for host in groups['cluster_' + stormshift_cluster_name + '_cp'] %}
+  - hostname: {{ hostvars[host].inventory_hostname }}
+    role: master
+    interfaces:
+      - name: {{ hostvars[host].network_interface | default('eth0') }}
+        macAddress: {{ hostvars[host].network_mac_address }}
+    networkConfig:
+      interfaces:
+        - name: {{ hostvars[host].network_interface | default('eth0') }}
+          type: ethernet
+          state: up
+          mac-address: {{ hostvars[host].network_mac_address }}
+          ipv4:
+            enabled: true
+            address:
+              - ip: {{ hostvars[host].network_ip_address }}
+                prefix-length: {{ network_ip_address_prefix_length }}
+            dhcp: false
+      dns-resolver:
+        config:
+          server:
+{% for dns in network_dns_servers %}
+            - {{ dns }}
+{% endfor %}
+      routes:
+        config:
+          - destination: 0.0.0.0/0
+            next-hop-address: {{ network_default_gw }}
+            next-hop-interface: {{ hostvars[host].network_interface | default('eth0') }}
+            table-id: 254
+{% endfor %}

@@ -1,6 +1,6 @@
 ---
 - name: Pre-deploy cluster
-  hosts: "cluster_{{ stormshift_cluster_name }}[0]"
+  hosts: "cluster_{{ stormshift_cluster_name }}_cp[0]"
   connection: local
   gather_facts: false
 
@@ -13,11 +13,12 @@
           - " - stormshift_cluster_name: {{ stormshift_cluster_name}}"
         verbosity: 1
 
-    - name: "Include pre-deploy-cluster-{{ stormshift_cluster_type }}"
+    - name: "Include pre-deploy-cluster"
       include_role:
         name: cluster
-        tasks_from: "pre-deploy-cluster-{{ stormshift_cluster_type }}"
-
+        tasks_from: "pre-deploy-cluster.yaml"
+      tags:
+        - agent-config
 - name: Deploy cluster
   hosts: "cluster_{{ stormshift_cluster_name }}"
   connection: local
@@ -32,13 +33,13 @@
           - " - stormshift_cluster_name: {{ stormshift_cluster_name}}"
         verbosity: 1
 
-    - name: "Include deploy-cluster-{{ stormshift_cluster_type }}"
+    - name: "Include deploy-cluster"
       include_role:
         name: cluster
-        tasks_from: "deploy-cluster-{{ stormshift_cluster_type }}"
+        tasks_from: "deploy-cluster.yaml"
 
 - name: Post-deploy cluster
-  hosts: "cluster_{{ stormshift_cluster_name }}[0]"
+  hosts: "cluster_{{ stormshift_cluster_name }}_cp[0]"
   connection: local
   gather_facts: false
 
@@ -51,8 +52,8 @@
           - " - stormshift_cluster_name: {{ stormshift_cluster_name}}"
         verbosity: 1
 
-    - name: "Include post-deploy-cluster-{{ stormshift_cluster_type }}"
+    - name: "Include post-deploy-cluster"
       include_role:
         name: cluster
-        tasks_from: "post-deploy-cluster-{{ stormshift_cluster_type }}"
+        tasks_from: "post-deploy-cluster.yaml"
 
