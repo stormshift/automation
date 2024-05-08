@@ -1,63 +1,60 @@
 ---
-
-- name: Create SNO VM
-  tags: vm
-  kubevirt.core.kubevirt_vm:
-    state: present
-    running: true # default
-    wait: true
-    name: "{{ cluster_name }}"
-    namespace: "{{ namespace }}"
-
-    data_volume_templates:
-      - metadata:
-          name: "{{ cluster_name }}-root"
-        spec:
-          storage:
-            accessModes:
-              - ReadWriteMany
-            storageClassName: coe-netapp-nas
-            resources:
-              requests:
-                storage: 120Gi
-          source:
-            blank: {}
-
-    spec:
-      volumes:
-        - name: cdrom
-          persistentVolumeClaim:
-            claimName: "{{ cluster_name }}-agent-iso"
-        - name: root
-          dataVolume:
-            name: "{{ cluster_name }}-root"
-      networks:
-        - name: coe
-          multus:
-            networkName: coe-bridge
-      domain:
-        cpu:
-          cores: 8
-        memory:
-          guest: 16384Mi
-        resources:
-          requests:
-            memory: 16384Mi
-          # https://docs.openshift.com/container-platform/4.14/virt/install/preparing-cluster-for-virt.html#virt-cluster-resource-requirements_preparing-cluster-for-virt
-          limits:
-            memory: 16705Mi
-        devices:
-          disks:
-            - name: root
-              bootOrder: 1
-              disk:
+  - name: Create MicroShift VM
+    tags: vm
+    local_action:
+      module: kubevirt.core.kubevirt_vm
+      state: present
+      running: true # default
+      wait: true
+      name: "{{ inventory_hostname }}"
+      namespace: "{{ ushift_virt_namespace }}"
+      spec:
+        domain:
+          cpu:
+            cores: "{{ vm_cores }}"
+            sockets: 1
+            threads: 1
+          memory:
+            guest: "{{vm_memory}}"
+          resources:
+            requests:
+              memory: "{{vm_memory}}"
+          machine:
+            type: q35
+          devices:
+            disks:
+            - disk:
                 bus: virtio
-            - name: cdrom
-              bootOrder: 2
-              cdrom:
-                bus: sata
-          interfaces:
-            - bridge: {}
-              macAddress: "{{ network_mac_address }}"
-              model: virtio
-              name: coe
+              name: root-disk
+            interfaces:
+              - bridge: {}
+                macAddress: "{{network_mac_address}}"
+                model: virtio
+                name: net-0
+          clock:
+            timezone: Etc/GMT
+        networks:
+          - multus:
+              networkName: coe-bridge
+            name: net-0
+        volumes:
+        - dataVolume:
+            name: "{{ inventory_hostname }}-root"
+          name: root-disk
+
+      data_volume_templates:
+        - metadata:
+            name: "{{ inventory_hostname }}-root"
+          spec:
+            storage:
+              storageClassName: "{{ushift_vm_storageclass}}"
+              accessModes:
+              - ReadWriteMany
+              volumeMode: Block
+              resources:
+                requests:
+                  storage: 64Gi
+            source:
+              pvc:
+                namespace: stormshift-vm-templates
+                name: "stormshift-template-{{vm_template}}-root"

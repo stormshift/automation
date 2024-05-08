@@ -10,4 +10,4 @@ systemctl restart microshift
 microshift version
 oc get pods -A
 oc get nodes
-curl {{layer3_name}}.{{ sysctx_dns_domain }}/nginx
+curl {{ inventory_hostname }}.{{ sysctx_dns_domain }}/nginx

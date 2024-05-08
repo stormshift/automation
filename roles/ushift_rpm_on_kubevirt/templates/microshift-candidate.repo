@@ -1,14 +1,33 @@
-[microshift-{{dev_preview_version}}]
-name=MicroShift {{dev_preview_version}} EarlyAccess EC or RC RPMs
-baseurl={{dev_preview_repo}}{{dev_preview_version}}/el9/os/
-enabled={{dev_preview_enable}}
+#
+# ------ MicroShift Engineering Candidate (EC) repos
+#
+[microshift-{{ushift_preview_version}}-EC]
+name=MicroShift {{ushift_preview_version}} EC RPMs
+baseurl={{ushift_repo_ec}}/{{ushift_preview_version}}/el9/os/
+enabled={%+ if ushift_repo == "EC" %}1{% else %}0{% endif %}
 gpgcheck=0
 skip_if_unavailable=0
 
+[microshift-{{ushift_preview_version}}-EC-dependencies]
+name=MicroShift {{ushift_preview_version}} EC Dependencies RPMs
+baseurl=https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rpms/{{ushift_preview_version_dep_ec}}/
+enabled={%+ if ushift_repo == "EC" %}1{% else %}0{% endif %}
+gpgcheck=0
+skip_if_unavailable=0
 
-[microshift-{{dev_preview_version}}-dependencies]
-name=OpenShift Dependencies
-baseurl=https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rpms/{{dev_preview_dependencies}}/
-enabled={{dev_preview_enable}}
+#
+# ------ MicroShift Release Candidate (RC) repos
+#
+[microshift-{{ushift_preview_version}}-RC]
+name=MicroShift {{ushift_preview_version}} RC RPMs
+baseurl={{ushift_repo_rc}}/{{ushift_preview_version}}/el9/os/
+enabled={%+ if ushift_repo == "RC" %}1{% else %}0{% endif %}
+gpgcheck=0
+skip_if_unavailable=0
+
+[microshift-{{ushift_preview_version}}-RC-dependencies]
+name=MicroShift {{ushift_preview_version}} RC Dependencies RPMs
+baseurl=https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rpms/{{ushift_preview_version_dep_rc}}/
+enabled={%+ if ushift_repo == "RC" %}1{% else %}0{% endif %}
 gpgcheck=0
 skip_if_unavailable=0

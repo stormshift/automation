@@ -1,36 +1,19 @@
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
-- name: Install MicroShift RPM
-  hosts: "{{layer3_name}}"
-  gather_facts: false
-  vars_files:
-    - cfg/secrets_{{sysctx_instance_name}}.yml
-  tasks:
     - name: Set hostname
-      tags: hostname
+      tags: prep,hostname
       hostname:
-        name: "{{layer3_name}}.{{ sysctx_dns_domain }}"
-
-    - name: Register with Red Hat Subscription Manager
-      tags: rhsm,slow
-      redhat_subscription:
-        state: present
-        username: "{{ sysctx_rhsm_user}}"
-        password: "{{ sysctx_rhsm_pswd}}"
-        force_register: true
-# Not needed with simple content access activated:
-#        pool_ids: "{{ sysctx_rhsm_poolid_virt}}"
-
+        name: "{{inventory_hostname}}.{{ sysctx_dns_domain }}"
 
     - name: Disable SWAP since kubernetes can't work with swap enabled (1/2)
-      tags: swap
+      tags: prep,swap
       changed_when: false
       shell: |
         swapoff -a
 
     - name: Disable SWAP in fstab since kubernetes can't work with swap enabled (2/2)
-      tags: swap
+      tags: prep,swap
       replace:
         path: /etc/fstab
         regexp: '^([^#].*?\sswap\s.*)$'
@@ -43,40 +26,26 @@
 #While awaiting a fix this can be bypassed by setting use_devicesfile=0 inside of /etc/lvm/lvm.conf
 
     - name: Workaround Devices files not found by changing LVM Configure
-      tags: lvmcfg
+      tags: prep,lvmcfg
       replace:
         path: /etc/lvm/lvm.conf
         regexp: '# use_devicesfile = 1'
         replace: 'use_devicesfile = 0'
 
     - name: Enable Repos
-      tags: rhsm, repos, slow
-      when: rhsm_repo_list is defined
+      tags: prep,repos, slow
+      when: ushift_repo_list is defined
       rhsm_repository:
         state: enabled
-        name: "{{rhsm_repo_list}}"
+        name: "{{ushift_repo_list}}"
 
     - name: Prepare for candidate Repos
 #      when: dev_preview_version is defined
-      tags: repos
+      tags: prep,repos
       template:
+        trim_blocks: false
         src: templates/microshift-candidate.repo
         dest: /etc/yum.repos.d/microshift-candidate.repo
-
-    - name: Update baseos
-      tags: upd, slow
-      when: layer4_update_os_to_latest
-      yum:
-        name: '*'
-        state: latest
-      register: osupdate
-
-    - name: Reboot after os update
-      tags: upd,slow
-      reboot:
-      when: layer4_update_os_to_latest and osupdate is changed
-
-# TODO: Check/Verify that LVM VG "RHEL" existis and has >1G free capacity
 
     - name: Install oc client and cockpit (not needed, demo purposes only)
       tags: prep,rpm
@@ -87,7 +56,7 @@
         state: present
 
     - name: Enable and start cockpit
-      tags: prep
+      tags: prep,cockpit
       service:
         name: cockpit.socket
         enabled: yes
@@ -98,7 +67,7 @@
       blockinfile:
         path: /root/.bash_history
         create: true
-        marker: "# {mark} ANSIBLE MANAGED BLOCK {{layer3_name}}"
+        marker: "# {mark} ANSIBLE MANAGED BLOCK {{inventory_hostname}}"
         block: "{{ lookup('template', 'templates/microshift-bash-history-suggestions.j2') }}"
 
 
@@ -109,7 +78,7 @@
         state: directory
 
     - name: Provide pull secrets
-      tags: prep,crio
+      tags: prep,secrets
       copy:
         content: "{{sysctx_pull_secret}}"
         dest: /etc/crio/openshift-pull-secret
@@ -118,7 +87,7 @@
         group: root
 
     - name: Create kube dir
-      tags: prep,ushift
+      tags: prep,cfg
       file:
         path: /root/.kube
         state: directory
@@ -126,7 +95,7 @@
         group: root
 
     - name: Create ushift dir
-      tags: prep,ushift
+      tags: prep,cfg
       file:
         path: /etc/microshift
         state: directory
@@ -134,7 +103,7 @@
         group: root
 
     - name: Create LVM thin pool
-      tags: prep,ushift,storage
+      tags: prep,cfg
       lvol:
         vg: rhel
         lv: thin
@@ -142,13 +111,13 @@
         opts: --thin
 
     - name: Provide MicroShift config file
-      tags: prep,ushift
+      tags: prep,cfg
       template:
         src: templates/microshift-config.yaml.j2
         dest: /etc/microshift/config.yaml
 
     - name: Provide lvmd config file
-      tags: prep,ushift
+      tags: prep,cfg
       template:
         src: templates/microshift-lvmd.yaml.j2
         dest: /etc/microshift/lvmd.yaml
@@ -189,7 +158,7 @@
         state: enabled
 
     - name: Install MicroShift
-      when: actually_install
+      when: ushift_actually_install
       tags: install, slow
       yum:
         name: 'microshift'
@@ -197,7 +166,7 @@
       register: install
 
     - name: Enable and start MicroShift
-      when: actually_install
+      when: ushift_actually_install
       tags: install, slow
       service:
         name: microshift
@@ -205,47 +174,56 @@
         state: started
 
     - name: Copy kubeconfig to root user on VM
-      when: actually_install
-      tags: install, post
+      when: ushift_actually_install
+      tags: post, kubecfg
       copy:
-        src: /var/lib/microshift/resources/kubeadmin/{{layer3_name}}.{{ sysctx_dns_domain }}/kubeconfig
+        src: /var/lib/microshift/resources/kubeadmin/{{inventory_hostname}}.{{ sysctx_dns_domain }}/kubeconfig
         remote_src: true
         dest: /root/.kube/config
         mode: 600
 
-    - name: Fetch kubeconfig from VM to deploy node
-      when: actually_install
-      tags: install, post
+    - name: Create temporary local kubeconfig file
+      when: ushift_actually_install
+      tags: post, kubecfg
+      local_action:
+        module: ansible.builtin.tempfile
+        state: file
+        suffix: temp
+      register: temp_kubeconfig
+
+    - name: Fetch kubeconfig from remote
+      when: ushift_actually_install
+      tags: post, kubecfg
       fetch:
         src: /root/.kube/config
-        dest: "/root/{{layer3_name}}_install/kubeconfig"
+        dest: "{{temp_kubeconfig.path}}"
         flat: true
 
     - name: Deploy VolumeSnapshotClass
       tags: post,vsc
-      when: actually_install
-      delegate_to: 127.0.0.1
-      kubernetes.core.k8s:
-        kubeconfig: "/root/{{layer3_name}}_install/kubeconfig"
+      when: ushift_actually_install
+      local_action:
+        module: kubernetes.core.k8s
+        kubeconfig: "{{temp_kubeconfig.path}}"
         validate_certs: false
         state: present
-        definition: "{{ lookup('template', 'templates/microshift-volumeSnapShotClass.yaml.j2') }}"
+        definition: "{{ lookup('template', 'templates/microshift-volumeSnapShotClass.yaml') }}"
 
     - name: Prepare VolumeSnapshotClass
       tags: post,vsc
       template:
-        src: templates/microshift-volumeSnapShotClass.yaml.j2
+        src: templates/microshift-volumeSnapShotClass.yaml
         dest: /root/volumeSnapshotClass.yaml
 
     - name: Deploy sample workload
       tags: post,sample
-      when: actually_install and deploy_sample_workload
-      delegate_to: 127.0.0.1
-      kubernetes.core.k8s:
-        kubeconfig: "/root/{{layer3_name}}_install/kubeconfig"
+      when: ushift_actually_install and ushift_deploy_sample_workload
+      local_action:
+        module: kubernetes.core.k8s
+        kubeconfig: "{{temp_kubeconfig.path}}"
         validate_certs: false
         state: present
-        definition: "{{ lookup('template', 'templates/microshift-sample-app.yaml.j2') }}"
+        definition: "{{ lookup('template', 'templates/microshift-sample-app.yaml') }}"
 
     - name: Prepare demos
       tags: post,sample
@@ -257,3 +235,10 @@
         - microshift-olm-demo.yaml
         - microshift-gitops-demo.yaml
         - microshift-sample-volumeSnapshot.yaml
+
+    - name: Remove temporary local kubeconfig file
+      when: temp_kubeconfig.path is defined
+      tags: post, kubecfg
+      ansible.builtin.file:
+        path: "{{ temp_kubeconfig.path }}"
+        state: absent

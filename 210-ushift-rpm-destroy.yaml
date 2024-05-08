@@ -1,15 +1,12 @@
 ---
-# If you like to play: ./ansible/create.yml --skip-tags public_dns,letsencrypt
-- hosts: "{{ openshift_environment_name }}"
-  connection: local
-  # gather_facts true because we need the public ip address
+# This playbook destroys an ushift rpm VM on OCPVirt
+# Example to run manually:
+# ansible-playbook -e ushift_env=ushift10 210-ushift-rpm-destroy.yaml
+
+- hosts: "{{ ushift_env }}"
   gather_facts: false
-  # vars_files:
-  #   - ../cluster.yml
-
   tasks:
-
-    - name: Destroy cluster
+    - name: Destroy MicroShift
       import_role:
-        name: sno_on_kubevirt
-        tasks_from: destroy.yml
+        name: ushift_rpm_on_kubevirt
+        tasks_from: 200-destroy.yml

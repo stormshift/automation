@@ -1,5 +1,5 @@
 dns:
-  baseDomain: {{layer3_name}}.{{ sysctx_dns_domain }}
+  baseDomain: {{ inventory_hostname }}.{{ sysctx_dns_domain }}
 network:
   clusterNetwork:
     - 10.42.0.0/16
