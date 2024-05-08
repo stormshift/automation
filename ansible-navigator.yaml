@@ -3,6 +3,7 @@ ansible-navigator:
   execution-environment:
     environment-variables:
       pass:
+        - IPA_HOST
         - IPA_PASS
         - IPA_USER
         - K8S_AUTH_API_KEY
@@ -15,11 +16,10 @@ ansible-navigator:
         - TOWER_HOST
         - TOWER_PASSWORD
         - TOWER_VERIFY_SSL
-    image: quay.coe.muc.redhat.com/stormshift/automation-execution-environment:202405061615
+    image: quay.coe.muc.redhat.com/stormshift/automation-execution-environment:202405081739
   logging:
     level: debug
   mode: stdout
   playbook-artifact:
     enable: true
     save-as: /tmp/stormshift-automation-{playbook_name}-artifact-{time_stamp}.json
-

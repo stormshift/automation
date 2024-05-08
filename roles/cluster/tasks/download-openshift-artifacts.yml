@@ -1,0 +1,55 @@
+---
+
+- name: Build OpenShift download urls
+  ansible.builtin.set_fact:
+    tmp_openshift_install_download_url: "{{ openshift_location }}/openshift-install-linux-{{ openshift_version }}.tar.gz"
+    tmp_openshift_client_download_url: "{{ openshift_location }}/openshift-client-linux-{{ openshift_version }}.tar.gz"
+
+- name: Init check_urls
+  ansible.builtin.set_fact:
+    check_urls:
+      - "{{ tmp_openshift_install_download_url }}"
+      - "{{ tmp_openshift_client_download_url }}"
+
+- name: Filter check_urls
+  ansible.builtin.set_fact:
+    check_urls: "{{ check_urls|select|list }}"
+
+- name: Check download urls
+  ansible.builtin.uri:
+    method: HEAD
+    url: "{{ item }}"
+    status_code:
+      - 200
+      # Forbidden because of github forwards to aws s3.
+      # HEAD request to S3 is forbidden
+      - 403
+  with_items: "{{ check_urls }}"
+
+- name: Create OpenShift artifacts directory
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: u+rwx,g+rx,o+rx
+  with_items:
+    - "{{ openshift_install_dest }}"
+
+- name: Download OpenShift installer
+  ansible.builtin.unarchive:
+    src: "{{ tmp_openshift_install_download_url }}"
+    dest: "{{ openshift_install_dest }}/"
+    remote_src: yes
+    mode: u+rwx,g+rx,o+rx
+    exclude:
+      - 'README.md'
+    creates: "{{ openshift_install_dest }}/openshift-install"
+
+- name: Download OpenShift client
+  ansible.builtin.unarchive:
+    src: "{{ tmp_openshift_client_download_url }}"
+    dest: "{{ openshift_install_dest }}/"
+    remote_src: yes
+    mode: u+rwx,g+rx,o+rx
+    exclude:
+      - 'README.md'
+    creates: "{{ openshift_install_dest }}/oc"

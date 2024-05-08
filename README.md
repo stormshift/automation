@@ -32,7 +32,17 @@ Ansible based, of course!
 ## Run playbooks local
 
 ```bash
-ansible-navigator run ./deploy-cluster.yaml -e @development-example.vars  -v
+# add all informations
+cp -v development-example.vars development-example.vars-private
+vim development-example.vars-private
+cp -v development-example.env development-example.env-private
+vim development-example.env-private
+
+# Load env variables
+source development-example.env-private
+
+# Run it
+ansible-navigator run ./deploy-cluster.yaml -e @development-example.vars-private -v
 ```
 
 ## Ansible inventory structure (folder: `inventory/`)
