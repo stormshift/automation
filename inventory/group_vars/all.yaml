@@ -1,4 +1,16 @@
 ---
+# Variables shared by all ennvironment:
+# ---------------------------
+# Systemcontext stuff, i.e. external components / facts:
+sysctx_dns_domain: "stormshift.coe.muc.redhat.com"
+sysctx_network_dhcp: "10.32.96.1"
+sysctx_network_dns: "10.32.96.1"
+sysctx_network_gateway: "10.32.111.254"
+sysctx_network: "10.32.96.0"
+sysctx_network_cidr: "20"
 
-stormshift_global_variable_example: foo
-
+# ---------------------------
+# Microshift related common vars:
+ushift_virt_namespace: stormshift-microshift
+ushift_repo_ec: "https://mirror.openshift.com/pub/openshift-v4/x86_64/microshift/ocp-dev-preview/"
+ushift_repo_rc: "https://mirror.openshift.com/pub/openshift-v4/x86_64/microshift/ocp/"

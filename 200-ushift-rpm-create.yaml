@@ -1,0 +1,23 @@
+---
+# If you like to play: ./ansible/create.yml --skip-tags public_dns,letsencrypt
+- hosts: "{{ ushift_env }}"
+  connection: local
+  # gather_facts true because we need the public ip address
+  gather_facts: false
+  # vars_files:
+  #   - ../cluster.yml
+
+  tasks:
+    - name: Debug information
+      ansible.builtin.debug:
+        msg:
+          - "Run aggainst {{inventory_hostname}}, vars:"
+          - " - ushift_virt_namespace: {{ ushift_virt_namespace}}"
+          - " - ushift_virt_namespace: {{ network_ip_address}}"
+          - " - inventory_hostname: {{inventory_hostname}}"
+        verbosity: 0
+
+    - name: Create cluster
+      import_role:
+        name: ushift_rpm_on_kubevirt
+        tasks_from: 100-create.yml

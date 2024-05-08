@@ -1,0 +1,15 @@
+---
+
+
+# https://github.com/kubevirt/containerized-data-importer/blob/main/doc/upload.md
+- name: Remove DataVolume agnet-iso
+  # register: my_var_with_return_value
+  kubernetes.core.k8s:
+    state: absent
+    definition:
+      apiVersion: cdi.kubevirt.io/v1beta1
+      kind: DataVolume
+      metadata:
+        name: "{{ cluster_name }}-agent-iso"
+        namespace: "{{ namespace }}"
+      spec: {}

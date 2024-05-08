@@ -1,0 +1,18 @@
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataVolume
+metadata:
+  name: dfroehli-rhel92-test
+spec:
+  storage:
+#    storageClassName: ocs-storagecluster-ceph-rbd-virtualization
+    storageClassName: coe-netapp-san
+    accessModes:
+    - ReadWriteMany
+    volumeMode: Block
+    resources:
+      requests:
+        storage: 64Gi
+  source:
+    pvc:
+      namespace: openshift-mtv
+      name: "rhel92-root"

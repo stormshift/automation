@@ -1,0 +1,15 @@
+---
+# If you like to play: ./ansible/create.yml --skip-tags public_dns,letsencrypt
+- hosts: "{{ openshift_environment_name }}"
+  connection: local
+  # gather_facts true because we need the public ip address
+  gather_facts: false
+  # vars_files:
+  #   - ../cluster.yml
+
+  tasks:
+
+    - name: Destroy cluster
+      import_role:
+        name: sno_on_kubevirt
+        tasks_from: destroy.yml

@@ -1,0 +1,61 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  labels:
+    kubevirt.io/vm: dfroehli-rhel94-clone1
+  name: dfroehli-rhel94-clone1
+spec:
+  runStrategy: Manual
+  template:
+    metadata:
+      labels:
+        kubevirt.io/vm: dfroehli-rhel94-clone1
+    spec:
+      domain:
+        cpu:
+          cores: 4
+          sockets: 1
+          threads: 1
+        memory:
+          guest: 4Gi
+        resources:
+          requests:
+            memory: 4Gi
+        machine:
+          type: q35
+        devices:
+          disks:
+          - disk:
+              bus: virtio
+            name: root-disk
+          interfaces:
+            - bridge: {}
+#              macAddress: '02:d8:6d:00:00:06'
+              model: virtio
+              name: net-0
+        clock:
+          timezone: Etc/GMT
+      networks:
+        - multus:
+            networkName: coe-bridge
+          name: net-0
+      volumes:
+      - dataVolume:
+          name: dfroehli-rhel94-clone1-root
+        name: root-disk
+  dataVolumeTemplates:
+  - metadata:
+      name: dfroehli-rhel94-clone1-root
+    spec:
+      storage:
+#        storageClassName: ocs-storagecluster-ceph-rbd-virtualization
+        accessModes:
+        - ReadWriteMany
+        volumeMode: Block
+        resources:
+          requests:
+            storage: 64Gi
+      source:
+        pvc:
+          namespace: stormshift-vm-templates
+          name: "stormshift-template-rhel94-root"

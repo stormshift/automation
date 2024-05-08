@@ -1,0 +1,14 @@
+kind: VirtualMachineClone
+apiVersion: clone.kubevirt.io/v1alpha1
+metadata:
+  name: dfroehli-rhel94-clone1
+spec:
+  source:
+    apiGroup: kubevirt.io
+    kind: VirtualMachine
+    name: dfroehli-rhel94
+  target:
+    apiGroup: kubevirt.io
+    kind: VirtualMachine
+    name: dfroehli-rhel94-clone1
+    

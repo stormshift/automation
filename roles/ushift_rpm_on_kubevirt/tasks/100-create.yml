@@ -1,0 +1,29 @@
+---
+
+- name: Configure DHCP
+  ansible.builtin.include_tasks: 110-create-dhcp.yml
+  tags: dhcp
+
+- name: Configure DNS
+  ansible.builtin.include_tasks: 120-create-dns.yml
+  tags: dns
+
+- name: Create VM
+  ansible.builtin.include_tasks: 130-create-vm.yml
+  tags: vm
+
+- name: Install MicroShift
+  ansible.builtin.include_tasks: 150-ushift-install-rpm.yml
+  tags: ushift
+
+- name: Update AAP documentation
+  ansible.builtin.include_tasks: create-aap.yml
+
+
+
+- name: Import in ACM
+  ansible.builtin.include_tasks: import-in-acm.yml
+  tags: acm
+
+
+# - name: Upload agent-iso

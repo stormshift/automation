@@ -1,6 +1,7 @@
 # All about StormShift Automation
 
 Ansible based, of course!
+(and a little bit of gitops)
 
 ## Ansible Automation Platform Configuration
 

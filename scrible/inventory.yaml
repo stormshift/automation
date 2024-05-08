@@ -1,0 +1,72 @@
+---
+all:
+  vars:
+
+  children:
+#
+# --- MicroShift clusters  ------
+#
+    microshift:
+      vars:
+
+      children:
+        ushift1:
+          vars:
+            stormshift_owner_email: "brad.weidenbrenner@redhat.com"
+            stormshift_owner_purpose: "dedicated long term ACM Demo"
+            ushift_version: 4.14
+            ushift_use_EC: false
+            ushift_use_RC: false
+            ushift_actually_install: true
+            ushift_deploy_sample_workload: false
+            vm_cores: "2"
+            vm_memory: "16 GiB"
+            vm_template: "rhel92"
+            rhsm_repo_list:
+                  - rhocp-4.14-for-rhel-9-x86_64-rpms
+                  - fast-datapath-for-rhel-9-x86_64-rpms
+                  - gitops-1.12-for-rhel-9-x86_64-rpms
+          hosts:
+            ushift1:
+              network_ip_address: 10.32.99.1
+              network_mac_address: 0E:C0:EF:20:63:01
+              network_uefi_boot_url: "..."
+
+#
+# --- Openshift clusters  ------
+#
+    openshift:
+      vars:
+          virt_namespace: stormshift-ocp-vms
+      children:
+        stormshift-ocp1:
+          vars:
+            stormshift_owner_email: "dfroehli@redhat.com"
+            stormshift_owner_purpose: "dedicated long term"
+            ocp_isSNO: false
+            ocp_num_control: "3"
+            ocp_num_worker: "0"
+            ocp_version: 4.14.10
+            ocp_control_cores: "4"
+            ocp_control_memoryMB: "24576"
+            ocp_compute_cores: "4"
+            ocp_compute_memoryMB: "24576"
+            ocp_configure_COE_SSO: true
+            ocp_configure_COE_netapp: true
+            ocp_configure_COE_ACM_client: false
+            ocp_configure_COE_QuayMirror: false
+            ocp_configure_LVMS: false
+            ocp_cluster_name: ocp1
+            ocp_ip_api: "10.32.105.64"
+            ocp_ip_ingress: "10.32.105.65"
+            ocp_ip_rendevous: "10.32.105.66"
+          hosts:
+            opc1-master0:
+              network_ip_address: 10.32.105.66
+              network_mac_address: 0E:C0:EF:20:69:42
+            opc1-master1:
+              network_ip_address: 10.32.105.67
+              network_mac_address: 0E:C0:EF:20:69:43
+            opc1-master2:
+              network_ip_address: 10.32.105.68
+              network_mac_address: 0E:C0:EF:20:69:44

@@ -1,0 +1,17 @@
+---
+
+  - name: Configure DNS
+    community.general.ipa_dnsrecord:
+      zone_name: "{{ base_domain }}"
+      record_name: "{{ item }}.{{ cluster_name }}"
+      record_type: A
+      record_value: "{{ network_ip_address }}"
+      state: present
+      ipa_host: "{{ ipa_host }}"
+      ipa_user: "{{ lookup('ansible.builtin.env', 'IPA_USER' ) }}"
+      ipa_pass: "{{ lookup('ansible.builtin.env', 'IPA_PASS' ) }}"
+      validate_certs: false
+    with_items:
+      - api
+      - api-int
+      - '*.apps'

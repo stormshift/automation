@@ -1,0 +1,9 @@
+---
+
+- name: Destroy SNO VM
+  tags: vm
+  kubevirt.core.kubevirt_vm:
+    state: absent
+    wait: true
+    name: "{{ cluster_name }}"
+    namespace: "{{ namespace }}"
