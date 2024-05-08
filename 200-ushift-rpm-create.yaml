@@ -1,5 +1,9 @@
 ---
-# If you like to play: ./ansible/create.yml --skip-tags public_dns,letsencrypt
+# This playbook deploys an ushift rpm VM on OCPVirt
+# It uses a well prepared template VM as base.
+# See the inventory/group_vars/cluster_ushiftXXX.yaml for the config
+# Example to run manually:
+# ansible-playbook -e ushift_env=ushift10 200-ushift-rpm-create.yaml
 - hosts: "{{ ushift_env }}"
   connection: local
   # gather_facts true because we need the public ip address
