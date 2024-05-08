@@ -6,7 +6,7 @@ metadata:
   name: stormshift-template-rhel94
   namespace: stormshift-vm-templates
 spec:
-  runStrategy: Manual
+  runStrategy: Halted
   template:
     metadata:
       labels:
