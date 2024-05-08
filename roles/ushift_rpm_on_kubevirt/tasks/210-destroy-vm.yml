@@ -1,0 +1,10 @@
+---
+
+- name: Remove MicroShift VM
+  tags: vm
+  local_action:
+    module: kubevirt.core.kubevirt_vm
+    state: absent
+    wait: true
+    name: "{{ inventory_hostname }}"
+    namespace: "{{ ushift_virt_namespace }}"
