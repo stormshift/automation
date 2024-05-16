@@ -76,11 +76,25 @@ spec:
 kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
-  name: nginx
+  name: nginx-path
   namespace: demo-app
 spec:
   host: "{{inventory_hostname}}.{{ sysctx_dns_domain }}"
   path: "/nginx"
+  port:
+    targetPort: http
+  to:
+    kind: Service
+    name: nginx
+    weight: 100
+  wildcardPolicy: None
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: nginx-wild
+  namespace: demo-app
+spec:
   port:
     targetPort: http
   to:
