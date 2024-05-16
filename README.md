@@ -1,7 +1,12 @@
 # All about StormShift Automation
 
 Ansible based, of course!
-(and a little bit of gitops)
+(and a litle bit of gitops)
+
+## RBAC (**DRAFT**)
+
+ * Group of `stormshift-admins` becomes admin privileges on all projects. (Group is managed at via GitOps )
+ * Last one who deployed a cluster get project admin privileges.
 
 ## Ansible Automation Platform Configuration
 
