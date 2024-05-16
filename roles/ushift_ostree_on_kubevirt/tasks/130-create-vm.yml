@@ -1,0 +1,71 @@
+---
+  - name: Create MicroShift VM
+    tags: vm
+    local_action:
+      module: kubevirt.core.kubevirt_vm
+      state: present
+      running: true # default
+      wait: true
+      name: "{{ inventory_hostname }}"
+      namespace: "{{ ushift_virt_namespace }}"
+      spec:
+        domain:
+          cpu:
+            cores: "{{ vm_cores }}"
+            sockets: 1
+            threads: 1
+          memory:
+            guest: "{{vm_memory}}"
+          resources:
+            requests:
+              memory: "{{vm_memory}}"
+          features:
+            acpi: {}
+            smm:
+              enabled: true
+          firmware:
+            bootloader:
+              efi:
+                secureBoot: false
+#            kernelBoot:
+#              kernelArgs: --- test me later ---
+          machine:
+            type: q35
+          devices:
+            disks:
+            - disk:
+                bus: virtio
+              name: root-disk
+              bootOrder: 1
+              
+            interfaces:
+              - bridge: {}
+                macAddress: "{{network_mac_address}}"
+                model: virtio
+                name: net-0
+                bootOrder: 2
+          clock:
+            timezone: Etc/GMT
+        networks:
+          - multus:
+              networkName: coe-bridge
+            name: net-0
+        volumes:
+        - dataVolume:
+            name: "{{ inventory_hostname }}-root"
+          name: root-disk
+
+      data_volume_templates:
+        - metadata:
+            name: "{{ inventory_hostname }}-root"
+          spec:
+            storage:
+              storageClassName: "{{ushift_vm_storageclass}}"
+              accessModes:
+              - ReadWriteMany
+              volumeMode: Block
+              resources:
+                requests:
+                  storage: 16Gi
+            source:
+              blank: {}

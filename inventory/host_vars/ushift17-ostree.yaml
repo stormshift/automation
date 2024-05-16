@@ -1,0 +1,4 @@
+---
+ansible_host: "{{ inventory_hostname }}.{{ sysctx_dns_domain }}"
+network_ip_address: 10.32.99.17
+network_mac_address: 0E:C0:EF:20:63:11

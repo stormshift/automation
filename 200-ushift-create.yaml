@@ -4,7 +4,7 @@
 # See the inventory/group_vars/cluster_ushiftXXX.yaml for the config
 # Example to run manually:
 # ansible-playbook -e ushift_env=ushift10 200-ushift-rpm-create.yaml
-- hosts: "{{ ushift_env }}"
+- hosts: "cluster_{{ ushift_env }}"
   gather_facts: false
   tasks:
     - name: Debug information
@@ -21,4 +21,10 @@
       when: ushift_install_type == "rpm"
       import_role:
         name: ushift_rpm_on_kubevirt
+        tasks_from: 100-create.yml
+
+    - name: Create MicroShift ostree
+      when: ushift_install_type == "ostree"
+      import_role:
+        name: ushift_ostree_on_kubevirt
         tasks_from: 100-create.yml

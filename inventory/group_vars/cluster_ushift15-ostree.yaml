@@ -1,0 +1,6 @@
+stormshift_owner_email: "dfroehli@redhat.com"
+stormshift_owner_purpose: "ostree"
+vm_cores: "2"
+vm_memory: "8Gi"
+# install_type - one of: rpm, ostree, imageMode
+ushift_install_type: ostree

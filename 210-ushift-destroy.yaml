@@ -3,7 +3,7 @@
 # Example to run manually:
 # ansible-playbook -e ushift_env=ushift10 210-ushift-rpm-destroy.yaml
 
-- hosts: "{{ ushift_env }}"
+- hosts: "cluster_{{ ushift_env }}"
   gather_facts: false
   tasks:
     - name: Destroy MicroShift
