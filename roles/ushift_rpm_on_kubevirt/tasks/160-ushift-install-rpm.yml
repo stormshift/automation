@@ -1,0 +1,18 @@
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+    - name: Install MicroShift
+      when: ushift_actually_install
+      tags: install, slow
+      yum:
+        name: 'microshift'
+        state: present
+      register: install
+
+    - name: Enable and start MicroShift
+      when: ushift_actually_install
+      tags: install, slow
+      service:
+        name: microshift
+        enabled: yes
+        state: started

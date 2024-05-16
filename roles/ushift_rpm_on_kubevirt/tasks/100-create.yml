@@ -12,6 +12,14 @@
   ansible.builtin.include_tasks: 130-create-vm.yml
   tags: vm
 
+- name: Preinstall MicroShift
+  ansible.builtin.include_tasks: 150-ushift-preinstall-rpm.yml
+  tags: pre
+
 - name: Install MicroShift
-  ansible.builtin.include_tasks: 150-ushift-install-rpm.yml
-  tags: ushift
+  ansible.builtin.include_tasks: 160-ushift-install-rpm.yml
+  tags: install
+
+- name: Postinstall MicroShift
+  ansible.builtin.include_tasks: 170-ushift-postinstall-rpm.yml
+  tags: post

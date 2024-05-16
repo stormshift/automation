@@ -18,6 +18,7 @@
         verbosity: 1
 
     - name: Create MicroShift RPM
+      when: ushift_install_type == "rpm"
       import_role:
         name: ushift_rpm_on_kubevirt
         tasks_from: 100-create.yml

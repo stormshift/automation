@@ -8,8 +8,8 @@ ushift_preview_version_dep_rc: 4.15-el9-beta
 ushift_repo: standard
 ushift_actually_install: true
 ushift_deploy_sample_workload: true
-vm_cores: "2"
-vm_memory: "2Gi"
+vm_cores: "4"
+vm_memory: "8Gi"
 vm_template: "rhel92"
 network_ip_address: 10.32.99.10
 network_mac_address: 0E:C0:EF:20:63:0A
@@ -17,3 +17,5 @@ ushift_repo_list:
       - rhocp-4.14-for-rhel-9-x86_64-rpms
       - fast-datapath-for-rhel-9-x86_64-rpms
       - gitops-1.12-for-rhel-9-x86_64-rpms
+# install_type - one of: rpm, ostree, imageMode
+ushift_install_type: rpm
