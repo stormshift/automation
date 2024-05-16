@@ -1,20 +1,20 @@
 apiVersion: v1
-baseDomain: {{ stormshift_base_domain }}
+baseDomain: {{ cluster_base_domain }}
 compute:
   - architecture: amd64
     hyperthreading: Enabled
     name: worker
     platform: {}
-    replicas: {{ groups['cluster_' + stormshift_cluster_name + '_workers'] | length | default(0) }}
+    replicas: {{ groups['cluster_' + cluster_name + '_workers'] | length | default(0) }}
 controlPlane:
   architecture: amd64
   hyperthreading: Enabled
   name: master
   platform: {}
-  replicas: {{ groups['cluster_' + stormshift_cluster_name + '_cp'] | length }}
+  replicas: {{ groups['cluster_' + cluster_name + '_cp'] | length }}
 metadata:
   creationTimestamp: null
-  name: {{ stormshift_cluster_name }}
+  name: {{ cluster_name }}
 networking:
   clusterNetwork:
     - cidr: 10.128.0.0/14
@@ -24,8 +24,17 @@ networking:
   networkType: OVNKubernetes
   serviceNetwork:
     - 172.30.0.0/16
+{% if cluster_type == "sno" %}
+platform:
+  baremetal:
+    apiVIPs:
+      - "{{ cluster_api_vip }}"
+    ingressVIPs:
+      - "{{ cluster_ingress_vip }}"
+{% else %}
 platform:
   none: {}
+{% endif %}
 publish: External
 pullSecret:
   '{{ image_pull_secret }}'

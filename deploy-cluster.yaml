@@ -1,6 +1,6 @@
 ---
 - name: Pre-deploy cluster
-  hosts: "cluster_{{ stormshift_cluster_name }}_cp[0]"
+  hosts: "cluster_{{ cluster_name  }}_cp[0]"
   connection: local
   gather_facts: false
 
@@ -9,8 +9,8 @@
       ansible.builtin.debug:
         msg:
           - "Run aggainst {{inventory_hostname}}, vars:"
-          - " - stormshift_cluster_type: {{ stormshift_cluster_type}}"
-          - " - stormshift_cluster_name: {{ stormshift_cluster_name}}"
+          - " - cluster_type : {{ cluster_type }}"
+          - " - cluster_name : {{ cluster_name }}"
         verbosity: 1
 
     - name: "Include pre-deploy-cluster"
@@ -20,7 +20,7 @@
       tags:
         - agent-config
 - name: Deploy cluster
-  hosts: "cluster_{{ stormshift_cluster_name }}"
+  hosts: "cluster_{{ cluster_name  }}"
   connection: local
   gather_facts: false
 
@@ -28,9 +28,9 @@
     - name: Debug information
       ansible.builtin.debug:
         msg:
-          - "Run aggainst {{inventory_hostname}}, vars:"
-          - " - stormshift_cluster_type: {{ stormshift_cluster_type}}"
-          - " - stormshift_cluster_name: {{ stormshift_cluster_name}}"
+          - "Run aggainst {{ inventory_hostname }}, vars:"
+          - " - cluster_type : {{ cluster_type }}"
+          - " - cluster_name : {{ cluster_name }}"
         verbosity: 1
 
     - name: "Include deploy-cluster"
@@ -39,7 +39,7 @@
         tasks_from: "deploy-cluster.yaml"
 
 - name: Post-deploy cluster
-  hosts: "cluster_{{ stormshift_cluster_name }}_cp[0]"
+  hosts: "cluster_{{ cluster_name  }}_cp[0]"
   connection: local
   gather_facts: false
 
@@ -48,8 +48,8 @@
       ansible.builtin.debug:
         msg:
           - "Run aggainst {{inventory_hostname}}, vars:"
-          - " - stormshift_cluster_type: {{ stormshift_cluster_type}}"
-          - " - stormshift_cluster_name: {{ stormshift_cluster_name}}"
+          - " - cluster_type : {{ cluster_type }}"
+          - " - cluster_name : {{ cluster_name }}"
         verbosity: 1
 
     - name: "Include post-deploy-cluster"

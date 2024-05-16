@@ -1,10 +1,10 @@
 apiVersion: v1alpha1
 kind: AgentConfig
 metadata:
-  name: {{ stormshift_cluster_name }}
+  name: {{ cluster_name }}
 rendezvousIP: {{ network_ip_address }}
 hosts:
-{% for host in groups['cluster_' + stormshift_cluster_name + '_cp'] %}
+{% for host in groups['cluster_' + cluster_name + '_cp'] %}
   - hostname: {{ hostvars[host].inventory_hostname }}
     role: master
     interfaces:
