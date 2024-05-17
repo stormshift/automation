@@ -28,3 +28,16 @@
       import_role:
         name: ushift_ostree_on_kubevirt
         tasks_from: 100-create.yml
+
+    - name: Add to ACM Hub cluster
+#      when: "manage_with_acm" in ushift_additional_features
+      tags: acm
+      import_role:
+        name: feature-manage-with-acm
+        tasks_from: create.yaml
+      vars:
+        acm_hub_namespace: "{{ushift_virt_namespace}}"
+        acm_hub_clustername: "stormshift-microshift-{{inventory_hostname}}"
+        acm_hub_clusterset: "default"
+        acm_spoke_kubeconfig: "{{ slurp_kubeconfig['content'] | b64decode }}"
+        acm_spoke_api_endpoint: "https://{{ inventory_hostname }}.{{ sysctx_dns_domain}}:6443"

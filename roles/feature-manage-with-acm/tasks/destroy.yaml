@@ -1,0 +1,31 @@
+---
+
+- name: Remove ManagedCluster
+  tags: acm
+  kubernetes.core.k8s:
+    state: absent
+    wait: true
+    definition:
+      apiVersion: cluster.open-cluster-management.io/v1
+      kind: ManagedCluster
+      metadata:
+        name: "{{ cluster_name }}"
+        labels:
+          cloud: auto-detect
+          vendor: auto-detect
+          cluster.open-cluster-management.io/clusterset: rbohne
+      spec:
+        hubAcceptsClient: true
+
+
+- name: Remove Namespace
+  tags: acm
+  kubernetes.core.k8s:
+    state: absent
+    wait: true
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        labels:
+        name: "{{ cluster_name }}"

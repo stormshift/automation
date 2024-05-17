@@ -19,3 +19,5 @@ ushift_repo_list:
       - gitops-1.12-for-rhel-9-x86_64-rpms
 # install_type - one of: rpm, ostree, imageMode
 ushift_install_type: rpm
+ushift_additional_features:
+  - manage_with_acm

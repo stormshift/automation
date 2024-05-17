@@ -1,0 +1,46 @@
+# assumes: default kubeconfig points to hub cluster
+---
+- name: "Create Namespace >{{ acm_hub_namespace }}< in hub cluster"
+  tags: acm
+  local_action:
+    module: kubernetes.core.k8s
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ acm_hub_namespace }}"
+
+- name: Create auto-import-secret in hub
+  tags: acm
+  local_action:
+    module: kubernetes.core.k8s
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "auto-import-{{acm_hub_clustername}}"
+        namespace: "{{ acm_hub_namespace }}"
+      stringData:
+        autoImportRetry: "5"
+        kubeconfig: "{{ acm_spoke_kubeconfig }}"
+        server: "{{ acm_spoke_api_endpoint }}"
+      type: Opaque
+
+- name: "Create ManagedCluster >{{ acm_hub_clustername }}< in hub"
+  tags: acm
+  local_action:
+    module: kubernetes.core.k8s
+    state: present
+    definition:
+      apiVersion: cluster.open-cluster-management.io/v1
+      kind: ManagedCluster
+      metadata:
+        name: "{{ acm_hub_clustername }}"
+        labels:
+          cloud: auto-detect
+          vendor: auto-detect
+          cluster.open-cluster-management.io/clusterset: "{{acm_hub_clusterset}}"
+      spec:
+        hubAcceptsClient: true
