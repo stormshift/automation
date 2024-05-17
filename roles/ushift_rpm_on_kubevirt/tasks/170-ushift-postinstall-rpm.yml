@@ -11,6 +11,19 @@
         dest: /root/.kube/config
         mode: 600
 
+    - name: Slurp kubeconfig
+      when: ushift_actually_install
+      tags: post, kubecfg
+      ansible.builtin.slurp:
+        src: "/root/.kube/config"
+      register: slurp_kubeconfig
+
+    - name: Set kubeconfig
+      when: ushift_actually_install
+      tags: post, kubecfg
+      set_fact:
+        ushift_kubeconfig: "{{ slurp_kubeconfig['content'] | b64decode }}"
+
     - name: Create temporary local kubeconfig file
       when: ushift_actually_install
       tags: post, kubecfg

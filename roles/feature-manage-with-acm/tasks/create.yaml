@@ -44,3 +44,4 @@
           cluster.open-cluster-management.io/clusterset: "{{acm_hub_clusterset}}"
       spec:
         hubAcceptsClient: true
+        url: "{{ acm_spoke_api_endpoint }}"
