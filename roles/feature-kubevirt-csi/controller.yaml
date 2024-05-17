@@ -2,7 +2,6 @@ kind: Deployment
 apiVersion: apps/v1
 metadata:
   name: kubevirt-csi-controller
-  namespace: kubevirt-csi-driver
   labels:
     app: kubevirt-csi-driver
 spec:
@@ -28,15 +27,16 @@ spec:
       containers:
         - name: csi-driver
           imagePullPolicy: Always
-          image: quay.io/kubevirt/csi-driver:latest
+          # 4.16 rc1 image ... because of snapshot support
+          image: quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:40507a4f6a9c9b6f73bc7f5d33b5ebb5eafef60a68b71a00d86804be3099e440
           args:
-            - "--endpoint=$(CSI_ENDPOINT)"
-            - "--infra-cluster-namespace=$(INFRACLUSTER_NAMESPACE)"
-            - "--infra-cluster-labels=$(INFRACLUSTER_LABELS)"
-            - "--tenant-cluster-kubeconfig=/var/run/secrets/tenantcluster/value"
-            - "--run-node-service=false"
-            - "--run-controller-service=true"
-            - "--v=5"
+            - --endpoint=$(CSI_ENDPOINT)
+            - --infra-cluster-namespace=$(INFRACLUSTER_NAMESPACE)
+            - --infra-cluster-labels=$(INFRACLUSTER_LABELS)
+            - --tenant-cluster-kubeconfig=/var/run/secrets/tenantcluster/value
+            - --run-node-service=false
+            - --run-controller-service=true
+            - --v=5
           ports:
             - name: healthz
               containerPort: 10301
@@ -149,4 +149,4 @@ spec:
           emptyDir: {}
         - name: tenantcluster
           secret:
-            secretName: kvcluster-kubeconfig
+            secretName: tenant-cluster
