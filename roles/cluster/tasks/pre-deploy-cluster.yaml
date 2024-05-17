@@ -1,0 +1,172 @@
+---
+
+- name: Download OpenShift Artifacts
+  # Work-a-round: tags inheritance don't work without a block.
+  # https://github.com/ansible/ansible/issues/41540#issuecomment-419433375
+  block:
+    - name: Include tasks
+      ansible.builtin.include_tasks: download-openshift-artifacts.yml
+  tags: download-openshift-artifacts
+
+- name: Add api/api-int dns records
+  community.general.ipa_dnsrecord:
+    zone_name: "{{ cluster_base_domain }}"
+    record_name: "{{ item }}.{{ cluster_name }}"
+    record_type: A
+    record_value: "{{ cluster_api_vip | default(vm_network_ip_address) }}"
+    state: present
+    ipa_host: "{{ lookup('ansible.builtin.env', 'IPA_HOST' ) }}"
+    ipa_user: "{{ lookup('ansible.builtin.env', 'IPA_USER' ) }}"
+    ipa_pass: "{{ lookup('ansible.builtin.env', 'IPA_PASS' ) }}"
+    validate_certs: false
+  with_items:
+    - api
+    - api-int
+
+- name: Add *.apps dns records
+  community.general.ipa_dnsrecord:
+    zone_name: "{{ cluster_base_domain }}"
+    record_name: "*.apps.{{ cluster_name }}"
+    record_type: A
+    record_value: "{{ cluster_ingress_vip | default(vm_network_ip_address) }}"
+    state: present
+    ipa_host: "{{ lookup('ansible.builtin.env', 'IPA_HOST' ) }}"
+    ipa_user: "{{ lookup('ansible.builtin.env', 'IPA_USER' ) }}"
+    ipa_pass: "{{ lookup('ansible.builtin.env', 'IPA_PASS' ) }}"
+    validate_certs: false
+
+- name: Ensure installation directory
+  ansible.builtin.file:
+    path: "{{ openshift_install_dir }}"
+    state: directory
+    mode: 0755
+  tags:
+    - agent-config
+
+- name: Create install config
+  ansible.builtin.template:
+    src: install-config.yaml.j2
+    dest: "{{ openshift_install_dir }}/install-config.yaml"
+    mode: 0644
+
+- name: Save install-config from deletion
+  ansible.builtin.copy:
+    dest: "{{ openshift_install_dir }}/install-config.yaml.original"
+    src: "{{ openshift_install_dir }}/install-config.yaml"
+    remote_src: yes
+    mode: 0644
+
+- name: Create agent config
+  ansible.builtin.template:
+    src: agent-config.yaml.j2
+    dest: "{{ openshift_install_dir }}/agent-config.yaml"
+    mode: 0644
+  tags:
+    - agent-config
+
+- name: Save agent-config from deletion
+  ansible.builtin.copy:
+    dest: "{{ openshift_install_dir }}/agent-config.yaml.original"
+    src: "{{ openshift_install_dir }}/agent-config.yaml"
+    remote_src: yes
+    mode: 0644
+  tags:
+    - agent-config
+
+- name: Create agent.iso files
+  ansible.builtin.shell: |
+    export PATH={{ openshift_install_dest }}:$PATH
+    {{ openshift_install_command }} --dir={{ openshift_install_dir }} agent create image
+  args:
+    creates: "{{ openshift_install_dir }}/agent.x86_64.iso"
+
+- name: Create/Configure namespace
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ target_namespace }}"
+        annotations:
+          openshift.io/description: Contains VMs running microshift instances
+          openshift.io/display-name: stormshift-microshift
+          openshift.io/requester: "{{ tower_user_email }}"
+          openshift.io/display-name: "StormShift Cluster {{ cluster_name }}"
+          openshift.io/description: "StormShift Cluster {{ cluster_name }}, creator: {{ tower_user_name}} <{{ tower_user_email }}>"
+      spec: {}
+
+- name: Create/Configure NetworkAttachmentDefinition
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: k8s.cni.cncf.io/v1
+      kind: NetworkAttachmentDefinition
+      metadata:
+        annotations:
+          k8s.v1.cni.cncf.io/resourceName: bridge.network.kubevirt.io/coe-bridge
+        name: coe-bridge
+        namespace: "{{ target_namespace }}"
+      spec:
+        config: '{"name":"coe-bridge","type":"cnv-bridge","cniVersion":"0.3.1","bridge":"coe-bridge","macspoofchk":true,"ipam":{}}'
+
+# https://github.com/kubevirt/containerized-data-importer/blob/main/doc/upload.md
+- name: Create DataVolume
+  # register: my_var_with_return_value
+  kubernetes.core.k8s:
+    state: present
+    wait: yes
+    wait_condition:
+      type: Running
+      status: True
+      reason: Pod is running
+    definition:
+      apiVersion: cdi.kubevirt.io/v1beta1
+      kind: DataVolume
+      metadata:
+        name: "{{ cluster_name }}-agent-iso"
+        namespace: "{{ target_namespace }}"
+      spec:
+        source:
+            upload: {}
+        pvc:
+          accessModes:
+            - ReadWriteMany
+          storageClassName: coe-netapp-nas
+          resources:
+            requests:
+              storage: 2Gi
+
+- name: Upload token
+  register: my_var_with_return_value
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: upload.cdi.kubevirt.io/v1beta1
+      kind: UploadTokenRequest
+      metadata:
+        name: "{{ cluster_name }}-agent-iso-upload-token"
+        namespace: "{{ target_namespace }}"
+      spec:
+        pvcName: "{{ cluster_name }}-agent-iso"
+
+# curl -v --insecure -H "Authorization: Bearer $TOKEN" --data-binary @tests/images/cirros-qcow2.img https://$(minikube ip):31001/v1beta1/upload
+#
+# - name: Show token
+#   debug:
+#     msg: "curl -v --insecure -H 'Authorization: Bearer  {{ my_var_with_return_value.result.status.token }}' --data-binary @/var/home/rbohne/Downloads/beryllium-1-i386.hybrid.iso https://{{ upload_host }}/v1beta1/upload "
+
+- name: Upload agent-iso
+  ansible.builtin.uri:
+    url: "{{ upload_host }}/v1beta1/upload"
+    method: POST
+    validate_certs: false
+    headers:
+      Authorization: "Bearer  {{ my_var_with_return_value.result.status.token }}"
+    src: "{{ openshift_install_dir }}/agent.x86_64.iso"
+
+- name: "Include pre-deploy-cluster-{{ cluster_type }}"
+  include_role:
+    name: cluster
+    tasks_from: "pre-deploy-cluster-{{ cluster_type }}.yaml"
+
