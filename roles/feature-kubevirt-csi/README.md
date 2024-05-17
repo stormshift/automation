@@ -9,7 +9,7 @@ High level:
 
  * Controller is deployed in infra cluster
 
-## Controller deployment
+## Controller deployment at infra
 
 ```bash
 
@@ -27,5 +27,22 @@ EOF
 
 oc apply -f infra-cluster-service-account.yaml
 oc apply -f controller.yaml
+
+```
+## CSI deployment at the tanent
+
+```
+
+oc apply -f - <<EOF
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: driver-config
+data:
+  infraClusterNamespace: stormshift-ocp1-infra
+  infraClusterLabels: csi-driver/cluster=isar
+EOF
+
+
 
 ```
