@@ -80,7 +80,7 @@
     - name: Provide pull secrets
       tags: prep,secrets
       copy:
-        content: "{{sysctx_pull_secret}}"
+        content: "{{image_pull_secret}}"
         dest: /etc/crio/openshift-pull-secret
         mode: 600
         owner: root

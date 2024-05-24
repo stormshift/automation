@@ -27,6 +27,7 @@
             bootloader:
               efi:
                 secureBoot: false
+                persistent: true
 #            kernelBoot:
 #              kernelArgs: --- test me later ---
           machine:
@@ -37,13 +38,14 @@
                 bus: virtio
               name: root-disk
               bootOrder: 1
-              
             interfaces:
               - bridge: {}
                 macAddress: "{{network_mac_address}}"
                 model: virtio
                 name: net-0
                 bootOrder: 2
+            tpm:
+              persistent: true
           clock:
             timezone: Etc/GMT
         networks:
