@@ -19,6 +19,7 @@
         tasks_from: "pre-deploy-cluster.yaml"
       tags:
         - agent-config
+
 - name: Deploy cluster
   hosts: "cluster_{{ cluster_name  }}"
   connection: local
