@@ -31,6 +31,7 @@
 
     - name: Add to ACM Hub cluster
 #      when: "manage_with_acm" in ushift_additional_features
+      when: false
       tags: acm,post
       import_role:
         name: feature-manage-with-acm

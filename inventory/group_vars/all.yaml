@@ -11,6 +11,10 @@ sysctx_network_gateway: "10.32.111.254"
 sysctx_network: "10.32.96.0"
 sysctx_network_cidr: "20"
 
+# ---------------------------
+# Template VMs related common vars:
+stormshift_template_vms_namespace: stormshift-vm-templates
+
 
 # ---------------------------
 # Microshift related common vars:

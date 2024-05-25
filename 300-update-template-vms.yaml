@@ -1,0 +1,39 @@
+---
+# This playbook updates a template vm
+# Example to run manually:
+#  ansible-playbook -e@../stormshift-dev.vars 300-update-templates.yaml
+- hosts: "template_vms"
+  gather_facts: false
+  tasks:
+    - name: Start VM
+      local_action:
+        module: kubevirt.core.kubevirt_vm
+        state: present
+        running: true
+        wait: true
+        name: "{{ vm_cr_name }}"
+        namespace: "{{ stormshift_template_vms_namespace }}"
+
+    # - name: Register with Red Hat Subscription Manager
+    #   tags: rhsm,slow
+    #   redhat_subscription:
+    #     state: present
+    #     username: "{{ sysctx_rhsm_user}}"
+    #     password: "{{ sysctx_rhsm_pswd}}"
+    #     force_register: true
+
+    - name: Update baseos
+      tags: upd, slow
+      yum:
+        name: '*'
+        state: latest
+      register: osupdate
+
+    - name: Stop VM
+      local_action:
+        module: kubevirt.core.kubevirt_vm
+        state: present
+        running: false
+        wait: false
+        name: "{{ vm_cr_name }}"
+        namespace: "{{ stormshift_template_vms_namespace }}"
