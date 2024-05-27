@@ -13,14 +13,14 @@
 
     - name: Slurp kubeconfig
       when: ushift_actually_install
-      tags: post, kubecfg
+      tags: post, kubecfg, acm
       ansible.builtin.slurp:
         src: "/root/.kube/config"
       register: slurp_kubeconfig
 
     - name: Set kubeconfig
       when: ushift_actually_install
-      tags: post, kubecfg
+      tags: post, kubecfg, acm
       set_fact:
         ushift_kubeconfig: "{{ slurp_kubeconfig['content'] | b64decode }}"
 

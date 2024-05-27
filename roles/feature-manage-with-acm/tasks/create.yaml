@@ -1,6 +1,9 @@
 # assumes: default kubeconfig points to hub cluster
+
 ---
-- name: "Create Namespace >{{ acm_hub_namespace }}< in hub cluster"
+# Important: namespace must be equal to clustername - each cluster must have
+# its own namespace - multiple clusters in a single namespace does not work
+- name: "Create Namespace >{{ acm_hub_clustername }}< in hub cluster"
   tags: acm
   local_action:
     module: kubernetes.core.k8s
@@ -9,7 +12,7 @@
       apiVersion: v1
       kind: Namespace
       metadata:
-        name: "{{ acm_hub_namespace }}"
+        name: "{{ acm_hub_clustername }}"
 
 - name: Create auto-import-secret in hub
   tags: acm
@@ -20,8 +23,8 @@
       apiVersion: v1
       kind: Secret
       metadata:
-        name: "auto-import-{{acm_hub_clustername}}"
-        namespace: "{{ acm_hub_namespace }}"
+        name: "auto-import-secret"
+        namespace: "{{ acm_hub_clustername }}"
       stringData:
         autoImportRetry: "5"
         kubeconfig: "{{ acm_spoke_kubeconfig }}"
@@ -44,4 +47,31 @@
           cluster.open-cluster-management.io/clusterset: "{{acm_hub_clusterset}}"
       spec:
         hubAcceptsClient: true
-        url: "{{ acm_spoke_api_endpoint }}"
+        managedClusterClientConfigs:
+        - url: "{{ acm_spoke_api_endpoint }}"
+
+- name: "Create KlusterletAddonConfig >{{ acm_hub_clustername }}< in hub"
+  tags: acm
+  local_action:
+    module: kubernetes.core.k8s
+    state: present
+    definition:
+      apiVersion: agent.open-cluster-management.io/v1
+      kind: KlusterletAddonConfig
+      metadata:
+        name: "{{acm_hub_clustername}}"
+        namespace: "{{ acm_hub_clustername }}"
+      spec:
+       clusterName: "{{acm_hub_clustername}}"
+       clusterNamespace: "{{ acm_hub_clustername }}"
+       applicationManager:
+         enabled: true
+         argocdCluster: false
+       policyController:
+         enabled: true
+       searchCollector:
+         enabled: true
+       certPolicyController:
+         enabled: true
+       iamPolicyController:
+         enabled: true

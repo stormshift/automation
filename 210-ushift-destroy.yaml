@@ -6,7 +6,20 @@
 - hosts: "cluster_{{ ushift_env }}"
   gather_facts: false
   tasks:
+    - name: Remove from ACM Hub cluster
+      when: "'manage_with_acm' in ushift_additional_features"
+      tags: acm
+      import_role:
+        name: feature-manage-with-acm
+        tasks_from: destroy.yaml
+      vars:
+        acm_hub_clustername: "stormshift-{{inventory_hostname}}"
+        acm_hub_clusterset: "stormshift"
+        acm_spoke_kubeconfig: "{{ ushift_kubeconfig }}"
+        acm_spoke_api_endpoint: "https://{{ inventory_hostname }}.{{ sysctx_dns_domain}}:6443"
+
     - name: Destroy MicroShift
+      tags: dhcp,dns,vm
       import_role:
         name: ushift_rpm_on_kubevirt
         tasks_from: 200-destroy.yml

@@ -14,7 +14,7 @@
           - " - ushift_virt_namespace: {{ ushift_virt_namespace}}"
           - " - network_ip_address: {{ network_ip_address}}"
           - " - inventory_hostname: {{inventory_hostname}}"
-          - " - IPA_USER: {{ lookup('ansible.builtin.env', 'IPA_USER' ) }}"
+          - " - ushift_additional_features: {{ ushift_additional_features }}"
         verbosity: 1
 
     - name: Create MicroShift RPM
@@ -30,15 +30,13 @@
         tasks_from: 100-create.yml
 
     - name: Add to ACM Hub cluster
-#      when: "manage_with_acm" in ushift_additional_features
-      when: false
+      when: "'manage_with_acm' in ushift_additional_features"
       tags: acm,post
       import_role:
         name: feature-manage-with-acm
         tasks_from: create.yaml
       vars:
-        acm_hub_namespace: "{{ushift_virt_namespace}}"
-        acm_hub_clustername: "stormshift-microshift-{{inventory_hostname}}"
-        acm_hub_clusterset: "default"
+        acm_hub_clustername: "stormshift-{{inventory_hostname}}"
+        acm_hub_clusterset: "stormshift"
         acm_spoke_kubeconfig: "{{ ushift_kubeconfig }}"
         acm_spoke_api_endpoint: "https://{{ inventory_hostname }}.{{ sysctx_dns_domain}}:6443"

@@ -10,4 +10,4 @@
 
 - name: Remove DHCP records
   ansible.builtin.include_tasks: 230-destroy-dhcp.yml
-  tags: dns
+  tags: dhcp

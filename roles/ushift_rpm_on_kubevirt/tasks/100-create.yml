@@ -22,4 +22,4 @@
 
 - name: Postinstall MicroShift
   ansible.builtin.include_tasks: 170-ushift-postinstall-rpm.yml
-  tags: post
+  tags: post,acm

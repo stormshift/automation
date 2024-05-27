@@ -1,31 +1,26 @@
 ---
 
-- name: Remove ManagedCluster
+- name: "Remove ManagedCluster >{{ acm_hub_clustername }}< from ACM"
   tags: acm
-  kubernetes.core.k8s:
+  local_action:
+    module: kubernetes.core.k8s
     state: absent
     wait: true
     definition:
       apiVersion: cluster.open-cluster-management.io/v1
       kind: ManagedCluster
       metadata:
-        name: "{{ cluster_name }}"
-        labels:
-          cloud: auto-detect
-          vendor: auto-detect
-          cluster.open-cluster-management.io/clusterset: rbohne
-      spec:
-        hubAcceptsClient: true
+        name: "{{ acm_hub_clustername }}"
 
 
-- name: Remove Namespace
+- name: "Remove Namespace  >{{ acm_hub_clustername }}< from HubCluster"
   tags: acm
-  kubernetes.core.k8s:
+  local_action:
+    module: kubernetes.core.k8s
     state: absent
     wait: true
     definition:
       apiVersion: v1
       kind: Namespace
       metadata:
-        labels:
-        name: "{{ cluster_name }}"
+        name: "{{ acm_hub_clustername }}"
