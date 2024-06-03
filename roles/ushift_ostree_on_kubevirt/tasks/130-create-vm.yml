@@ -13,7 +13,7 @@
           cpu:
             cores: "{{ vm_cores }}"
             sockets: 1
-            threads: 1
+            threads: 2
           memory:
             guest: "{{vm_memory}}"
           resources:

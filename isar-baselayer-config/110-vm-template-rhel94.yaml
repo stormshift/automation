@@ -14,9 +14,9 @@ spec:
     spec:
       domain:
         cpu:
-          cores: 4
+          cores: 2
           sockets: 1
-          threads: 1
+          threads: 2
         memory:
           guest: 4Gi
         resources:
