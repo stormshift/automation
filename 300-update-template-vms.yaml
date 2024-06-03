@@ -6,6 +6,7 @@
   gather_facts: false
   tasks:
     - name: Start VM
+      changed_when: false  # starting the VM does not really change its state on disk, at least not in the update OS context
       local_action:
         module: kubevirt.core.kubevirt_vm
         state: present
@@ -13,6 +14,14 @@
         wait: true
         name: "{{ vm_cr_name }}"
         namespace: "{{ stormshift_template_vms_namespace }}"
+
+    - name: Wait for VM to be online
+      local_action:
+        module: ansible.builtin.wait_for
+        host: "{{ inventory_hostname }}.{{ sysctx_dns_domain }}"
+        port: 22
+        state: started
+
 
     # - name: Register with Red Hat Subscription Manager
     #   tags: rhsm,slow
@@ -30,10 +39,11 @@
       register: osupdate
 
     - name: Stop VM
+      changed_when: false
       local_action:
         module: kubevirt.core.kubevirt_vm
         state: present
         running: false
-        wait: false
+        wait: true
         name: "{{ vm_cr_name }}"
         namespace: "{{ stormshift_template_vms_namespace }}"
