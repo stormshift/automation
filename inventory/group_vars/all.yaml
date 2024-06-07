@@ -22,3 +22,4 @@ ushift_virt_namespace: stormshift-microshift
 ushift_repo_ec: "https://mirror.openshift.com/pub/openshift-v4/x86_64/microshift/ocp-dev-preview"
 ushift_repo_rc: "https://mirror.openshift.com/pub/openshift-v4/x86_64/microshift/ocp"
 ushift_vm_storageclass: "coe-netapp-san"
+ushift_additional_features: {}
