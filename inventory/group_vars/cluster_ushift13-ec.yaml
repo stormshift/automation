@@ -1,14 +1,14 @@
 stormshift_owner_email: "dfroehli@redhat.com"
 stormshift_owner_purpose: "Latest EC Build"
-ushift_version: 4.16
-ushift_preview_version: latest-4.16
+ushift_version: 4.17
+ushift_preview_version: latest-4.17
 ushift_preview_version_dep_ec: 4.15-el9-beta
 ushift_preview_version_dep_rc: 4.16-el9-beta
 # repo, one of: EC/RC/standard
 ushift_repo: EC
 ushift_actually_install: true
 ushift_deploy_sample_workload: true
-vm_cores: "2"
+vm_cores: 2
 vm_memory: "2Gi"
 vm_template: "rhel94"
 network_ip_address: 10.32.99.13

@@ -11,7 +11,7 @@
       spec:
 # We want to be co-located with img bld where the ostree-commits
 # are being served from, and we make this required because imgbld
-# has to run for this demo to work: 
+# has to run for this demo to work:
         affinity:
           podAffinity:
             requiredDuringSchedulingIgnoredDuringExecution:
@@ -32,6 +32,7 @@
           resources:
             requests:
               memory: "{{vm_memory}}"
+              cpu: "{{ vm_cores*1000 * 0.5}}m"              
           features:
             acpi: {}
             smm:

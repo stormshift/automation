@@ -8,7 +8,7 @@ ushift_preview_version_dep_rc: 4.16-el9-beta
 ushift_repo: standard
 ushift_actually_install: true
 ushift_deploy_sample_workload: true
-vm_cores: "3"
+vm_cores: 3
 vm_memory: "16Gi"
 vm_template: "rhel92"
 network_ip_address: 10.32.99.20

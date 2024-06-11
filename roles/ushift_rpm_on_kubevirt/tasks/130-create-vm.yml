@@ -1,4 +1,5 @@
 ---
+
   - name: Create MicroShift VM
     tags: vm
     local_action:
@@ -19,6 +20,7 @@
           resources:
             requests:
               memory: "{{vm_memory}}"
+              cpu: "{{ vm_cores*1000 * 0.5}}m"
           machine:
             type: q35
           devices:
@@ -58,3 +60,10 @@
               pvc:
                 namespace: stormshift-vm-templates
                 name: "stormshift-template-{{vm_template}}-root"
+
+  - name: Wait for VM to be online
+    local_action:
+      module: ansible.builtin.wait_for
+      host: "{{ inventory_hostname }}.{{ sysctx_dns_domain }}"
+      port: 22
+      state: started
