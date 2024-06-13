@@ -47,20 +47,22 @@
         src: templates/microshift-candidate.repo
         dest: /etc/yum.repos.d/microshift-candidate.repo
 
-    - name: Install oc client and cockpit (not needed, demo purposes only)
-      tags: prep,rpm
+    - name: Install cockpit
+      when: "'cockpit' in ushift_additional_features"
+      tags: prep,cockpit
       yum:
         name:
-          - openshift-clients
           - cockpit
         state: present
 
     - name: Enable and start cockpit
+      when: "'cockpit' in ushift_additional_features"
       tags: prep,cockpit
       service:
         name: cockpit.socket
         enabled: yes
         state: started
+# Todo: add user for cockpit, root seems not to work easily
 
     - name: Add typical commands to bash history
       tags: prep, bash
