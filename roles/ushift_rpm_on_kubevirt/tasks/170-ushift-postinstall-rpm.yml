@@ -43,7 +43,7 @@
 
     - name: Deploy VolumeSnapshotClass
       tags: post,vsc
-      when: ushift_actually_install
+      when: false
       local_action:
         module: kubernetes.core.k8s
         kubeconfig: "{{temp_kubeconfig.path}}"

@@ -1,18 +1,18 @@
-stormshift_owner_email: "dfroehli@redhat.com"
-stormshift_owner_purpose: "Playground - OTel Backend LGTM"
+stormshift_owner_email: "jmoelle@redhat.com"
+stormshift_owner_purpose: "MicroShift/LVM Engineering"
 ushift_version: 4.16
 ushift_preview_version: latest-4.16
 ushift_preview_version_dep_ec: 4.16-el9-beta
 ushift_preview_version_dep_rc: 4.16-el9-beta
 # repo, one of: EC/RC/standard
 ushift_repo: RC
-ushift_actually_install: false
+ushift_actually_install: true
 ushift_deploy_sample_workload: false
 vm_cores: 4
-vm_memory: "8Gi"
+vm_memory: "6Gi"
 vm_template: "rhel94"
-network_ip_address: 10.32.99.9
-network_mac_address: 0E:C0:EF:20:63:09
+network_ip_address: 10.32.99.22
+network_mac_address: 0E:C0:EF:20:63:16
 ushift_repo_list:
 #      - rhocp-4.15-for-rhel-9-x86_64-rpms
       - fast-datapath-for-rhel-9-x86_64-rpms

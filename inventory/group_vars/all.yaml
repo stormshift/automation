@@ -1,6 +1,8 @@
 ---
 # Variables shared by all ennvironment:
 # ---------------------------
+
+
 # Systemcontext stuff, i.e. external components / facts:
 sysctx_dns_domain: "stormshift.coe.muc.redhat.com"
 sysctx_dns_domain_reverse: "32.10.in-addr.arpa"
@@ -10,6 +12,15 @@ sysctx_network_dns: "inf1.coe.muc.redhat.com"
 sysctx_network_gateway: "10.32.111.254"
 sysctx_network: "10.32.96.0"
 sysctx_network_cidr: "20"
+
+# Base layer cluster:
+# Access token via credentials / env variable set:
+K8S_AUTH_HOST: "https://api.isar.coe.muc.redhat.com:6443"
+K8S_AUTH_VERIFY_SSL: false
+# DNS server host endpoint (IPA)
+# (username+pswd via credentials)
+IPA_HOST: "{{sysctx_network_dns}}"
+
 
 # ---------------------------
 # Template VMs related common vars:

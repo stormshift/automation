@@ -9,6 +9,9 @@ subjects:
   - kind: Group
     name: system:authenticated
     apiGroup: rbac.authorization.k8s.io
+  - kind: ServiceAccount
+    name: stormshift-automation
+    namespace: stormshift-vm-templates
 roleRef:
   kind: ClusterRole
   name: admin

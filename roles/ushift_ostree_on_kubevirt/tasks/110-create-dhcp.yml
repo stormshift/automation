@@ -15,7 +15,7 @@
           option host-name "{{inventory_hostname}}";
           option domain-name "{{ sysctx_dns_domain }}";
           ddns-hostname "{{ inventory_hostname }}.{{ sysctx_dns_domain }}";
-          filename "http://ushift-imgbld.stormshift.coe.muc.redhat.com/edge-network-install/EFI/BOOT/BOOTX64.EFI";
+          filename "{{ ushift_uefi_boot_file }}";
         }
     register: dhcp
 
