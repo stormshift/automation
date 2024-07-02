@@ -5,16 +5,16 @@ ushift_preview_version: latest-4.16
 ushift_preview_version_dep_ec: 4.15-el9-beta
 ushift_preview_version_dep_rc: 4.16-el9-beta
 # repo, one of: EC/RC/standard
-ushift_repo: EC
+ushift_repo: standard
 ushift_actually_install: true
 ushift_deploy_sample_workload: true
-vm_cores: 2
-vm_memory: "4Gi"
+vm_cores: 4
+vm_memory: "8Gi"
 vm_template: "rhel94"
 network_ip_address: 10.32.99.8
 network_mac_address: 0E:C0:EF:20:63:08
 ushift_repo_list:
-      - rhocp-4.15-for-rhel-9-x86_64-rpms
+      - rhocp-4.16-for-rhel-9-x86_64-rpms
       - fast-datapath-for-rhel-9-x86_64-rpms
       - gitops-1.12-for-rhel-9-x86_64-rpms
 # install_type - one of: rpm, ostree, imageMode
