@@ -4,6 +4,6 @@
 - hosts: "cluster_{{ ushift_env }}"
   gather_facts: false
   tasks:
-    - name: Create MicroShift ostree
+    - name: Update MicroShift ostree
       when: ushift_install_type == "ostree"
       ansible.posix.rpm_ostree_upgrade:
