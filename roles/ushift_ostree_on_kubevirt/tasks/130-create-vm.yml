@@ -1,27 +1,45 @@
 ---
   - name: Create MicroShift VM
     tags: vm
+    throttle: 3
     local_action:
       module: kubevirt.core.kubevirt_vm
       state: present
       running: true # default
       wait: true
+      wait_timeout: 240
       name: "{{ inventory_hostname }}"
+      labels:
+        vm_group: "{{ group_names[0] }}"
       namespace: "{{ ushift_virt_namespace }}"
       spec:
 # We want to be co-located with img bld where the ostree-commits
 # are being served from, and we make this required because imgbld
 # has to run for this demo to work:
-        # affinity:
-        #   podAffinity:
-        #     requiredDuringSchedulingIgnoredDuringExecution:
-        #     - labelSelector:
-        #         matchExpressions:
-        #         - key: vm.kubevirt.io/name
-        #           operator: In
-        #           values:
-        #           - ushift-imgbld
-        #       topologyKey: kubernetes.io/hostname
+        affinity:
+          podAffinity:
+            # requiredDuringSchedulingIgnoredDuringExecution:
+            # - labelSelector:
+            #     matchExpressions:
+            #     - key: vm.kubevirt.io/name
+            #       operator: In
+            #       values:
+            #       - ushift-imgbld
+            #   topologyKey: kubernetes.io/hostname
+# For larger fleets, we want to have anti-affinity to distribute across nodes, to better leverage
+# network resource:
+        affinity:
+          podAntiAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                  - key: vm_group
+                    operator: In
+                    values:
+                    - "{{ group_names[0] }}"
+                topologyKey: kubernetes.io/hostname
         domain:
           cpu:
             cores: "{{ vm_cores }}"
@@ -70,7 +88,6 @@
         - dataVolume:
             name: "{{ inventory_hostname }}-root"
           name: root-disk
-
       data_volume_templates:
         - metadata:
             name: "{{ inventory_hostname }}-root"
@@ -93,7 +110,7 @@
       port: 22
       state: started
       sleep: 2
-      timeout: 900
+      timeout: 1200
 
   - name: Wait for MicroShift to be online
     local_action:
@@ -102,4 +119,4 @@
       port: 443
       state: started
       sleep: 2
-      timeout: 240
+      timeout: 300
