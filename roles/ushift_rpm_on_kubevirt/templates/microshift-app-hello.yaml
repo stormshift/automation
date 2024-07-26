@@ -1,0 +1,78 @@
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: demo-app
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  annotations:
+  name: hello-openshift
+  namespace: demo-app
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: hello-openshift
+  template:
+    metadata:
+      labels:
+        app: hello-openshift
+    spec:
+      containers:
+      - image: openshift/hello-openshift
+        imagePullPolicy: IfNotPresent
+        name: hello-openshift
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          capabilities:
+            drop:
+              - ALL
+    #      seccompProfile:
+    #        type: RuntimeDefault
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /tmp
+          name: tmp
+      dnsPolicy: ClusterFirst
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: hello
+  namespace: demo-app
+spec:
+  selector:
+    app: hello-openshift
+  ports:
+    - protocol: TCP
+      name: http
+      port: 8080
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: hello-path
+  namespace: demo-app
+spec:
+  host: "{{inventory_hostname}}.{{ sysctx_dns_domain }}"
+  path: "/hello"
+  port:
+    targetPort: http
+  to:
+    kind: Service
+    name: hello
+    weight: 100
+  wildcardPolicy: None

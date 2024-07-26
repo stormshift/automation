@@ -1,0 +1,67 @@
+---
+# This playbook deployes applications to ushift
+#
+- hosts: "cluster_{{ ushift_env }}"
+  gather_facts: false
+  tasks:
+    - name: Firewall open API port for external access
+      tags: prep, firewall
+      firewalld:
+        immediate: yes
+        permanent: yes
+        port: 6443/tcp
+        state: enabled
+
+    - name: Copy kubeconfig to root user on VM
+      tags: post, kubecfg
+      copy:
+        src: /var/lib/microshift/resources/kubeadmin/{{inventory_hostname}}.{{ sysctx_dns_domain }}/kubeconfig
+        remote_src: true
+        dest: /root/.kube/config
+        mode: 600
+
+    - name: Slurp kubeconfig
+      tags: post, kubecfg, acm
+      ansible.builtin.slurp:
+        src: "/root/.kube/config"
+      register: slurp_kubeconfig
+
+    - name: Set kubeconfig
+      tags: post, kubecfg, acm
+      set_fact:
+        ushift_kubeconfig: "{{ slurp_kubeconfig['content'] | b64decode }}"
+
+    - name: Create temporary local kubeconfig file
+      tags: post, kubecfg
+      changed_when: false
+      local_action:
+        module: ansible.builtin.tempfile
+        state: file
+        suffix: temp
+      register: temp_kubeconfig
+
+    - name: Fetch kubeconfig from remote
+      tags: post, kubecfg
+      changed_when: false
+      fetch:
+        src: /root/.kube/config
+        dest: "{{temp_kubeconfig.path}}"
+        flat: true
+
+    - name: Deploy sample workload
+      local_action:
+        module: kubernetes.core.k8s
+        kubeconfig: "{{temp_kubeconfig.path}}"
+        validate_certs: false
+        state: present
+        apply: true
+        wait: true
+        definition: "{{ lookup('template', 'roles/ushift_rpm_on_kubevirt/templates/microshift-app-hello.yaml') }}"
+
+    - name: Remove temporary local kubeconfig file
+      when: temp_kubeconfig.path is defined
+      changed_when: false
+      local_action:
+        module: ansible.builtin.file
+        path: "{{ temp_kubeconfig.path }}"
+        state: absent
