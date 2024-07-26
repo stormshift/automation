@@ -3,6 +3,7 @@
   - name: Configure DHCP
     tags: dhcp
     delegate_to: "{{ sysctx_network_dhcp }}"
+    throttle: 1
     blockinfile:
       path: /etc/dhcp/dhcpd-dfroehli-edge.conf
       marker: "# {mark} ANSIBLE MANAGED {{inventory_hostname}}"
@@ -20,6 +21,7 @@
     register: dhcp
 
   - name: Restart DHCP
+    run_once: true
     tags: dhcp
     delegate_to: "{{ sysctx_network_dhcp }}"
     service:

@@ -18,8 +18,16 @@
         acm_spoke_kubeconfig: "{{ ushift_kubeconfig }}"
         acm_spoke_api_endpoint: "https://{{ inventory_hostname }}.{{ sysctx_dns_domain}}:6443"
 
-    - name: Destroy MicroShift
+    - name: Destroy MicroShift RPM
       tags: dhcp,dns,vm
+      when: ushift_install_type == "rpm"
       import_role:
         name: ushift_rpm_on_kubevirt
+        tasks_from: 200-destroy.yml
+
+    - name: Destroy MicroShift ostree
+      tags: dhcp,dns,vm
+      when: ushift_install_type == "ostree"
+      import_role:
+        name: ushift_ostree_on_kubevirt
         tasks_from: 200-destroy.yml

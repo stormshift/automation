@@ -2,6 +2,7 @@
 
   - name: Remove DHCP
     tags: dhcp
+    throttle: 1
     delegate_to: "{{ sysctx_network_dhcp }}"
     blockinfile:
       path: /etc/dhcp/dhcpd-dfroehli-edge.conf
@@ -19,6 +20,7 @@
 
   - name: Restart DHCP
     tags: dhcp
+    run_once: true
     delegate_to: "{{ sysctx_network_dhcp }}"
     service:
       name: dhcpd
