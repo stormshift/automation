@@ -1,10 +1,10 @@
-stormshift_owner_email: "dfroehli@redhat.com"
-stormshift_owner_purpose: "ostree"
+stormshift_owner_email: "arolivei@redhat.com"
+stormshift_owner_purpose: "TAM playground"
 vm_cores: 2
 vm_memory: "8Gi"
 # install_type - one of: rpm, ostree, imageMode
 ushift_install_type: ostree
-ushift_uefi_boot_file: "http://ushift-imgbld.stormshift.coe.muc.redhat.com/rhel92-simple-install/EFI/BOOT/BOOTX64.EFI"
+ushift_uefi_boot_file: "http://ushift-imgbld.stormshift.coe.muc.redhat.com/edge-network-install/EFI/BOOT/BOOTX64.EFI"
 
 network_ip_address: 10.32.99.16
 network_mac_address: 0E:C0:EF:20:63:10
