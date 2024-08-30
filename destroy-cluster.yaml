@@ -1,0 +1,60 @@
+---
+- name: Pre-destroy cluster
+  hosts: "cluster_{{ cluster_name  }}_cp[0]"
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Debug information
+      ansible.builtin.debug:
+        msg:
+          - "Run aggainst {{inventory_hostname}}, vars:"
+          - " - cluster_type : {{ cluster_type }}"
+          - " - cluster_name : {{ cluster_name }}"
+        verbosity: 1
+
+    - name: "Include pre-destroy-cluster"
+      include_role:
+        name: cluster
+        tasks_from: "pre-destroy-cluster.yaml"
+      tags:
+        - agent-config
+
+- name: Destroy cluster
+  hosts: "cluster_{{ cluster_name  }}"
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Debug information
+      ansible.builtin.debug:
+        msg:
+          - "Run aggainst {{ inventory_hostname }}, vars:"
+          - " - cluster_type : {{ cluster_type }}"
+          - " - cluster_name : {{ cluster_name }}"
+        verbosity: 1
+
+    - name: "Include destroy-cluster"
+      include_role:
+        name: cluster
+        tasks_from: "destroy-cluster.yaml"
+
+- name: Post-destroy cluster
+  hosts: "cluster_{{ cluster_name  }}_cp[0]"
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Debug information
+      ansible.builtin.debug:
+        msg:
+          - "Run aggainst {{inventory_hostname}}, vars:"
+          - " - cluster_type : {{ cluster_type }}"
+          - " - cluster_name : {{ cluster_name }}"
+        verbosity: 1
+
+    - name: "Include post-destroy-cluster"
+      include_role:
+        name: cluster
+        tasks_from: "post-destroy-cluster.yaml"
+
