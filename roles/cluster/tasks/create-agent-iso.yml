@@ -1,0 +1,95 @@
+---
+- name: Ensure installation directory
+  ansible.builtin.file:
+    path: "{{ openshift_install_dir }}"
+    state: directory
+    mode: 0755
+
+- name: Create install config
+  ansible.builtin.template:
+    src: install-config.yaml.j2
+    dest: "{{ openshift_install_dir }}/install-config.yaml"
+    mode: 0644
+
+- name: Save install-config from deletion
+  ansible.builtin.copy:
+    dest: "{{ openshift_install_dir }}/install-config.yaml.original"
+    src: "{{ openshift_install_dir }}/install-config.yaml"
+    remote_src: yes
+    mode: 0644
+
+- name: Create agent config
+  ansible.builtin.template:
+    src: agent-config.yaml.j2
+    dest: "{{ openshift_install_dir }}/agent-config.yaml"
+    mode: 0644
+
+- name: Save agent-config from deletion
+  ansible.builtin.copy:
+    dest: "{{ openshift_install_dir }}/agent-config.yaml.original"
+    src: "{{ openshift_install_dir }}/agent-config.yaml"
+    remote_src: yes
+    mode: 0644
+
+- name: Create agent.iso files
+  ansible.builtin.shell: |
+    export PATH={{ openshift_install_dest }}:$PATH
+    {{ openshift_install_command }} --dir={{ openshift_install_dir }} agent create image
+  args:
+    creates: "{{ openshift_install_dir }}/agent.x86_64.iso"
+
+
+# https://github.com/kubevirt/containerized-data-importer/blob/main/doc/upload.md
+- name: Create DataVolume
+  # register: my_var_with_return_value
+  kubernetes.core.k8s:
+    state: present
+    wait: yes
+    wait_condition:
+      type: Running
+      status: True
+      reason: Pod is running
+    definition:
+      apiVersion: cdi.kubevirt.io/v1beta1
+      kind: DataVolume
+      metadata:
+        name: "{{ cluster_name }}-agent-iso"
+        namespace: "{{ namespace }}"
+      spec:
+        source:
+            upload: {}
+        pvc:
+          accessModes:
+            - ReadWriteMany
+          storageClassName: coe-netapp-nas
+          resources:
+            requests:
+              storage: 2Gi
+
+- name: Upload token
+  register: my_var_with_return_value
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: upload.cdi.kubevirt.io/v1beta1
+      kind: UploadTokenRequest
+      metadata:
+        name: "{{ cluster_name }}-agent-iso-upload-token"
+        namespace: "{{ namespace }}"
+      spec:
+        pvcName: "{{ cluster_name }}-agent-iso"
+
+# curl -v --insecure -H "Authorization: Bearer $TOKEN" --data-binary @tests/images/cirros-qcow2.img https://$(minikube ip):31001/v1beta1/upload
+#
+# - name: Show token
+#   debug:
+#     msg: "curl -v --insecure -H 'Authorization: Bearer  {{ my_var_with_return_value.result.status.token }}' --data-binary @/var/home/rbohne/Downloads/beryllium-1-i386.hybrid.iso https://{{ upload_host }}/v1beta1/upload "
+
+- name: Upload agent-iso
+  ansible.builtin.uri:
+    url: "{{ upload_host }}/v1beta1/upload"
+    method: POST
+    validate_certs: false
+    headers:
+      Authorization: "Bearer  {{ my_var_with_return_value.result.status.token }}"
+    src: "{{ openshift_install_dir }}/agent.x86_64.iso"

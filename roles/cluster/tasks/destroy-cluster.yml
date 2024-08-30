@@ -1,0 +1,15 @@
+---
+
+- name: Destroy VM
+  tags: vm
+  kubevirt.core.kubevirt_vm:
+    state: absent
+    wait: true
+    name: "{{ inventory_hostname }}"
+    namespace: "{{ target_namespace }}"
+
+# Not yet needed...
+# - name: "Include deploy-cluster-{{ cluster_type }}"
+#   include_role:
+#     name: cluster
+#     tasks_from: "deploy-cluster-{{ cluster_type }}.yaml"

@@ -75,8 +75,8 @@
               macAddress: "{{ vm_network_mac_address }}"
               model: virtio
               name: coe
-
-- name: "Include deploy-cluster-{{ cluster_type }}"
-  include_role:
-    name: cluster
-    tasks_from: "deploy-cluster-{{ cluster_type }}.yaml"
+# Not yet needed...
+# - name: "Include deploy-cluster-{{ cluster_type }}"
+#   include_role:
+#     name: cluster
+#     tasks_from: "deploy-cluster-{{ cluster_type }}.yaml"

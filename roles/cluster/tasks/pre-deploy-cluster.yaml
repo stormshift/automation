@@ -165,8 +165,9 @@
       Authorization: "Bearer  {{ my_var_with_return_value.result.status.token }}"
     src: "{{ openshift_install_dir }}/agent.x86_64.iso"
 
-- name: "Include pre-deploy-cluster-{{ cluster_type }}"
-  include_role:
-    name: cluster
-    tasks_from: "pre-deploy-cluster-{{ cluster_type }}.yaml"
+# Not yet needed...
+# - name: "Include pre-deploy-cluster-{{ cluster_type }}"
+#   include_role:
+#     name: cluster
+#     tasks_from: "pre-deploy-cluster-{{ cluster_type }}.yaml"
 
