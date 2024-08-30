@@ -1,12 +1,64 @@
 # All about StormShift Automation
 
-Ansible based, of course!
-(and a litle bit of gitops)
+Ansible based, of course! (and a litle bit of gitops)
 
-## RBAC (**DRAFT**)
+## Cluster as a Service via Ansible Automation Platform
 
- * Group of `stormshift-admins` becomes admin privileges on all projects. (Group is managed at via GitOps )
- * Last one who deployed a cluster get project admin privileges.
+We want to provide
+ * Standalone OpenShift Cluster on OpenShift Virtualization Control plan as VM ) [Issue: create automation for ocp cluster mno #76
+](https://github.com/stormshift/automation/issues/76)
+   * From Single-Node over Compact to full-blown OpenShift Clusters.
+ * Hosted Control Plane (HCP) Cluster with KubeVirt/OpenShift-Virt provider 
+ * RHEL for Edge / MicroShift deployments
+
+
+## Standalone / HCP Cluster - Design
+
+ * Playbooks should provide a ready to use cluster.
+   * No addtional ACM/GitOps integration is needed, but optional possible
+ * Core playbooks/roles provide a cluster and the cluster can enrich with feature roles that are executed during installation. Example for features:
+   * kubevirt-csi driver configuration and deployment [roles/feature-kubevirt-csi](roles/feature-kubevirt-csi)
+   * Adding cluster to central ACM instance [roles/feature-manage-with-acm](roles/feature-manage-with-acm)
+   * ...
+
+### Infrastructure to host the clusters
+
+  * Bare-Metal OpenShift Virtualization Cluster - called managment (mgmt.) cluster
+  * Mgmt. Cluster provides various storage backends
+    * Red Hat OpenShift Data Foundation
+    * NetApp Trident
+    * LVMS (For HCP etcd only)
+    * ...
+  * Every cluster running at the mgmt. cluster get his own namespace/project like that: `stormshift-<cluster-name>-infra` for example `stormshift-ocp11-infra`
+  * At the mgmt. Cluster there will be group `stormshift-admins` this group gets admin privileges on all stormshift related projects.
+  * The last person who deployed a cluster gets cluster admin on the cluster-specific namespace as well.
+  * All clusters & nodes are predefined in a ansible inventory: [inventory/hosts.yml](inventory/hosts.yml) - more details look into [Ansible inventory description](#inventory)
+
+#### <a name="inventory"></a>Ansible inventory description
+
+The inventory is managed in the [inventory/](inventory/) folder.
+
+ * Every cluster is a ansible group `cluster_<cluster-name>` for example <cluster_ocp11> and as subgroups:
+    * `cluster_<cluster-name>_cp` for control plane
+    * `cluster_<cluster-name>_workers` for worker nodes
+     
+ * Every node in a cluster is part of the group.
+ * Every node start with the `<cluster-name>`-control-1 for example:
+   * `ocp11-control-1`
+   * `ocp11-control-2`
+   * `ocp11-control-3`
+   * `ocp11-worker-1`
+   * ...
+```bash
+inventory
+├── group_vars
+│   ├── all.yaml
+│   ├── cluster_ocp11.yaml
+...
+├── host_vars
+│   ├── ocp11-control-1.yaml
+└── hosts.yml
+```
 
 ## Ansible Automation Platform Configuration
 
@@ -18,6 +70,7 @@ Ansible based, of course!
     * Add source `automation-repo` based on `Source from project`:
         * Important - Inventory file: `inventory/hosts.yml`
         ![aap-inventory-source-repo.png](media-asset/aap-inventory-source-repo.png)
+ * Deploy stormshift  
 
 ## Ansible playbook and role structure/idea
 
