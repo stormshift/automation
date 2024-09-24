@@ -1,0 +1,179 @@
+---
+# This is use a test
+- hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    sso_admin_pw: ...
+  tasks:
+
+    - name: debug
+      shell:
+        env | grep K8S
+    # At HCP it's empty
+    - name: Fetch cluster information - oauth url
+      kubernetes.core.k8s_info:
+        api_version: "config.openshift.io/v1"
+        kind: "Ingress"
+        name: "cluster"
+      register: ff
+
+    - name: Cleanup oauth url
+      ansible.builtin.set_fact:
+        oauth_hostname: "{{ ff.resources | first | community.general.json_query(oauth_url_query) | first }}"
+        client_secret: "{{ ff | ansible.builtin.to_uuid }}"
+      vars:
+        oauth_url_query: "status.componentRoutes[?name=='oauth-openshift'].defaultHostname"
+
+    - name: Check oauth_hostname
+      ansible.builtin.fail:
+        msg: "Can not findout oauth url"
+      when: oauth_hostname | length == 0
+
+    - name: Create clients
+      with_items:
+        - coe-sso
+        - coe-sso-admin
+      community.general.keycloak_client:
+
+        validate_certs: false
+        auth_keycloak_url: https://sso.coe.muc.redhat.com
+        auth_realm: master
+        auth_username: admin
+        auth_password: "{{ sso_admin_pw }}"
+
+        realm: "{{ item }}"
+        client_id: "{{  oauth_hostname  }}"
+        secret: "{{ client_secret }}"
+        name: "{{   oauth_hostname }}"
+        redirect_uris:
+          - "https://{{ oauth_hostname }}/oauth2callback/*"
+        web_origins:
+          - "https://{{ oauth_hostname }}/"
+
+        public_client: false
+        frontchannel_logout: true
+        protocol_mappers:
+          - name: "groups"
+            protocol: "openid-connect"
+            protocolMapper: "oidc-group-membership-mapper"
+            consentRequired: false
+            config:
+              "full.path": false
+              "userinfo.token.claim": false
+              "multivalued": true
+              "id.token.claim": true
+              "access.token.claim": true
+              "claim.name": groups
+
+        state: present
+      delegate_to: localhost
+
+    - name: Create clientSecret k8s secret
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Secret
+          type: Opaque
+          metadata:
+            name: "openid-client-secret-coe-sso"
+            namespace: "openshift-config"
+          data:
+            clientSecret: "{{ client_secret | b64encode }}"
+
+    - name: Fetch oauth
+      kubernetes.core.k8s_info:
+        api_version: "config.openshift.io/v1"
+        kind: "OAuth"
+        name: "cluster"
+      register: ff
+
+    - ansible.builtin.set_fact:
+        identity_providers: "{{ ff.resources | first | community.general.json_query(ip_query) }}"
+        ip_coe_sso:
+          mappingMethod: add
+          name: COE-SSO
+          openID:
+            ca:
+              name: redhat-current-it-root-cas
+            claims:
+              email:
+              - email
+              groups:
+              - groups
+              name:
+              - name
+              preferredUsername:
+              - preferred_username
+            clientID: "{{  oauth_hostname  }}"
+            clientSecret:
+              name: openid-client-secret-coe-sso
+            issuer: https://sso.coe.muc.redhat.com/realms/coe-sso
+          type: OpenID
+        ip_coe_sso_admin:
+          mappingMethod: add
+          name: COE-SSO-Admin
+          openID:
+            ca:
+              name: redhat-current-it-root-cas
+            claims:
+              email:
+              - email
+              groups:
+              - groups
+              name:
+              - name
+              preferredUsername:
+              - preferred_username
+            clientID: "{{  oauth_hostname  }}"
+            clientSecret:
+              name: openid-client-secret-coe-sso
+            issuer: https://sso.coe.muc.redhat.com/realms/coe-sso-admin
+          type: OpenID
+      vars:
+        ip_query: "spec.identityProviders"
+
+    - ansible.builtin.set_fact:
+        identity_providers: []
+      when: identity_providers | length == 0
+
+    - debug:
+        var: identity_providers
+
+    - ansible.builtin.set_fact:
+        final_identity_providers: "{{ [ ip_coe_sso, ip_coe_sso_admin ] + identity_providers }}"
+
+    - ansible.builtin.debug:
+        var: final_identity_providers
+
+    - name: Patch oauth
+      ignore_errors: true
+      kubernetes.core.k8s:
+        merge_type: merge
+        definition:
+          apiVersion: "config.openshift.io/v1"
+          kind: "OAuth"
+          metadata:
+            name: "cluster"
+          spec:
+            identityProviders: "{{ final_identity_providers }}"
+
+    - name: Add cluster role
+      kubernetes.core.k8s:
+        definition:
+          apiVersion: rbac.authorization.k8s.io/v1
+          kind: ClusterRoleBinding
+          metadata:
+            name: coe-sso-admin
+          roleRef:
+            apiGroup: rbac.authorization.k8s.io
+            kind: ClusterRole
+            name: cluster-admin
+          subjects:
+          - apiGroup: rbac.authorization.k8s.io
+            kind: Group
+            name: coe-sso-admin
+
+# https://sso.coe.muc.redhat.com/realms/coe-sso/protocol/openid-connect/token
+# https://sso.coe.muc.redhat.com/realms/coe-sso/protocol/openid-connect/token
