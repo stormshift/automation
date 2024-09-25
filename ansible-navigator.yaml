@@ -10,12 +10,14 @@ ansible-navigator:
         - K8S_AUTH_VERIFY_SSL
         - K8S_AUTH_SSL_CA_CERT
         - K8S_AUTH_HOST
+        - K8S_AUTH_KUBECONFIG
         - SSH_PRIVATE_KEY
         - SSH_PUBLIC_KEY
         - TOWER_USERNAME
         - TOWER_HOST
         - TOWER_PASSWORD
         - TOWER_VERIFY_SSL
+        - KUBECONFIG
     image: quay.coe.muc.redhat.com/stormshift/automation-execution-environment:202405081739
   logging:
     level: debug
