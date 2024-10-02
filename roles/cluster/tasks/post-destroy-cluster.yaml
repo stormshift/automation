@@ -1,0 +1,17 @@
+---
+
+- name: Delete DataVolume agent-iso
+  # register: my_var_with_return_value
+  kubernetes.core.k8s:
+    state: absent
+    wait: yes
+    wait_condition:
+      type: Running
+      status: True
+      reason: Pod is running
+    definition:
+      apiVersion: cdi.kubevirt.io/v1beta1
+      kind: DataVolume
+      metadata:
+        name: "{{ cluster_name }}-agent-iso"
+        namespace: "{{ target_namespace }}"

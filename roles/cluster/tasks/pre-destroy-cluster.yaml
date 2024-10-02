@@ -5,7 +5,7 @@
     zone_name: "{{ cluster_base_domain }}"
     record_name: "{{ item }}.{{ cluster_name }}"
     record_type: A
-    # record_value: "{{ cluster_api_vip | default(vm_network_ip_address) }}"
+    record_value: "{{ cluster_api_vip | default(vm_network_ip_address) }}"
     state: absent
     ipa_host: "{{ lookup('ansible.builtin.env', 'IPA_HOST' ) }}"
     ipa_user: "{{ lookup('ansible.builtin.env', 'IPA_USER' ) }}"
@@ -20,7 +20,7 @@
     zone_name: "{{ cluster_base_domain }}"
     record_name: "*.apps.{{ cluster_name }}"
     record_type: A
-    # record_value: "{{ cluster_ingress_vip | default(vm_network_ip_address) }}"
+    record_value: "{{ cluster_ingress_vip | default(vm_network_ip_address) }}"
     state: absent
     ipa_host: "{{ lookup('ansible.builtin.env', 'IPA_HOST' ) }}"
     ipa_user: "{{ lookup('ansible.builtin.env', 'IPA_USER' ) }}"

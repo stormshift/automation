@@ -111,7 +111,7 @@
         config: '{"name":"coe-bridge","type":"cnv-bridge","cniVersion":"0.3.1","bridge":"coe-bridge","macspoofchk":true,"ipam":{}}'
 
 # https://github.com/kubevirt/containerized-data-importer/blob/main/doc/upload.md
-- name: Create DataVolume
+- name: Create DataVolume agent-iso
   # register: my_var_with_return_value
   kubernetes.core.k8s:
     state: present

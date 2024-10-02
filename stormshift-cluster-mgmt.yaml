@@ -1,18 +1,28 @@
 ---
-- name: Pre-deploy cluster
-  hosts: "localhost"
+- name: "Managed StormShift Cluster {{ stormshift_cluster_name }}"
+  # Doing once, host doesnt matter
+  hosts: "cluster_{{ stormshift_cluster_name }}[0]"
   connection: local
   gather_facts: false
   tasks:
-
     - name: Debug information
       ansible.builtin.debug:
         msg:
-          - "Run aggainst {{inventory_hostname}}, vars:"
+          - "Run aggpainst {{inventory_hostname}}, vars:"
           - " - stormshift_cluster_action : {{ stormshift_cluster_action }}"
           - " - stormshift_cluster_name : {{ stormshift_cluster_name }}"
         verbosity: 1
 
-    - name: "import playbook stormshift-cluster-{{ stormshift_cluster_action }}"
-      ansible.builtin.import_playbook: "stormshift-cluster-{{ stormshift_cluster_action }}.yaml"
+    - name: Check if action is supported/allowed
+      fail: 
+        msg: "Action {{  stormshift_cluster_action }} is not supported/allowed"
+      when: 
+        - cluster_excluded_actions is defined
+        - stormshift_cluster_action is in cluster_excluded_actions
+
+
+- name: "Import playbook stormshift-cluster-{{ stormshift_cluster_action }}"
+  ansible.builtin.import_playbook: "stormshift-cluster-{{ stormshift_cluster_action }}.yaml"
+  vars:
+    cluster_name: "{{ stormshift_cluster_name }}"
 
