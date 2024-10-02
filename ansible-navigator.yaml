@@ -18,7 +18,13 @@ ansible-navigator:
         - TOWER_PASSWORD
         - TOWER_VERIFY_SSL
         - KUBECONFIG
-    image: quay.coe.muc.redhat.com/stormshift/automation-execution-environment:202405081739
+        - RHCA_USER
+        - RHCA_PASS
+        - RH_VAULT_CA_CERT_FILENAME
+        - RH_VAULT_URL
+        - RH_VAULT_ROLE_ID
+        - RH_VAULT_SECRET_ID
+    image: quay.coe.muc.redhat.com/stormshift/automation-execution-environment:202410021205
   logging:
     level: debug
   mode: stdout
