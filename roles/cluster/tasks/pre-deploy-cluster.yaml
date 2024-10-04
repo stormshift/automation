@@ -99,8 +99,8 @@
     src: '{{ openshift_install_dir }}/{{ item }}'
   register: files
   loop:
-    - agent-config.yaml
-    - install-config.yaml
+    - agent-config.yaml.original
+    - install-config.yaml.original
     - auth/kubeadmin-password
     - auth/kubeconfig
 
@@ -114,8 +114,8 @@
         name: installer-auth-backup
         namespace: "{{ target_namespace }}"
       stringData:
-        agent-config.yaml: "{{ (files.results | selectattr('item', 'equalto', 'agent-config.yaml') | first ).content  | b64decode}}"
-        install-config.yaml: "{{ (files.results | selectattr('item', 'equalto', 'install-config.yaml') | first ).content  | b64decode}}"
+        agent-config.yaml: "{{ (files.results | selectattr('item', 'equalto', 'agent-config.yaml.original') | first ).content  | b64decode}}"
+        install-config.yaml: "{{ (files.results | selectattr('item', 'equalto', 'install-config.yaml.original') | first ).content  | b64decode}}"
         kubeconfig: "{{ (files.results | selectattr('item', 'equalto', 'auth/kubeconfig') | first ).content  | b64decode}}"
         kubeadmin-password: "{{ (files.results | selectattr('item', 'equalto', 'auth/kubeadmin-password') | first ).content  | b64decode}}"
 
