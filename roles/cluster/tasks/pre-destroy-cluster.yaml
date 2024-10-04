@@ -45,9 +45,8 @@
 #     name: cluster
 #     tasks_from: "pre-destroy-cluster-{{ cluster_type }}.yaml"
 
-
 - name: Include pre-destroy-features
   ansible.builtin.include_role:
     name: "{{ item }}"
-    tasks_form: pre-destroy.yaml
+    tasks_from: pre-destroy.yaml
   with_items: "{{ stormshift_cluster_features | default([]) }}"
