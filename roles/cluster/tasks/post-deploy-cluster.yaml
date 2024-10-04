@@ -5,3 +5,10 @@
 #   include_role:
 #     name: cluster
 #     tasks_from: "post-deploy-cluster-{{ cluster_type }}.yaml"
+
+
+- name: Include post-deploy-features
+  ansible.builtin.include_role:
+    name: "{{ item }}"
+    tasks_form: post-deploy.yaml
+  with_items: "{{ stormshift_cluster_features | default([]) }}"

@@ -2,8 +2,7 @@
 
 - name: "Remove ManagedCluster >{{ acm_hub_clustername }}< from ACM"
   tags: acm
-  local_action:
-    module: kubernetes.core.k8s
+  kubernetes.core.k8s:
     state: absent
     wait: true
     definition:
@@ -15,12 +14,11 @@
 
 - name: "Remove Namespace  >{{ acm_hub_clustername }}< from HubCluster"
   tags: acm
-  local_action:
-    module: kubernetes.core.k8s
+  kubernetes.core.k8s:
     state: absent
     wait: true
     definition:
       apiVersion: v1
       kind: Namespace
-      metadata:
+      metadgsata:
         name: "{{ acm_hub_clustername }}"

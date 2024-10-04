@@ -5,8 +5,7 @@
 # its own namespace - multiple clusters in a single namespace does not work
 - name: "Create Namespace >{{ acm_hub_clustername }}< in hub cluster"
   tags: acm
-  local_action:
-    module: kubernetes.core.k8s
+  kubernetes.core.k8s:
     state: present
     definition:
       apiVersion: v1
@@ -16,8 +15,7 @@
 
 - name: Create auto-import-secret in hub
   tags: acm
-  local_action:
-    module: kubernetes.core.k8s
+  kubernetes.core.k8s:
     state: present
     definition:
       apiVersion: v1
@@ -33,8 +31,7 @@
 
 - name: "Create ManagedCluster >{{ acm_hub_clustername }}< in hub"
   tags: acm
-  local_action:
-    module: kubernetes.core.k8s
+  kubernetes.core.k8s:
     state: present
     definition:
       apiVersion: cluster.open-cluster-management.io/v1
@@ -52,8 +49,7 @@
 
 - name: "Create KlusterletAddonConfig >{{ acm_hub_clustername }}< in hub"
   tags: acm
-  local_action:
-    module: kubernetes.core.k8s
+  kubernetes.core.k8s:
     state: present
     definition:
       apiVersion: agent.open-cluster-management.io/v1
