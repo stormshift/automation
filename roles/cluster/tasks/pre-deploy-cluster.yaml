@@ -1,5 +1,4 @@
 ---
-
 - name: Download OpenShift Artifacts
   # Work-a-round: tags inheritance don't work without a block.
   # https://github.com/ansible/ansible/issues/41540#issuecomment-419433375
@@ -72,6 +71,45 @@
     mode: 0644
   tags:
     - agent-config
+
+- name: Slurp configurations
+  ansible.builtin.slurp:
+    src: '{{ openshift_install_dir }}/{{ item }}'
+  register: files
+  loop:
+    - agent-config.yaml
+    - install-config.yaml
+    - auth/kubeadmin-password
+    - auth/kubeconfig
+
+- name: Store installaer configuration and authentication in a secret
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: installer-auth-backup
+        namespace: "{{ target_namespace }}"
+      stringData:
+        agent-config.yaml: "{{ (files.results | selectattr('item', 'equalto', 'agent-config.yaml') | first ).content  | b64decode}}"
+        install-config.yaml: "{{ (files.results | selectattr('item', 'equalto', 'install-config.yaml') | first ).content  | b64decode}}"
+        kubeconfig: "{{ (files.results | selectattr('item', 'equalto', 'auth/kubeconfig') | first ).content  | b64decode}}"
+        kubeadmin-password: "{{ (files.results | selectattr('item', 'equalto', 'auth/kubeadmin-password') | first ).content  | b64decode}}"
+
+- name: Store cluster authentfication in Vault
+  community.hashi_vault.vault_kv2_write:
+    url: "{{ lookup('ansible.builtin.env', 'RH_VAULT_URL' ) }}"
+    auth_method: approle
+    role_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_ROLE_ID' ) }}"
+    secret_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_SECRET_ID' ) }}"
+    ca_cert: "{{ lookup('ansible.builtin.env', 'RH_VAULT_CA_CERT_FILENAME' ) }}"
+    engine_mount_point: apps
+
+    path: "coe-lab/cluster-credential/stormshift-{{ cluster_name }}"
+    data:
+      kubeconfig: "{{ (files.results | selectattr('item', 'equalto', 'auth/kubeconfig') | first ).content  | b64decode}}"
+      kubeadmin-password: "{{ (files.results | selectattr('item', 'equalto', 'auth/kubeadmin-password') | first ).content  | b64decode}}"
 
 - name: Create agent.iso files
   ansible.builtin.shell: |

@@ -1,5 +1,4 @@
 ---
-
 - name: Delete DataVolume agent-iso
   # register: my_var_with_return_value
   kubernetes.core.k8s:
@@ -15,3 +14,24 @@
       metadata:
         name: "{{ cluster_name }}-agent-iso"
         namespace: "{{ target_namespace }}"
+
+- name: Delete installaer authentication in a secret
+  kubernetes.core.k8s:
+    state: absent
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: installer-auth-backup
+        namespace: "{{ target_namespace }}"
+
+- name: Delete cluster authentfication in Vault
+  community.hashi_vault.vault_kv2_delete:
+    url: "{{ lookup('ansible.builtin.env', 'RH_VAULT_URL' ) }}"
+    auth_method: approle
+    role_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_ROLE_ID' ) }}"
+    secret_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_SECRET_ID' ) }}"
+    ca_cert: "{{ lookup('ansible.builtin.env', 'RH_VAULT_CA_CERT_FILENAME' ) }}"
+    engine_mount_point: apps
+
+    path: "coe-lab/cluster-credential/stormshift-{{ cluster_name }}"
