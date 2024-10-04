@@ -24,6 +24,10 @@ ansible-navigator:
         - RH_VAULT_URL
         - RH_VAULT_ROLE_ID
         - RH_VAULT_SECRET_ID
+        - CONTROLLER_HOST
+        - CONTROLLER_PASSWORD
+        - CONTROLLER_USERNAME
+        - CONTROLLER_VERIFY_SSL
     image: quay.coe.muc.redhat.com/stormshift/automation-execution-environment:202410021205
   logging:
     level: debug
