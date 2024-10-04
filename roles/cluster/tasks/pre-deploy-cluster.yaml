@@ -90,7 +90,6 @@
         name: "{{ target_namespace }}"
         annotations:
           openshift.io/description: Contains VMs running microshift instances
-          openshift.io/display-name: stormshift-microshift
           openshift.io/requester: "{{ tower_user_email }}"
           openshift.io/display-name: "StormShift Cluster {{ cluster_name }}"
           openshift.io/description: "StormShift Cluster {{ cluster_name }}, creator: {{ tower_user_name}} <{{ tower_user_email }}>"
