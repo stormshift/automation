@@ -35,3 +35,10 @@
     engine_mount_point: apps
 
     path: "coe-lab/cluster-credential/stormshift-{{ cluster_name }}"
+
+- name: Delete cluster authentfication in AAP
+  awx.awx.credential:
+    name: "{{ cluster_name }}"
+    organization: stormshift
+    state: absent
+    credential_type: "OpenShift Cluster v1"
