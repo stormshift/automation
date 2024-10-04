@@ -9,6 +9,6 @@
 
 - name: Include post-deploy-features
   ansible.builtin.include_role:
-    name: "{{ item }}"
+    name: "feature-{{ item }}"
     tasks_from: post-deploy.yaml
   with_items: "{{ stormshift_cluster_features | default([]) }}"
