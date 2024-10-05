@@ -1,131 +1,6 @@
 ---
-# - set_fact:
-#     temp:
-#       path: "."
-- name: Temp folder
-  ansible.builtin.tempfile:
-    state: "directory"
-    suffix: "{{ common_name }}"
-  register: temp
-
-- name: Generate Private Key
-  community.crypto.openssl_privatekey:
-    path: "{{ temp.path }}/key"
-    size: 4096
-  register: private_key
-
-- name: Slurp private key
-  ansible.builtin.slurp:
-    src: "{{private_key.filename}}"
-  register: private_key_file
-
-- name: Generate Certificate Signing Request
-  community.crypto.openssl_csr:
-    path: "{{ common_name }}.csr"
-    privatekey_path: "{{private_key.filename}}"
-    use_common_name_for_san: true
-    # subject_alt_name: 'DNS:www.ansible.com,DNS:m.ansible.com'
-    subject_alt_name: "{{ subject_alt_name }}"
-    common_name: "{{ common_name }}"
-    organizational_unit_name: "coe-lab-muc"
-    return_content: true
-  register: csr
-
-- name: Request Certificate
-  ansible.builtin.uri:
-    url: "{{ca_url}}/ca/rest/certrequests"
-    method: POST
-    body_format: json
-    validate_certs: false
-    headers:
-      Accept: 'application/json'
-    body:
-      Renewal: false
-      ProfileID: "{{ca_profile}}"
-      Attributes:
-        Attribute:
-         - name: "uid"
-           value: "{{ lookup('ansible.builtin.env', 'RHCA_USER' ) }}"
-         - name: "pwd"
-           value: "{{ lookup('ansible.builtin.env', 'RHCA_PASS' ) }}"
-      Input:
-        - id: i1
-          ClassID: certReqInputImpl
-          Name: "Certificate Request Input"
-          Attribute:
-            - name: "cert_request_type"
-              Value: "pkcs10"
-            - name: cert_request
-              Value: "{{csr.csr}}"
-  register: crt_req
-
-- name: Retrieve Certificate
-  ansible.builtin.uri:
-    url: "{{crt_req.json.entries[0].certURL}}"
-    method: GET
-    body_format: json
-    validate_certs: false
-    headers:
-      Accept: 'application/json'
-  register: crt
-
-- name: Write pkcs7
-  ansible.builtin.copy:
-    content: |
-      -----BEGIN PKCS7-----
-      {{ crt.json.PKCS7CertChain -}}
-      -----END PKCS7-----
-    dest: "{{ temp.path }}/pkcs7"
-
-- name: Convert pkcs7 into full-chain.pem
-  ansible.builtin.command: 
-    chdir: "{{ temp.path }}"
-    cmd: "openssl pkcs7 -print_certs -in pkcs7  -out full-chain.pem"
-
-- name: Extract full-chain.pem
-  ansible.builtin.set_fact:
-    full_chain: "{{ lookup('ansible.builtin.file', '{{ temp.path }}/full-chain.pem') | community.crypto.split_pem }}"
-
-- name: Check chain lenght
-  fail:
-    msg: "full chain do not have expected lenth"
-  when: full_chain | length != 3
-
-- name: Get information on generated certificate
-  community.crypto.x509_certificate_info:
-    content: "{{full_chain[0]}}"
-  register: result
-
-- name: Print Cert 0
-  ansible.builtin.debug:
-    msg: 
-      - "Subject commonName: {{ result.subject.commonName }}"
-      - "Issuer commonName: {{ result.issuer.commonName}}"
-
-- name: Get information on generated certificate
-  community.crypto.x509_certificate_info:
-    content: "{{full_chain[1]}}"
-  register: result
-
-- name: Print Cert 1
-  ansible.builtin.debug:
-    msg: 
-      - "Subject commonName: {{ result.subject.commonName }}"
-      - "Issuer commonName: {{ result.issuer.commonName}}"
-
-- name: Get information on generated certificate
-  community.crypto.x509_certificate_info:
-    content: "{{full_chain[2]}}"
-  register: result
-
-- name: Print Cert 2
-  ansible.builtin.debug:
-    msg: 
-      - "Subject commonName: {{ result.subject.commonName }}"
-      - "Issuer commonName: {{ result.issuer.commonName}}"
-
-- name: Store the cert data in Red Hat Vault 
-  community.hashi_vault.vault_kv2_write:
+- name: Get certificate from Vault
+  community.hashi_vault.vault_kv2_get:
     url: "{{ lookup('ansible.builtin.env', 'RH_VAULT_URL' ) }}"
     auth_method: approle
     role_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_ROLE_ID' ) }}"
@@ -134,18 +9,14 @@
     engine_mount_point: apps
 
     path: "coe-lab/certificate/{{ common_name }}"
-    data:
-      common_name: "{{ common_name }}"
-      subject_alt_name: "{{ subject_alt_name }}"
-      not_after_epoch: "{{ (crt.json.NotAfter | to_datetime('%a %b %d %H:%M:%S %Z %Y')).strftime('%s') }}"
-      root_ca_pem: "{{full_chain[2]}}"
-      cert_pem: "{{full_chain[0]}}"
-      intermediate_pem: "{{full_chain[1]}}"
-      cert_and_intermediate_pem: |
-        {{full_chain[0]}}
-        {{full_chain[1]}}
-      pkcs7: |
-        -----BEGIN PKCS7-----
-        {{ crt.json.PKCS7CertChain -}}
-        -----END PKCS7-----
-      key: "{{ private_key_file.content | b64decode }}"
+  register: certificate 
+  ignore_errors: true
+
+- name: Certificate does not exist, request on
+  ansible.builtin.include_tasks: request-cert.yaml
+  when: certificate.failed
+
+- name: Certificate is to old, request new on
+  ansible.builtin.include_tasks: request-cert.yaml
+  when:
+    - ( (certificate.secret.not_after_epoch|int) - (now().strftime('%s')|int) ) < renew_in_seconds
