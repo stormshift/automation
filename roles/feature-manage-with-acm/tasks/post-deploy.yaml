@@ -1,5 +1,4 @@
 # assumes: default kubeconfig points to hub cluster
-
 ---
 # Important: namespace must be equal to clustername - each cluster must have
 # its own namespace - multiple clusters in a single namespace does not work
@@ -13,6 +12,18 @@
       metadata:
         name: "{{ acm_hub_clustername }}"
 
+- name: Get cluster authentfication from Vault
+  community.hashi_vault.vault_kv2_get:
+    url: "{{ lookup('ansible.builtin.env', 'RH_VAULT_URL' ) }}"
+    auth_method: approle
+    role_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_ROLE_ID' ) }}"
+    secret_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_SECRET_ID' ) }}"
+    ca_cert: "{{ lookup('ansible.builtin.env', 'RH_VAULT_CA_CERT_FILENAME' ) }}"
+    engine_mount_point: apps
+
+    path: "coe-lab/cluster-credential/{{ acm_hub_clustername }}"
+  register: acm_hub_cluster_credential
+
 - name: Create auto-import-secret in hub
   tags: acm
   kubernetes.core.k8s:
@@ -25,7 +36,7 @@
         namespace: "{{ acm_hub_clustername }}"
       stringData:
         autoImportRetry: "5"
-        kubeconfig: "{{ acm_spoke_kubeconfig }}"
+        kubeconfig: "{{ acm_hub_cluster_credential.secret.kubeconfig }}"
         server: "{{ acm_spoke_api_endpoint }}"
       type: Opaque
 
@@ -45,7 +56,7 @@
       spec:
         hubAcceptsClient: true
         managedClusterClientConfigs:
-        - url: "{{ acm_spoke_api_endpoint }}"
+        - url: "https://{{ acm_spoke_api_endpoint }}"
 
 - name: "Create KlusterletAddonConfig >{{ acm_hub_clustername }}< in hub"
   tags: acm

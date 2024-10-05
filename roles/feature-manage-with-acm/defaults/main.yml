@@ -1,0 +1,4 @@
+---
+acm_hub_clustername: stormshift-{{ cluster_name | default(stormshift_cluster_name) }}
+acm_hub_clusterset: stormshift
+acm_spoke_api_endpoint: "api.{{ cluster_name | default(stormshift_cluster_name) }}.{{ cluster_base_domain }}:6443"
