@@ -22,6 +22,7 @@ dependencies:
 # ToDo: add version numbers!
       - name: community.general
       - name: community.kubernetes
+      - name: redhat.openshift
       - name: kubernetes.core
       - name: ansible.posix
       - name: community.crypto
