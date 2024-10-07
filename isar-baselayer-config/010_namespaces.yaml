@@ -28,3 +28,13 @@ metadata:
     openshift.io/requester: dfroehli@redhat.com
   name: stormshift-openshift
 spec:
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  annotations:
+    openshift.io/description: "Foundation for all StormShift related workload"
+    openshift.io/display-name: "stormshift"
+    openshift.io/requester: rbohne@redhat.com
+  name: stormshift
+spec:

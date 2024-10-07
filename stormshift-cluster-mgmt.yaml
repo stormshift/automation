@@ -1,7 +1,7 @@
 ---
 - name: "Managed StormShift Cluster {{ stormshift_cluster_name }}"
   # Doing once, host doesnt matter
-  hosts: "cluster_{{ stormshift_cluster_name }}[0]"
+  hosts: "{{ stormshift_cluster_name }}"
   connection: local
   gather_facts: false
   tasks:
@@ -20,9 +20,7 @@
         - cluster_excluded_actions is defined
         - stormshift_cluster_action is in cluster_excluded_actions
 
-
-- name: "Import playbook stormshift-cluster-{{ stormshift_cluster_action }}"
-  ansible.builtin.import_playbook: "stormshift-cluster-{{ stormshift_cluster_action }}.yaml"
-  vars:
-    cluster_name: "{{ stormshift_cluster_name }}"
-
+    - name: "Include {{stormshift_cluster_action}}-cluster"
+      include_role:
+        name: cluster
+        tasks_from: "{{ stormshift_cluster_action }}-cluster.yaml"

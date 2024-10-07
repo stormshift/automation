@@ -1,17 +1,16 @@
 ---
 # defaults file for cluster
+cluster_name: "{{ inventory_hostname }}"
 
 artifacts_dir: "{{ playbook_dir }}"
-openshift_install_dir: "{{ artifacts_dir }}/{{ cluster_name }}"
+openshift_install_dir: "{{ artifacts_dir }}/{{ inventory_hostname }}"
 openshift_version: 4.15.10
 openshift_install_dest: "{{ artifacts_dir }}/{{ openshift_version }}"
-# openshift_install_command: "{{ artifacts_dir }}/{{ openshift_version }}/openshift-install"
 
 openshift_mirror: "https://mirror.openshift.com"
 openshift_location: "{{ openshift_mirror }}/pub/openshift-v4/clients/ocp/{{ openshift_version }}"
 
 openshift_install_command: "{{ openshift_install_dest }}/openshift-install"
-
 
 network: 10.32.96.0
 network_ip_address_prefix_length: 20
@@ -23,8 +22,7 @@ network_dns_servers:
 
 upload_host: https://cdi-uploadproxy-openshift-cnv.apps.isar.coe.muc.redhat.com
 
-
-vm_storageclass: coe-netapp-san
+vm_rootdisk_storageclass: coe-netapp-san
 vm_rootdisk_gb: 120
 
-target_namespace: "stormshift-{{ cluster_name }}-infra"
+target_namespace: "stormshift-{{ inventory_hostname }}-infra"
