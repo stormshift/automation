@@ -23,7 +23,7 @@ ansible-navigator:
         - CONTROLLER_PASSWORD
         - CONTROLLER_USERNAME
         - CONTROLLER_VERIFY_SSL
-    image: quay.coe.muc.redhat.com/stormshift/automation-execution-environment:202410021205
+    image: quay.coe.muc.redhat.com/stormshift/automation-execution-environment:202410072305
   logging:
     level: debug
   mode: stdout
