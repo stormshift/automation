@@ -5,6 +5,10 @@
 - name: "Create Namespace >{{ acm_hub_clustername }}< in hub cluster"
   tags: acm
   kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
     state: present
     definition:
       apiVersion: v1
@@ -27,6 +31,10 @@
 - name: Create auto-import-secret in hub
   tags: acm
   kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
     state: present
     definition:
       apiVersion: v1
@@ -43,6 +51,10 @@
 - name: "Create ManagedCluster >{{ acm_hub_clustername }}< in hub"
   tags: acm
   kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
     state: present
     definition:
       apiVersion: cluster.open-cluster-management.io/v1
@@ -61,6 +73,10 @@
 - name: "Create KlusterletAddonConfig >{{ acm_hub_clustername }}< in hub"
   tags: acm
   kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
     state: present
     definition:
       apiVersion: agent.open-cluster-management.io/v1
@@ -83,7 +99,7 @@
        iamPolicyController:
          enabled: true
 
-#ToDo create clusterdeployment with all details:
+#ToDo create clusterdeployment with all details, it works. The UI looks good, but hive kicks in and try to managed the cluster in case of destroy.
 
 # apiVersion: hive.openshift.io/v1
 # kind: ClusterDeployment

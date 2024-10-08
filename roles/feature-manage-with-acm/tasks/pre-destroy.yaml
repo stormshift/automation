@@ -1,8 +1,11 @@
 ---
-
 - name: "Remove ManagedCluster >{{ acm_hub_clustername }}< from ACM"
   tags: acm
   kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
     state: absent
     wait: true
     definition:
@@ -15,6 +18,10 @@
 - name: "Remove Namespace  >{{ acm_hub_clustername }}< from HubCluster"
   tags: acm
   kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
     state: absent
     wait: true
     definition:
