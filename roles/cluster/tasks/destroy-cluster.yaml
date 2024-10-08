@@ -9,7 +9,7 @@
 - name: Remove api/api-int dns records
   community.general.ipa_dnsrecord:
     zone_name: "{{ cluster_base_domain }}"
-    record_name: "{{ item }}.{{ cluster_name }}"
+    record_name: "{{ item }}.{{ inventory_hostname }}"
     record_type: A
     record_value: "{{ cluster_api_vip | default(control_plans.0.vm_network_ip_address) }}"
     state: absent
@@ -24,7 +24,7 @@
 - name: Remove *.apps dns records
   community.general.ipa_dnsrecord:
     zone_name: "{{ cluster_base_domain }}"
-    record_name: "*.apps.{{ cluster_name }}"
+    record_name: "*.apps.{{ inventory_hostname }}"
     record_type: A
     record_value: "{{ cluster_ingress_vip | default(control_plans.0.vm_network_ip_address) }}"
     state: absent
@@ -46,7 +46,7 @@
       apiVersion: cdi.kubevirt.io/v1beta1
       kind: DataVolume
       metadata:
-        name: "{{ cluster_name }}-agent-iso"
+        name: "{{ inventory_hostname }}-agent-iso"
         namespace: "{{ target_namespace }}"
 
 # Not yet needed
@@ -84,7 +84,7 @@
       apiVersion: cdi.kubevirt.io/v1beta1
       kind: DataVolume
       metadata:
-        name: "{{ cluster_name }}-agent-iso"
+        name: "{{ inventory_hostname }}-agent-iso"
         namespace: "{{ target_namespace }}"
 
 - name: Delete installer authentication in a secret
@@ -110,11 +110,11 @@
     ca_cert: "{{ lookup('ansible.builtin.env', 'RH_VAULT_CA_CERT_FILENAME' ) }}"
     engine_mount_point: apps
 
-    path: "coe-lab/cluster-credential/stormshift-{{ cluster_name }}"
+    path: "coe-lab/cluster-credential/stormshift-{{ inventory_hostname }}"
 
 - name: Delete cluster authentfication in AAP
   awx.awx.credential:
-    name: "{{ cluster_name }}"
+    name: "{{ inventory_hostname }}"
     organization: stormshift
     state: absent
     credential_type: "OpenShift Cluster v1"

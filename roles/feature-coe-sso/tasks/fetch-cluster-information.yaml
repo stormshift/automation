@@ -8,7 +8,7 @@
     ca_cert: "{{ lookup('ansible.builtin.env', 'RH_VAULT_CA_CERT_FILENAME' ) }}"
     engine_mount_point: apps
 
-    path: "coe-lab/cluster-credential/stormshift-ocp1"
+    path: "coe-lab/cluster-credential/stormshift-{{ inventory_hostname }}"
   register: cluster_credential 
 
 - name: Temp folder
