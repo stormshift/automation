@@ -1,9 +1,10 @@
 - hosts: localhost
   gather_facts: false
-  # vars:
-  #   common_name: "api.apps.ocp5.stormshift.coe.muc.redhat.com"
-  #   subject_alt_name: "DNS:api.isar.coe.muc.redhat.com,DNS:*.apps.ocp5.stormshift.coe.muc.redhat.com"
   tasks:
     - name: "Import role req-cert-vault"
+      vars:
+        common_name: "api.ocp5.stormshift.coe.muc.redhat.com"
+        subject_alt_name: "DNS:api.ocp5.stormshift.coe.muc.redhat.com,DNS:*.apps.ocp5.stormshift.coe.muc.redhat.com"
+
       ansible.builtin.include_role:
         name: req-cert-vault
