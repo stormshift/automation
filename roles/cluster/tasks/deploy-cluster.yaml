@@ -12,7 +12,7 @@
     zone_name: "{{ cluster_base_domain }}"
     record_name: "{{ item }}.{{ inventory_hostname }}"
     record_type: A
-    record_value: "{{ cluster_api_vip | default(control_plan.0.vm_network_ip_address) }}"
+    record_value: "{{ cluster_api_vip | default(control_plans.0.vm_network_ip_address) }}"
     state: present
     ipa_host: "{{ lookup('ansible.builtin.env', 'IPA_HOST' ) }}"
     ipa_user: "{{ lookup('ansible.builtin.env', 'IPA_USER' ) }}"
@@ -28,7 +28,7 @@
     record_name: "*.apps.{{ inventory_hostname }}"
     record_type: A
     # Fallback for vm_network_ip_address needed for SNO
-    record_value: "{{ cluster_ingress_vip | default(control_plan.0.vm_network_ip_address) }}"
+    record_value: "{{ cluster_ingress_vip | default(control_plans.0.vm_network_ip_address) }}"
     state: present
     ipa_host: "{{ lookup('ansible.builtin.env', 'IPA_HOST' ) }}"
     ipa_user: "{{ lookup('ansible.builtin.env', 'IPA_USER' ) }}"
@@ -303,7 +303,7 @@
     vm_network_ip_address: "{{ item.1.vm_network_ip_address }}"
     vm_network_mac_address: "{{ item.1.vm_network_mac_address }}"
   ansible.builtin.include_tasks: "deploy-vm.yaml"
-  with_indexed_items: "{{ workers }}"
+  with_indexed_items: "{{ workers | default([])}}"
 
 - name: Waiting installation to complete
   ansible.builtin.shell: |

@@ -16,6 +16,6 @@ cluster_name: ocp11
 
 control_plan_cores: 16
 control_plan_ram_gb: 32
-control_plan:
+control_plans:
   - vm_network_ip_address: 10.32.105.128
     vm_network_mac_address: 0E:C0:EF:20:6F:80
