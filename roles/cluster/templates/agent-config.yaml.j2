@@ -36,7 +36,7 @@ hosts:
             next-hop-interface: eth0
             table-id: 254
 {% endfor %}
-{% for host in workers %}
+{% for host in workers | default([]) %}
   - hostname: {{ inventory_hostname }}-worker-{{ loop.index }}
     role: worker
     interfaces:
