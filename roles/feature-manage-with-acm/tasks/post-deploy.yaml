@@ -82,3 +82,50 @@
          enabled: true
        iamPolicyController:
          enabled: true
+
+#ToDo create clusterdeployment with all details:
+
+# apiVersion: hive.openshift.io/v1
+# kind: ClusterDeployment
+# metadata:
+#   annotations:
+#     open-cluster-management.io/user-identity: cmJvaG5lQHJlZGhhdC5jb20tYWRtaW4=
+#   labels:
+#     cluster.open-cluster-management.io/clusterset: stormshift
+#     vendor: OpenShift
+#   name: stormshift-ocp1
+#   namespace: stormshift-ocp1
+# spec:
+#   baseDomain: coe.muc.redhat.com
+#   clusterMetadata:
+#     # oc get clusterversion/version -o yaml
+#     clusterID: 3727f760-3b42-4cc2-ac8e-4f3d41481278
+#     # oc get infrastructure/cluster -o yaml
+#     infraID: ocp1-cc7ht
+
+#     adminKubeconfigSecretRef:
+#       name: installer-auth-backup
+#       # kubeconfig & raw-kubeconfig
+#     adminPasswordSecretRef:
+#       name: installer-auth-backup
+#       #   password: UnR2UzktZXphQjItUm1EYWotdVhUOWU=
+#       # username: a3ViZWFkbWlu
+#   clusterName: stormshift-ocp1
+#   platform:
+#     none: {}
+#   provisioning:
+#     installConfigSecretRef:
+#       name: installer-auth-backup
+
+# apiVersion: v1
+# data:
+#   agent-config.yaml: 
+#   install-config.yaml: 
+#   username: 
+#   password: 
+#   kubeconfig: 
+# kind: Secret
+# metadata:
+#   name: installer-auth-backup
+#   namespace: stormshift-ocp1
+# type: Opaque
