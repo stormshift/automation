@@ -284,8 +284,8 @@
 - name: Deploy control plane VM
   vars:
     vm_name: "{{ inventory_hostname }}-cp-{{ item.0 }}"
-    # vm_rootdisk_gb: "120Gi"
-    # vm_rootdisk_storageclass:  coe-netapp-san
+    vm_rootdisk_size: "120Gi"
+    vm_rootdisk_storageclass:  coe-netapp-san
     vm_cores:  "{{ control_plan_cores }}"
     vm_memory_gb: "{{ control_plan_ram_gb }}"
     vm_network_ip_address: "{{ item.1.vm_network_ip_address }}"
@@ -296,8 +296,8 @@
 - name: Deploy worker VM
   vars:
     vm_name: "{{ inventory_hostname }}-worker-{{ item.0 }}"
-    # vm_rootdisk_gb: "120Gi"
-    # vm_rootdisk_storageclass:  coe-netapp-san
+    vm_rootdisk_size: "120Gi"
+    vm_rootdisk_storageclass:  coe-netapp-san
     vm_cores:  "{{ worker_cores }}"
     vm_memory_gb: "{{ worker_ram_gb }}"
     vm_network_ip_address: "{{ item.1.vm_network_ip_address }}"

@@ -22,7 +22,7 @@
             storageClassName: "{{ vm_rootdisk_storageclass }}"
             resources:
               requests:
-                storage: "{{ vm_rootdisk_gb }}"
+                storage: "{{ vm_rootdisk_size }}"
           source:
             blank: {}
 

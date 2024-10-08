@@ -22,7 +22,4 @@ network_dns_servers:
 
 upload_host: https://cdi-uploadproxy-openshift-cnv.apps.isar.coe.muc.redhat.com
 
-vm_rootdisk_storageclass: coe-netapp-san
-vm_rootdisk_gb: 120
-
 target_namespace: "stormshift-{{ inventory_hostname }}-infra"
