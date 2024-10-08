@@ -1,0 +1,22 @@
+---
+- name: Fetch cluster information
+  ansible.builtin.include_tasks: "fetch-cluster-information.yaml"
+
+- name: Destroy clients
+  with_items:
+    - coe-sso
+    - coe-sso-admin
+  community.general.keycloak_client:
+
+    validate_certs: false
+    auth_keycloak_url: https://sso.coe.muc.redhat.com
+    auth_realm: master
+    auth_username: admin
+    auth_password: "{{ sso_admin_pw }}"
+
+    realm: "{{ item }}"
+    client_id: "{{ oauth_hostname  }}"
+    name: "{{ oauth_hostname }}"
+  
+    state: absent
+  delegate_to: localhost
