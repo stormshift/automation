@@ -12,11 +12,6 @@
   register: certificate 
   ignore_errors: true
 
-- name: Certificate does not exist, request on
+- name: Certificate does not exist or is to old request on
   ansible.builtin.include_tasks: request-cert.yaml
-  when: certificate.failed
-
-- name: Certificate is to old, request new on
-  ansible.builtin.include_tasks: request-cert.yaml
-  when:
-    - ( (certificate.secret.not_after_epoch|int) - (now().strftime('%s')|int) ) < renew_in_seconds
+  when: certificate.failed or (( (certificate.secret.not_after_epoch|int) - (now().strftime('%s')|int) ) < renew_in_seconds)
