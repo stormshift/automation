@@ -232,6 +232,9 @@
       - apiGroup: rbac.authorization.k8s.io
         kind: Group
         name: coe-sso-admin
+      - apiGroup: rbac.authorization.k8s.io
+        kind: User
+        name: "{{ tower_user_email }}-admin"
 
 # https://sso.coe.muc.redhat.com/realms/coe-sso/protocol/openid-connect/token
 # https://sso.coe.muc.redhat.com/realms/coe-sso/protocol/openid-connect/token
