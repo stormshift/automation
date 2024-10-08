@@ -2,7 +2,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: stormshift-automation-patch-namespace
+  name: stormshift-automation
 rules:
 - apiGroups:
   - ""
@@ -12,15 +12,34 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - cluster.open-cluster-management.io
+  resources:
+  - managedclusters
+  verbs:
+  - create
+  - list
+  - delete
+  - patch
+  - get
+- apiGroups:
+  - project.openshift.io
+  resources:
+  - projects
+  verbs:
+  - create
+  - list
+  - patch
+  - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: stormshift-automation-patch-namespace
+  name: stormshift-automation
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: stormshift-automation-patch-namespace
+  name: stormshift-automation
 subjects:
 - kind: ServiceAccount
   name: automation

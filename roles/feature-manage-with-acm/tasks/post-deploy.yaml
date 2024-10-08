@@ -3,7 +3,39 @@
 # Important: namespace must be equal to clustername - each cluster must have
 # its own namespace - multiple clusters in a single namespace does not work
 - name: "Create Namespace >{{ acm_hub_clustername }}< in hub cluster"
-  tags: acm
+  redhat.openshift.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    apply: false
+    definition:
+      kind: Project
+      apiVersion: project.openshift.io/v1
+      metadata:
+        name: "{{ acm_hub_clustername }}"
+
+- name: Update requestor
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    merge_type: merge
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ acm_hub_clustername }}"
+        annotations:
+          openshift.io/requester: "{{ tower_user_email }}"
+          openshift.io/display-name: "StormShift Cluster {{ inventory_hostname }}"
+          openshift.io/description: "Contains VMs running StormShift {{ inventory_hostname }} Cluster"
+
+
+- name: Apply admin privileges to new namespace
   kubernetes.core.k8s:
     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
     host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
@@ -11,10 +43,25 @@
 
     state: present
     definition:
-      apiVersion: v1
-      kind: Namespace
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
       metadata:
-        name: "{{ acm_hub_clustername }}"
+        name: admin
+        namespace: "{{ acm_hub_clustername }}"
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: admin
+      subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: User
+        name: "{{ tower_user_name }}"
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: stormshift-admins
+      - kind: ServiceAccount
+        name: automation
+        namespace: stormshift
 
 - name: Get cluster authentfication from Vault
   community.hashi_vault.vault_kv2_get:

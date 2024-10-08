@@ -17,15 +17,15 @@
 
 - name: "Remove Namespace  >{{ acm_hub_clustername }}< from HubCluster"
   tags: acm
-  kubernetes.core.k8s:
+  redhat.openshift.k8s:
     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
     host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
     validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
 
     state: absent
-    wait: true
+    apply: false
     definition:
-      apiVersion: v1
-      kind: Namespace
-      metadgsata:
+      kind: Project
+      apiVersion: project.openshift.io/v1
+      metadata:
         name: "{{ acm_hub_clustername }}"
