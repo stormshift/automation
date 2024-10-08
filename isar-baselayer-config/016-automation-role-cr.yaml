@@ -57,4 +57,16 @@ subjects:
 - kind: ServiceAccount
   name: automation
   namespace: stormshift
-
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: stormshift-automation-managedclusterset-admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: open-cluster-management:managedclusterset:admin:stormshift
+subjects:
+- kind: ServiceAccount
+  name: automation
+  namespace: stormshift
