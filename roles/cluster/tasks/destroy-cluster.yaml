@@ -65,7 +65,7 @@
   vars:
     vm_name: "{{ inventory_hostname }}-worker-{{ item.0 }}"
   ansible.builtin.include_tasks: "destroy-vm.yaml"
-  with_indexed_items: "{{ workers }}"
+  with_indexed_items: "{{ workers | default([]) }}"
 
 - name: Delete DataVolume agent-iso
   # register: my_var_with_return_value
