@@ -5,13 +5,12 @@
   connection: local
   gather_facts: false
   tasks:
-    - name: Debug information
+    - name: Job informations 
       ansible.builtin.debug:
         msg:
           - "Run aggpainst {{inventory_hostname}}, vars:"
           - " - stormshift_cluster_action : {{ stormshift_cluster_action }}"
           - " - stormshift_cluster_name : {{ stormshift_cluster_name }}"
-        verbosity: 1
 
     - name: Check if action is supported/allowed
       fail: 
