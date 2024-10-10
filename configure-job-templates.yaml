@@ -1,0 +1,70 @@
+---
+- hosts: cluster
+  connection: local
+  gather_facts: false
+  tasks:
+    # - debug: msg="{{ inventory_hostname }}"
+    - name: "Create jobs: StormShift Cluster Mgmt - {{ inventory_hostname }}"
+      awx.awx.job_template:
+        name: "🌪️ StormShift Cluster Mgmt - {{ inventory_hostname }}"
+        description: "Do NOT edit, managed by Ansible: https://github.com/stormshift/automation/blob/master/configure-job-templates.yaml"
+        job_type: "run"
+        organization: "stormshift"
+        inventory: "stormshift-inventory"
+        project: "stormshift-automation"
+
+        playbook: "stormshift-cluster-mgmt.yaml"
+        execution_environment: "stormshift-automation-execution-environment-202410072305"
+
+        credentials:
+          - "automation-vault"
+          - "coe-muc"
+          - "ipa-admin"
+          - "redhat-vault"
+          - "rhca-account"
+          - "stormshift-automation-pullsecret"
+          - "stormshift-automation-ssh"
+          - "14" # SNO AAP
+        state: "present"
+        survey_enabled: yes
+        allow_simultaneous: false
+        extra_vars: 
+          stormshift_cluster_name: "{{ inventory_hostname }}"
+        survey_spec: |
+          {
+            "description": "",
+            "name": "",
+            "spec": [
+                {
+                    "choices": [
+                        "deploy",
+                        "destroy"
+                    ],
+                    "default": "",
+                    "max": 1024,
+                    "min": 0,
+                    "new_question": false,
+                    "question_description": "What should we do?",
+                    "question_name": "Action",
+                    "required": true,
+                    "type": "multiplechoice",
+                    "variable": "stormshift_cluster_action"
+                },
+                {
+                    "choices": [
+                        "manage-with-acm",
+                        "redhat-internal-certificate",
+                        "coe-sso"
+                    ],
+                    "default": "manage-with-acm\nredhat-internal-certificate\ncoe-sso",
+                    "max": 1024,
+                    "min": 0,
+                    "new_question": false,
+                    "question_description": "Select a couple of cluster features",
+                    "question_name": "Cluster features",
+                    "required": false,
+                    "type": "multiselect",
+                    "variable": "stormshift_cluster_features"
+                }
+            ]
+          }
