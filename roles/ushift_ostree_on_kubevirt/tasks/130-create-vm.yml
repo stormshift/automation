@@ -1,7 +1,7 @@
 ---
   - name: Create MicroShift VM
     tags: vm
-    throttle: 1
+    throttle: 3
     local_action:
       module: kubevirt.core.kubevirt_vm
       state: present

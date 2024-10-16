@@ -1,5 +1,8 @@
-stormshift_owner_email: "arolivei@redhat.com"
-stormshift_owner_purpose: "TAM playground"
+#temp:
+ushift_virt_namespace: "rbohne-debug"
+
+stormshift_owner_email: "rbohne@redhat.com"
+stormshift_owner_purpose: "Network boot reproducer"
 vm_cores: 2
 vm_memory: "8Gi"
 # install_type - one of: rpm, ostree, imageMode

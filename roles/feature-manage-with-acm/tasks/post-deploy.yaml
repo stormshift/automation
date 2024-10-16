@@ -3,7 +3,7 @@
 # Important: namespace must be equal to clustername - each cluster must have
 # its own namespace - multiple clusters in a single namespace does not work
 - name: "Create Namespace >{{ acm_hub_clustername }}< in hub cluster"
-  redhat.openshift.k8s:
+  kubernetes.core.k8s:
     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
     host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
     validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
@@ -182,11 +182,11 @@
 
 # apiVersion: v1
 # data:
-#   agent-config.yaml: 
-#   install-config.yaml: 
-#   username: 
-#   password: 
-#   kubeconfig: 
+#   agent-config.yaml:
+#   install-config.yaml:
+#   username:
+#   password:
+#   kubeconfig:
 # kind: Secret
 # metadata:
 #   name: installer-auth-backup
