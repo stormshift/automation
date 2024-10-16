@@ -1,7 +1,7 @@
 ---
   - name: Create MicroShift VM
     tags: vm
-    throttle: 3
+    throttle: 1
     local_action:
       module: kubevirt.core.kubevirt_vm
       state: present
@@ -18,14 +18,14 @@
 # has to run for this demo to work:
         # affinity:
         #   podAffinity:
-            # requiredDuringSchedulingIgnoredDuringExecution:
-            # - labelSelector:
-            #     matchExpressions:
-            #     - key: vm.kubevirt.io/name
-            #       operator: In
-            #       values:
-            #       - ushift-imgbld
-            #   topologyKey: kubernetes.io/hostname
+        #     requiredDuringSchedulingIgnoredDuringExecution:
+        #     - labelSelector:
+        #         matchExpressions:
+        #         - key: vm.kubevirt.io/name
+        #           operator: In
+        #           values:
+        #           - ushift-imgbld
+        #       topologyKey: kubernetes.io/hostname
 # For larger fleets, we want to have anti-affinity to distribute across nodes, to better leverage
 # network resource:
         affinity:
@@ -44,7 +44,7 @@
           cpu:
             cores: "{{ vm_cores }}"
             sockets: 1
-            threads: 2
+            threads: 1
           memory:
             guest: "{{vm_memory}}"
           resources:

@@ -16,7 +16,7 @@ spec:
         cpu:
           cores: 2
           sockets: 1
-          threads: 2
+          threads: 1
         memory:
           guest: 4Gi
         resources:

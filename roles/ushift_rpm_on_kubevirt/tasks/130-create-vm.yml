@@ -14,7 +14,7 @@
           cpu:
             cores: "{{ vm_cores }}"
             sockets: 1
-            threads: 2 # ISAR has Hyperthreading always activated, hence we need to go with two threads, too
+            threads: 1 
           memory:
             guest: "{{vm_memory}}"
           resources:
