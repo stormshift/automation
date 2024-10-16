@@ -34,7 +34,7 @@
       tags: acm,post
       import_role:
         name: feature-manage-with-acm
-        tasks_from: create.yaml
+        tasks_from: post-deploy.yaml
       vars:
         acm_hub_clustername: "stormshift-{{inventory_hostname}}"
         acm_hub_clusterset: "stormshift"

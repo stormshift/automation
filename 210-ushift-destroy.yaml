@@ -11,7 +11,7 @@
       tags: acm
       import_role:
         name: feature-manage-with-acm
-        tasks_from: destroy.yaml
+        tasks_from: pre-destroy.yaml
       vars:
         acm_hub_clustername: "stormshift-{{inventory_hostname}}"
         acm_hub_clusterset: "stormshift"
