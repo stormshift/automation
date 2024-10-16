@@ -1,82 +1,325 @@
 ---
+- name: Download OpenShift Artifacts
+  # Work-a-round: tags inheritance don't work without a block.
+  # https://github.com/ansible/ansible/issues/41540#issuecomment-419433375
+  block:
+    - name: Include tasks
+      ansible.builtin.include_tasks: download-openshift-artifacts.yml
+  tags: download-openshift-artifacts
 
-- name: Create VM
-  tags: vm
-  kubevirt.core.kubevirt_vm:
+- name: Add api/api-int dns records
+  community.general.ipa_dnsrecord:
+    zone_name: "{{ cluster_base_domain }}"
+    record_name: "{{ item }}.{{ inventory_hostname }}"
+    record_type: A
+    record_value: "{{ cluster_api_vip | default(control_plans.0.vm_network_ip_address) }}"
     state: present
-    running: true # default
-    wait: true
+    ipa_host: "{{ lookup('ansible.builtin.env', 'IPA_HOST' ) }}"
+    ipa_user: "{{ lookup('ansible.builtin.env', 'IPA_USER' ) }}"
+    ipa_pass: "{{ lookup('ansible.builtin.env', 'IPA_PASS' ) }}"
+    validate_certs: false
+  with_items:
+    - api
+    - api-int
+
+- name: Add *.apps dns records
+  community.general.ipa_dnsrecord:
+    zone_name: "{{ cluster_base_domain }}"
+    record_name: "*.apps.{{ inventory_hostname }}"
+    record_type: A
+    # Fallback for vm_network_ip_address needed for SNO
+    record_value: "{{ cluster_ingress_vip | default(control_plans.0.vm_network_ip_address) }}"
+    state: present
+    ipa_host: "{{ lookup('ansible.builtin.env', 'IPA_HOST' ) }}"
+    ipa_user: "{{ lookup('ansible.builtin.env', 'IPA_USER' ) }}"
+    ipa_pass: "{{ lookup('ansible.builtin.env', 'IPA_PASS' ) }}"
+    validate_certs: false
+
+- name: Ensure installation directory
+  ansible.builtin.file:
+    path: "{{ openshift_install_dir }}"
+    state: directory
+    mode: 0755
+
+- name: Create install config
+  ansible.builtin.template:
+    src: install-config.yaml.j2
+    dest: "{{ openshift_install_dir }}/install-config.yaml"
+    mode: 0644
+
+- name: Save install-config from deletion
+  ansible.builtin.copy:
+    dest: "{{ openshift_install_dir }}/install-config.yaml.original"
+    src: "{{ openshift_install_dir }}/install-config.yaml"
+    remote_src: yes
+    mode: 0644
+
+- name: Create agent config
+  ansible.builtin.template:
+    src: agent-config.yaml.j2
+    dest: "{{ openshift_install_dir }}/agent-config.yaml"
+    mode: 0644
+  tags:
+    - agent-config
+
+- name: Save agent-config from deletion
+  ansible.builtin.copy:
+    dest: "{{ openshift_install_dir }}/agent-config.yaml.original"
+    src: "{{ openshift_install_dir }}/agent-config.yaml"
+    remote_src: yes
+    mode: 0644
+  tags:
+    - agent-config
+
+- name: Create agent.iso files
+  ansible.builtin.shell: |
+    export PATH={{ openshift_install_dest }}:$PATH
+    {{ openshift_install_command }} --dir={{ openshift_install_dir }} agent create image
+  args:
+    creates: "{{ openshift_install_dir }}/agent.x86_64.iso"
+
+- name: Create project-req
+  redhat.openshift.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    apply: false
+    definition:
+      kind: Project
+      apiVersion: project.openshift.io/v1
+      metadata:
+        name: "{{ target_namespace }}"
+
+- name: Update requestor
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    merge_type: merge
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ target_namespace }}"
+        annotations:
+          openshift.io/requester: "{{ tower_user_email }}"
+          openshift.io/display-name: "StormShift Cluster {{ inventory_hostname }}"
+          openshift.io/description: "Contains VMs running StormShift {{ inventory_hostname }} Cluster"
+
+
+- name: Apply admin privileges to new namespace
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      metadata:
+        name: admin
+        namespace: "{{ target_namespace }}"
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: admin
+      subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: User
+        name: "{{ tower_user_name }}"
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: stormshift-admins
+      - kind: ServiceAccount
+        name: automation
+        namespace: stormshift
+
+- name: Slurp configurations
+  ansible.builtin.slurp:
+    src: '{{ openshift_install_dir }}/{{ item }}'
+  register: files
+  loop:
+    - agent-config.yaml.original
+    - install-config.yaml.original
+    - auth/kubeadmin-password
+    - auth/kubeconfig
+
+- name: Store installaer configuration and authentication in a secret
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: installer-auth-backup
+        namespace: "{{ target_namespace }}"
+      stringData:
+        agent-config.yaml: "{{ (files.results | selectattr('item', 'equalto', 'agent-config.yaml.original') | first ).content  | b64decode}}"
+        install-config.yaml: "{{ (files.results | selectattr('item', 'equalto', 'install-config.yaml.original') | first ).content  | b64decode}}"
+        kubeconfig: "{{ (files.results | selectattr('item', 'equalto', 'auth/kubeconfig') | first ).content  | b64decode}}"
+        kubeadmin-password: "{{ (files.results | selectattr('item', 'equalto', 'auth/kubeadmin-password') | first ).content  | b64decode}}"
+
+- name: Store cluster authentfication in Vault
+  community.hashi_vault.vault_kv2_write:
+    url: "{{ lookup('ansible.builtin.env', 'RH_VAULT_URL' ) }}"
+    auth_method: approle
+    role_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_ROLE_ID' ) }}"
+    secret_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_SECRET_ID' ) }}"
+    ca_cert: "{{ lookup('ansible.builtin.env', 'RH_VAULT_CA_CERT_FILENAME' ) }}"
+    engine_mount_point: apps
+
+    path: "coe-lab/cluster-credential/stormshift-{{ inventory_hostname }}"
+    data:
+      kubeconfig: "{{ (files.results | selectattr('item', 'equalto', 'auth/kubeconfig') | first ).content  | b64decode}}"
+      kubeadmin-password: "{{ (files.results | selectattr('item', 'equalto', 'auth/kubeadmin-password') | first ).content  | b64decode}}"
+
+- name: Store cluster authentfication in AAP
+  awx.awx.credential:
     name: "{{ inventory_hostname }}"
-    namespace: "{{ target_namespace }}"
+    organization: stormshift
+    state: present
+    credential_type: "OpenShift Cluster v1"
+    inputs:
+      api: https://api.{{ inventory_hostname }}.{{ cluster_base_domain }}:6443
+      kubeconfig: "{{ (files.results | selectattr('item', 'equalto', 'auth/kubeconfig') | first ).content  | b64decode}}"
+      kubeadmin_password: "{{ (files.results | selectattr('item', 'equalto', 'auth/kubeadmin-password') | first ).content  | b64decode}}"
 
-    data_volume_templates:
-      - metadata:
-          name: "{{ inventory_hostname }}-root"
-        spec:
-          storage:
-            accessModes:
-              - ReadWriteMany
-            storageClassName: coe-netapp-san
-            resources:
-              requests:
-                storage: 120Gi
-          source:
-            blank: {}
+# This is part of default project request template
+# - name: Create/Configure NetworkAttachmentDefinition
+#   kubernetes.core.k8s:
+#     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+#     host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+#     validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
 
-    spec:
-      volumes:
-        - name: cdrom
-          persistentVolumeClaim:
-            claimName: "{{ cluster_name }}-agent-iso"
-        - name: root
-          dataVolume:
-            name: "{{ inventory_hostname }}-root"
-      networks:
-        - name: coe
-          multus:
-            networkName: coe-bridge
-      domain:
-        cpu:
-          cores: "{{ vm_cores | int }}"
-        memory:
-          guest: "{{ vm_memory_gb }}Gi"
-        resources:
-          requests:
-            memory: "{{ vm_memory_gb }}Gi"
-          # https://docs.openshift.com/container-platform/4.14/virt/install/preparing-cluster-for-virt.html#virt-cluster-resource-requirements_preparing-cluster-for-virt
-          # Based on the calculation:
-          # Memory overhead per virtual machine ≈ (1.002 × requested memory) \
-          #               + 218 MiB \
-          #               + 8 MiB × (number of vCPUs) \
-          #               + 16 MiB × (number of graphics devices) \
-          #               + (additional memory overhead)
-          #
+#     state: present
+#     definition:
+#       apiVersion: k8s.cni.cncf.io/v1
+#       kind: NetworkAttachmentDefinition
+#       metadata:
+#         annotations:
+#           k8s.v1.cni.cncf.io/resourceName: bridge.network.kubevirt.io/coe-bridge
+#         name: coe-bridge
+#         namespace: "{{ target_namespace }}"
+#       spec:
+#         config: '{"name":"coe-bridge","type":"cnv-bridge","cniVersion":"0.3.1","bridge":"coe-bridge","macspoofchk":true,"ipam":{}}'
 
-          # echo "(16384 * 1.002) + 218 + (8*8)" | bc -l
-          #  => 16698.768
-          # + 20Mib because of https://docs.openshift.com/container-platform/4.15/virt/monitoring/virt-runbooks.html#virt-runbook-KubevirtVmHighMemoryUsage
-          #   echo "(16384 * 1.002) + 218 + (8*8) + 20 " | bc -l
-          #  => 16718.768
-          #  round: 16720Mi
-          limits:
-            memory: "{{ ( ( ( vm_memory_gb * 1.002 ) + 0.218 + ( 0.008 *  vm_cores ) ) * 1024 ) | round(0) | int }}Mi"
-        devices:
-          disks:
-            - name: root
-              bootOrder: 1
-              disk:
-                bus: virtio
-            - name: cdrom
-              bootOrder: 2
-              cdrom:
-                bus: sata
-          interfaces:
-            - bridge: {}
-              macAddress: "{{ vm_network_mac_address }}"
-              model: virtio
-              name: coe
+# https://github.com/kubevirt/containerized-data-importer/blob/main/doc/upload.md
+- name: Create DataVolume agent-iso
+  # register: my_var_with_return_value
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    wait: yes
+    wait_condition:
+      type: Running
+      status: True
+      reason: Pod is running
+    definition:
+      apiVersion: cdi.kubevirt.io/v1beta1
+      kind: DataVolume
+      metadata:
+        name: "{{ inventory_hostname }}-agent-iso"
+        namespace: "{{ target_namespace }}"
+      spec:
+        source:
+            upload: {}
+        pvc:
+          accessModes:
+            - ReadWriteMany
+          storageClassName: coe-netapp-nas
+          resources:
+            requests:
+              storage: 2Gi
+
+- name: Upload token
+  register: my_var_with_return_value
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    definition:
+      apiVersion: upload.cdi.kubevirt.io/v1beta1
+      kind: UploadTokenRequest
+      metadata:
+        name: "{{ inventory_hostname }}-agent-iso-upload-token"
+        namespace: "{{ target_namespace }}"
+      spec:
+        pvcName: "{{ inventory_hostname }}-agent-iso"
+
+# curl -v --insecure -H "Authorization: Bearer $TOKEN" --data-binary @tests/images/cirros-qcow2.img https://$(minikube ip):31001/v1beta1/upload
+#
+# - name: Show token
+#   debug:
+#     msg: "curl -v --insecure -H 'Authorization: Bearer  {{ my_var_with_return_value.result.status.token }}' --data-binary @/var/home/rbohne/Downloads/beryllium-1-i386.hybrid.iso https://{{ upload_host }}/v1beta1/upload "
+
+- name: Upload agent-iso
+  ansible.builtin.uri:
+    url: "{{ upload_host }}/v1beta1/upload"
+    method: POST
+    validate_certs: false
+    headers:
+      Authorization: "Bearer  {{ my_var_with_return_value.result.status.token }}"
+    src: "{{ openshift_install_dir }}/agent.x86_64.iso"
+
 # Not yet needed...
-# - name: "Include deploy-cluster-{{ cluster_type }}"
+# - name: "Include pre-deploy-cluster-{{ cluster_type }}"
 #   include_role:
 #     name: cluster
-#     tasks_from: "deploy-cluster-{{ cluster_type }}.yaml"
+#     tasks_from: "pre-deploy-cluster-{{ cluster_type }}.yaml"
+
+- name: Deploy control plane VM
+  vars:
+    vm_name: "{{ inventory_hostname }}-cp-{{ item.0 }}"
+    vm_rootdisk_size: "120Gi"
+    vm_rootdisk_storageclass:  coe-netapp-san
+    vm_cores:  "{{ control_plan_cores }}"
+    vm_memory_gb: "{{ control_plan_ram_gb }}"
+    vm_network_ip_address: "{{ item.1.vm_network_ip_address }}"
+    vm_network_mac_address: "{{ item.1.vm_network_mac_address }}"
+  ansible.builtin.include_tasks: "deploy-vm.yaml"
+  with_indexed_items: "{{ control_plans }}"
+
+- name: Deploy worker VM
+  vars:
+    vm_name: "{{ inventory_hostname }}-worker-{{ item.0 }}"
+    vm_rootdisk_size: "120Gi"
+    vm_rootdisk_storageclass:  coe-netapp-san
+    vm_cores:  "{{ worker_cores }}"
+    vm_memory_gb: "{{ worker_ram_gb }}"
+    vm_network_ip_address: "{{ item.1.vm_network_ip_address }}"
+    vm_network_mac_address: "{{ item.1.vm_network_mac_address }}"
+  ansible.builtin.include_tasks: "deploy-vm.yaml"
+  with_indexed_items: "{{ workers | default([])}}"
+
+- name: Waiting installation to complete
+  ansible.builtin.shell: |
+    export PATH={{ openshift_install_dest }}:$PATH
+    {{ openshift_install_command }} --dir={{ openshift_install_dir }} agent wait-for install-complete  
+  register: install_status
+  retries: 60
+  delay: 60
+  until: install_status.rc == 0
+
+- name: Include post-deploy-features
+  ansible.builtin.include_role:
+    name: "feature-{{ item }}"
+    tasks_from: post-deploy.yaml
+  with_items: "{{ stormshift_cluster_features | default([]) }}"
+
+- name: Cluster informations
+  ansible.builtin.debug:
+    msg: "{{ install_status.stderr_lines | map('regex_replace', 'level=info msg=\"(.*)\"', '\\1') | list }}"

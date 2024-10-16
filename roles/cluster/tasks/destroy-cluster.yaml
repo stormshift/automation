@@ -1,0 +1,120 @@
+---
+
+- name: Include pre-destroy-features
+  ansible.builtin.include_role:
+    name: "feature-{{ item }}"
+    tasks_from: pre-destroy.yaml
+  with_items: "{{ stormshift_cluster_features | default([]) }}"
+
+- name: Remove api/api-int dns records
+  community.general.ipa_dnsrecord:
+    zone_name: "{{ cluster_base_domain }}"
+    record_name: "{{ item }}.{{ inventory_hostname }}"
+    record_type: A
+    record_value: "{{ cluster_api_vip | default(control_plans.0.vm_network_ip_address) }}"
+    state: absent
+    ipa_host: "{{ lookup('ansible.builtin.env', 'IPA_HOST' ) }}"
+    ipa_user: "{{ lookup('ansible.builtin.env', 'IPA_USER' ) }}"
+    ipa_pass: "{{ lookup('ansible.builtin.env', 'IPA_PASS' ) }}"
+    validate_certs: false
+  with_items:
+    - api
+    - api-int
+
+- name: Remove *.apps dns records
+  community.general.ipa_dnsrecord:
+    zone_name: "{{ cluster_base_domain }}"
+    record_name: "*.apps.{{ inventory_hostname }}"
+    record_type: A
+    record_value: "{{ cluster_ingress_vip | default(control_plans.0.vm_network_ip_address) }}"
+    state: absent
+    ipa_host: "{{ lookup('ansible.builtin.env', 'IPA_HOST' ) }}"
+    ipa_user: "{{ lookup('ansible.builtin.env', 'IPA_USER' ) }}"
+    ipa_pass: "{{ lookup('ansible.builtin.env', 'IPA_PASS' ) }}"
+    validate_certs: false
+
+# https://github.com/kubevirt/containerized-data-importer/blob/main/doc/upload.md
+- name: Delete DataVolume
+  # register: my_var_with_return_value
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: absent
+    definition:
+      apiVersion: cdi.kubevirt.io/v1beta1
+      kind: DataVolume
+      metadata:
+        name: "{{ inventory_hostname }}-agent-iso"
+        namespace: "{{ target_namespace }}"
+
+# Not yet needed
+# - name: "Include pre-destroy-cluster-{{ cluster_type }}"
+#   include_role:
+#     name: cluster
+#     tasks_from: "pre-destroy-cluster-{{ cluster_type }}.yaml"
+
+- name: Destroy control plane VM
+  vars:
+    vm_name: "{{ inventory_hostname }}-cp-{{ item.0 }}"
+  ansible.builtin.include_tasks: "destroy-vm.yaml"
+  with_indexed_items: "{{ control_plans }}"
+
+- name: Destroy worker VM
+  vars:
+    vm_name: "{{ inventory_hostname }}-worker-{{ item.0 }}"
+  ansible.builtin.include_tasks: "destroy-vm.yaml"
+  with_indexed_items: "{{ workers | default([]) }}"
+
+- name: Delete DataVolume agent-iso
+  # register: my_var_with_return_value
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: absent
+    wait: yes
+    wait_condition:
+      type: Running
+      status: True
+      reason: Pod is running
+    definition:
+      apiVersion: cdi.kubevirt.io/v1beta1
+      kind: DataVolume
+      metadata:
+        name: "{{ inventory_hostname }}-agent-iso"
+        namespace: "{{ target_namespace }}"
+
+- name: Delete installer authentication in a secret
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: absent
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: installer-auth-backup
+        namespace: "{{ target_namespace }}"
+
+- name: Delete cluster authentfication in Vault
+  community.hashi_vault.vault_kv2_delete:
+    url: "{{ lookup('ansible.builtin.env', 'RH_VAULT_URL' ) }}"
+    auth_method: approle
+    role_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_ROLE_ID' ) }}"
+    secret_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_SECRET_ID' ) }}"
+    ca_cert: "{{ lookup('ansible.builtin.env', 'RH_VAULT_CA_CERT_FILENAME' ) }}"
+    engine_mount_point: apps
+
+    path: "coe-lab/cluster-credential/stormshift-{{ inventory_hostname }}"
+
+- name: Delete cluster authentfication in AAP
+  awx.awx.credential:
+    name: "{{ inventory_hostname }}"
+    organization: stormshift
+    state: absent
+    credential_type: "OpenShift Cluster v1"

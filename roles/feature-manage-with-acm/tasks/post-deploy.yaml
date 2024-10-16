@@ -1,0 +1,194 @@
+# assumes: default kubeconfig points to hub cluster
+---
+# Important: namespace must be equal to clustername - each cluster must have
+# its own namespace - multiple clusters in a single namespace does not work
+- name: "Create Namespace >{{ acm_hub_clustername }}< in hub cluster"
+  redhat.openshift.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    apply: false
+    definition:
+      kind: Project
+      apiVersion: project.openshift.io/v1
+      metadata:
+        name: "{{ acm_hub_clustername }}"
+
+- name: Update requestor
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    merge_type: merge
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ acm_hub_clustername }}"
+        annotations:
+          openshift.io/requester: "{{ tower_user_email }}"
+          openshift.io/display-name: "StormShift Cluster {{ inventory_hostname }}"
+          openshift.io/description: "Contains VMs running StormShift {{ inventory_hostname }} Cluster"
+
+
+- name: Apply admin privileges to new namespace
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      metadata:
+        name: admin
+        namespace: "{{ acm_hub_clustername }}"
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: admin
+      subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: User
+        name: "{{ tower_user_name }}"
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: stormshift-admins
+      - kind: ServiceAccount
+        name: automation
+        namespace: stormshift
+
+- name: Get cluster authentfication from Vault
+  community.hashi_vault.vault_kv2_get:
+    url: "{{ lookup('ansible.builtin.env', 'RH_VAULT_URL' ) }}"
+    auth_method: approle
+    role_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_ROLE_ID' ) }}"
+    secret_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_SECRET_ID' ) }}"
+    ca_cert: "{{ lookup('ansible.builtin.env', 'RH_VAULT_CA_CERT_FILENAME' ) }}"
+    engine_mount_point: apps
+
+    path: "coe-lab/cluster-credential/{{ acm_hub_clustername }}"
+  register: acm_hub_cluster_credential
+
+- name: Create auto-import-secret in hub
+  tags: acm
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "auto-import-secret"
+        namespace: "{{ acm_hub_clustername }}"
+      stringData:
+        autoImportRetry: "5"
+        kubeconfig: "{{ acm_hub_cluster_credential.secret.kubeconfig }}"
+        server: "{{ acm_spoke_api_endpoint }}"
+      type: Opaque
+
+- name: "Create ManagedCluster >{{ acm_hub_clustername }}< in hub"
+  tags: acm
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    definition:
+      apiVersion: cluster.open-cluster-management.io/v1
+      kind: ManagedCluster
+      metadata:
+        name: "{{ acm_hub_clustername }}"
+        labels:
+          cloud: auto-detect
+          vendor: auto-detect
+          cluster.open-cluster-management.io/clusterset: "{{acm_hub_clusterset}}"
+      spec:
+        hubAcceptsClient: true
+        managedClusterClientConfigs:
+        - url: "https://{{ acm_spoke_api_endpoint }}"
+
+- name: "Create KlusterletAddonConfig >{{ acm_hub_clustername }}< in hub"
+  tags: acm
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    definition:
+      apiVersion: agent.open-cluster-management.io/v1
+      kind: KlusterletAddonConfig
+      metadata:
+        name: "{{acm_hub_clustername}}"
+        namespace: "{{ acm_hub_clustername }}"
+      spec:
+       clusterName: "{{acm_hub_clustername}}"
+       clusterNamespace: "{{ acm_hub_clustername }}"
+       applicationManager:
+         enabled: true
+         argocdCluster: false
+       policyController:
+         enabled: true
+       searchCollector:
+         enabled: true
+       certPolicyController:
+         enabled: true
+       iamPolicyController:
+         enabled: true
+
+#ToDo create clusterdeployment with all details, it works. The UI looks good, but hive kicks in and try to managed the cluster in case of destroy.
+
+# apiVersion: hive.openshift.io/v1
+# kind: ClusterDeployment
+# metadata:
+#   annotations:
+#     open-cluster-management.io/user-identity: cmJvaG5lQHJlZGhhdC5jb20tYWRtaW4=
+#   labels:
+#     cluster.open-cluster-management.io/clusterset: stormshift
+#     vendor: OpenShift
+#   name: stormshift-ocp1
+#   namespace: stormshift-ocp1
+# spec:
+#   baseDomain: coe.muc.redhat.com
+#   clusterMetadata:
+#     # oc get clusterversion/version -o yaml
+#     clusterID: 3727f760-3b42-4cc2-ac8e-4f3d41481278
+#     # oc get infrastructure/cluster -o yaml
+#     infraID: ocp1-cc7ht
+
+#     adminKubeconfigSecretRef:
+#       name: installer-auth-backup
+#       # kubeconfig & raw-kubeconfig
+#     adminPasswordSecretRef:
+#       name: installer-auth-backup
+#       #   password: UnR2UzktZXphQjItUm1EYWotdVhUOWU=
+#       # username: a3ViZWFkbWlu
+#   clusterName: stormshift-ocp1
+#   platform:
+#     none: {}
+#   provisioning:
+#     installConfigSecretRef:
+#       name: installer-auth-backup
+
+# apiVersion: v1
+# data:
+#   agent-config.yaml: 
+#   install-config.yaml: 
+#   username: 
+#   password: 
+#   kubeconfig: 
+# kind: Secret
+# metadata:
+#   name: installer-auth-backup
+#   namespace: stormshift-ocp1
+# type: Opaque

@@ -6,11 +6,6 @@ ansible-navigator:
         - IPA_HOST
         - IPA_PASS
         - IPA_USER
-        - K8S_AUTH_API_KEY
-        - K8S_AUTH_VERIFY_SSL
-        - K8S_AUTH_SSL_CA_CERT
-        - K8S_AUTH_HOST
-        - K8S_AUTH_KUBECONFIG
         - SSH_PRIVATE_KEY
         - SSH_PUBLIC_KEY
         - TOWER_USERNAME
@@ -18,7 +13,17 @@ ansible-navigator:
         - TOWER_PASSWORD
         - TOWER_VERIFY_SSL
         - KUBECONFIG
-    image: quay.coe.muc.redhat.com/stormshift/automation-execution-environment:202405081739
+        - RHCA_USER
+        - RHCA_PASS
+        - RH_VAULT_CA_CERT_FILENAME
+        - RH_VAULT_URL
+        - RH_VAULT_ROLE_ID
+        - RH_VAULT_SECRET_ID
+        - CONTROLLER_HOST
+        - CONTROLLER_PASSWORD
+        - CONTROLLER_USERNAME
+        - CONTROLLER_VERIFY_SSL
+    image: quay.coe.muc.redhat.com/stormshift/automation-execution-environment:202410072305
   logging:
     level: debug
   mode: stdout

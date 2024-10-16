@@ -1,7 +1,0 @@
----
-
-# Not yet needed
-# - name: "Include post-deploy-cluster-{{ cluster_type }}"
-#   include_role:
-#     name: cluster
-#     tasks_from: "post-deploy-cluster-{{ cluster_type }}.yaml"

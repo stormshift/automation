@@ -1,0 +1,8 @@
+---
+ca_url: "https://ca2.corp.redhat.com"
+ca_profile: caDirServerCert-coe-lab-mgmt-domains
+
+# Retrieve certifcate again
+# 3 Monate =   2628000 sekunden
+# 12 Monate = 31536000 sekunden
+renew_in_seconds: 2628000

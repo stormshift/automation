@@ -5,16 +5,16 @@ compute:
     hyperthreading: Enabled
     name: worker
     platform: {}
-    replicas: {{ groups['cluster_' + cluster_name + '_workers'] | length | default(0) }}
+    replicas: {{ workers| default([]) | length  }}
 controlPlane:
   architecture: amd64
   hyperthreading: Enabled
   name: master
   platform: {}
-  replicas: {{ groups['cluster_' + cluster_name + '_cp'] | length }}
+  replicas: {{ control_plans | length }}
 metadata:
   creationTimestamp: null
-  name: {{ cluster_name }}
+  name: {{ inventory_hostname }}
 networking:
   clusterNetwork:
     - cidr: 10.128.0.0/14

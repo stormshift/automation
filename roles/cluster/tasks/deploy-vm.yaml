@@ -1,0 +1,80 @@
+---
+
+- name: "Deploy VM {{target_namespace}}/{{ vm_name }}" 
+  kubevirt.core.kubevirt_vm:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    running: true # default
+    wait: true
+    name: "{{ vm_name }}"
+    namespace: "{{ target_namespace }}"
+
+    data_volume_templates:
+      - metadata:
+          name: "{{ vm_name }}-root"
+        spec:
+          storage:
+            accessModes:
+              - ReadWriteMany
+            storageClassName: "{{ vm_rootdisk_storageclass }}"
+            resources:
+              requests:
+                storage: "{{ vm_rootdisk_size }}"
+          source:
+            blank: {}
+
+    spec:
+      volumes:
+        - name: cdrom
+          persistentVolumeClaim:
+            claimName: "{{ inventory_hostname }}-agent-iso"
+        - name: root
+          dataVolume:
+            name: "{{ vm_name }}-root"
+      networks:
+        - name: coe
+          multus:
+            networkName: coe-bridge
+      domain:
+        cpu:
+          cores: "{{ vm_cores | int }}"
+        memory:
+          guest: "{{ vm_memory_gb }}Gi"
+        resources:
+          requests:
+            memory: "{{ vm_memory_gb }}Gi"
+          # https://docs.openshift.com/container-platform/4.14/virt/install/preparing-cluster-for-virt.html#virt-cluster-resource-requirements_preparing-cluster-for-virt
+          # Based on the calculation:
+          # Memory overhead per virtual machine ≈ (1.002 × requested memory) \
+          #               + 218 MiB \
+          #               + 8 MiB × (number of vCPUs) \
+          #               + 16 MiB × (number of graphics devices) \
+          #               + (additional memory overhead)
+          #
+
+          # echo "(16384 * 1.002) + 218 + (8*8)" | bc -l
+          #  => 16698.768
+          # + 20Mib because of https://docs.openshift.com/container-platform/4.15/virt/monitoring/virt-runbooks.html#virt-runbook-KubevirtVmHighMemoryUsage
+          #   echo "(16384 * 1.002) + 218 + (8*8) + 20 " | bc -l
+          #  => 16718.768
+          #  round: 16720Mi
+          limits:
+            memory: "{{ ( ( ( vm_memory_gb * 1.002 ) + 0.218 + ( 0.008 *  vm_cores ) ) * 1024 ) | round(0) | int }}Mi"
+        devices:
+          disks:
+            - name: root
+              bootOrder: 1
+              disk:
+                bus: virtio
+            - name: cdrom
+              bootOrder: 2
+              cdrom:
+                bus: sata
+          interfaces:
+            - bridge: {}
+              macAddress: "{{ vm_network_mac_address }}"
+              model: virtio
+              name: coe

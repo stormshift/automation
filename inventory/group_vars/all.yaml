@@ -35,3 +35,12 @@ ushift_repo_rc: "https://mirror.openshift.com/pub/openshift-v4/x86_64/microshift
 ushift_vm_storageclass: "coe-netapp-san"
 # possible additional features: cockpit, manage_with_acm
 ushift_additional_features: {}
+
+# echo -n SECRET | ansible-vault encrypt_string --vault-password-file .vault_pass
+sso_admin_pw: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          31316136623133643537363631303331396332663964616439363236393835653637633166393931
+          3336333761326165396436366638653633323832346464310a366436303762366432383165326239
+          61613464386132393937353435326462643633623361353362396239363033323136643363333537
+          3363613032633664370a326635383463623931353133653665653039643762613434643465633466
+          3232

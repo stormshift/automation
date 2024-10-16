@@ -1,0 +1,25 @@
+---
+- name: "Managed StormShift Cluster {{ stormshift_cluster_name }}"
+  # Doing once, host doesnt matter
+  hosts: "{{ stormshift_cluster_name }}"
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Job informations 
+      ansible.builtin.debug:
+        msg:
+          - "Run aggpainst {{inventory_hostname}}, vars:"
+          - " - stormshift_cluster_action : {{ stormshift_cluster_action }}"
+          - " - stormshift_cluster_name : {{ stormshift_cluster_name }}"
+
+    - name: Check if action is supported/allowed
+      fail: 
+        msg: "Action {{  stormshift_cluster_action }} is not supported/allowed"
+      when: 
+        - cluster_excluded_actions is defined
+        - stormshift_cluster_action is in cluster_excluded_actions
+
+    - name: "Include {{stormshift_cluster_action}}-cluster"
+      include_role:
+        name: cluster
+        tasks_from: "{{ stormshift_cluster_action }}-cluster.yaml"

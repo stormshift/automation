@@ -1,80 +1,10 @@
 - hosts: localhost
   gather_facts: false
-  vars:
-    ca_url: "https://ca2.corp.redhat.com"
-    # Wrong profile...
-    ca_profile: caDirAppUserCert
-    ca_user: coe-muc-service-account
-    ca_password: ''
-    
   tasks:
-    - name: Generate Private Key
-      community.crypto.openssl_privatekey:
-        path: "isar.coe.muc.redhat.com.key"
-        size: 4096
-      register: private_key
+    - name: "Import role req-cert-vault"
+      vars:
+        common_name: "api.ocp5.stormshift.coe.muc.redhat.com"
+        subject_alt_name: "DNS:api.ocp5.stormshift.coe.muc.redhat.com,DNS:*.apps.ocp5.stormshift.coe.muc.redhat.com"
 
-    - name: Generate Certificate Signing Request
-      community.crypto.openssl_csr:
-        path: "isar.coe.muc.redhat.com.csr"
-        privatekey_path: "{{private_key.filename}}"
-        use_common_name_for_san: true
-        # subject_alt_name: 'DNS:www.ansible.com,DNS:m.ansible.com'
-        subject_alt_name: "DNS:api.isar.coe.muc.redhat.com,DNS:*.apps.isar.coe.muc.redhat.com"
-        common_name: "api.isar.coe.muc.redhat.com"
-        organizational_unit_name: "coe-lab-muc"
-        return_content: true
-      register: csr
-
-    - name: Request Certificate
-      ansible.builtin.uri:
-        url: "{{ca_url}}/ca/rest/certrequests"
-        method: POST
-        body_format: json
-        validate_certs: false
-        headers:
-          Accept: 'application/json'
-        body:
-          Renewal: false
-          ProfileID: "{{ca_profile}}"
-          Attributes:
-            Attribute:
-             - name: "uid"
-               value: "{{ca_user}}"
-             - name: "pwd"
-               value: "{{ca_password}}"
-          Input:
-            - id: i1
-              ClassID: certReqInputImpl
-              Name: "Certificate Request Input"
-              Attribute:
-                - name: "cert_request_type"
-                  Value: "pkcs10"
-                - name: cert_request
-                  Value: "{{csr.csr}}"
-      register: crt_req
-
-    - name: Retrieve Certificate
-      ansible.builtin.uri:
-        url: "https://ca2.corp.redhat.com/ca/rest/certs/5415"
-        # url: "{{crt_req.json.entries[0].certURL}}"
-        method: GET
-        body_format: json
-        validate_certs: false
-        headers:
-          Accept: 'application/json'
-      register: crt
-
-    - name: crt
-      debug:
-        var: crt
-
-    - name: Write certificate file
-      ansible.builtin.copy:
-        content: "{{ crt.json.Encoded }}"
-        dest: "isar.coe.muc.redhat.com.crt"
-
-    - name: Write PKCS7CertChain
-      ansible.builtin.copy:
-        content: "{{ crt.json.PKCS7CertChain }}"
-        dest: "isar.coe.muc.redhat.com.pkcs7"
+      ansible.builtin.include_role:
+        name: req-cert-vault

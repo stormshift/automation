@@ -1,0 +1,8 @@
+---
+apiVersion: user.openshift.io/v1
+kind: Group
+metadata:
+  name: stormshift-admins
+users:
+  - rbohne@redhat.com
+  - b64:system:serviceaccount:stormshift:automation 

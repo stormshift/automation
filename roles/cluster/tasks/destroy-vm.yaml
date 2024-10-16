@@ -1,0 +1,12 @@
+---
+
+- name: "Destroy VM {{ target_namespace }}/{{ vm_name }}" 
+  kubevirt.core.kubevirt_vm:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: absent
+    wait: true
+    name: "{{ vm_name }}"
+    namespace: "{{ target_namespace }}"
