@@ -53,9 +53,9 @@
         module: kubernetes.core.k8s
         kubeconfig: "{{temp_kubeconfig.path}}"
         validate_certs: false
-        state: present
+        state: absent
         apply: true
-        wait: true
+        wait: false
         definition: "{{ lookup('template', 'roles/ushift_rpm_on_kubevirt/templates/microshift-app-hello.yaml') }}"
 
     - name: Remove temporary local kubeconfig file
