@@ -53,7 +53,7 @@
         module: kubernetes.core.k8s
         kubeconfig: "{{temp_kubeconfig.path}}"
         validate_certs: false
-        state: absent
+        state: present
         apply: true
         wait: false
         definition: "{{ lookup('template', 'roles/ushift_rpm_on_kubevirt/templates/microshift-app-hello.yaml') }}"
