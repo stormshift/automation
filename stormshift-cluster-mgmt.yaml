@@ -9,6 +9,7 @@
       ansible.builtin.debug:
         msg:
           - "Run aggpainst {{inventory_hostname}}, vars:"
+          - " - cluster_type: {{ cluster_type }}"
           - " - stormshift_cluster_action : {{ stormshift_cluster_action }}"
           - " - stormshift_cluster_name : {{ stormshift_cluster_name }}"
 
@@ -19,7 +20,8 @@
         - cluster_excluded_actions is defined
         - stormshift_cluster_action is in cluster_excluded_actions
 
+
     - name: "Include {{stormshift_cluster_action}}-cluster"
       include_role:
-        name: cluster
+        name: "cluster{{ '-hcp'  if cluster_type == 'hosted' }}"
         tasks_from: "{{ stormshift_cluster_action }}-cluster.yaml"
