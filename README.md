@@ -89,6 +89,31 @@ inventory
 
 ## Run playbooks local
 
+### Podman machine at MacOS
+
+```bash
+podman machine init \
+    --volume /private:/private \
+    --volume /Volumes/Development:/Volumes/Development \
+    --volume /Users:/Users \
+    --volume /var/folders:/var/folders \
+    --memory 4096 podman-machine-default
+
+# Start machine
+podman machine start
+
+# Inject Red Hat Root CA
+# https://github.com/containers/podman/blob/main/docs/tutorials/podman-install-certificate-authority.md
+podman machine ssh --username root
+
+cd /etc/pki/ca-trust/source/anchors
+curl -k -O http://inf1.coe.muc.redhat.com/Current-IT-Root-CAs.crt
+update-ca-trust
+
+```
+
+
+### Prep configuration
 ```bash
 # add all informations
 cp -v development-example.vars development-example.vars-private
@@ -98,9 +123,16 @@ vim development-example.env-private
 
 # Load env variables
 source development-example.env-private
+```
 
-# Run it
-ansible-navigator run ./deploy-cluster.yaml -e @development-example.vars-private -v
+### Run it
+```bash
+
+ansible-navigator run stormshift-cluster-mgmt.yaml \
+    -e stormshift_cluster_action=deploy \
+    -e stormshift_cluster_name=ocp3 \
+    --vault-password-file=.vault_pass \
+    -e @development-example.vars-private -v
 ```
 
 ## Ansible inventory structure (folder: `inventory/`)
