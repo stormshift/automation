@@ -1,0 +1,27 @@
+---
+stormshift_owner_email: "dfroehli@redhat.com"
+stormshift_owner_purpose: "Edge compact"
+stormshift_owner_usage: "exclusive"
+cluster_type: classic
+cluster_api_vip: 10.32.105.42
+cluster_ingress_vip: 10.32.105.49
+
+control_plan_cores: 8
+control_plan_ram_gb: 16
+control_plans:
+  - vm_network_ip_address: 10.32.105.80
+    vm_network_mac_address: 0E:C0:EF:20:69:50
+  - vm_network_ip_address: 10.32.105.81
+    vm_network_mac_address: 0E:C0:EF:20:69:51
+  - vm_network_ip_address: 10.32.105.82
+    vm_network_mac_address: 0E:C0:EF:20:69:52
+
+worker_cores: 8
+worker_ram_gb: 16
+workers:
+  - vm_network_ip_address: 10.32.105.83
+    vm_network_mac_address: 0E:C0:EF:20:69:53
+  - vm_network_ip_address: 10.32.105.84
+    vm_network_mac_address: 0E:C0:EF:20:69:54
+  - vm_network_ip_address: 10.32.105.85
+    vm_network_mac_address: 0E:C0:EF:20:69:55

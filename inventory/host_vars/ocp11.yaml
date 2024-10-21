@@ -5,7 +5,9 @@
 # cluster_excluded_actions:
 #   - destroy
 #   - create
-# you can definde vars here, or in group_vars/cluster_ocp1.yaml
+stormshift_owner_email: "dfroehli@redhat.com"
+stormshift_owner_purpose: "Edge SNO"
+stormshift_owner_usage: "exclusive"
 cluster_type: sno
 # This is also the zone in IPA!
 cluster_base_domain: stormshift.coe.muc.redhat.com

@@ -1,4 +1,8 @@
 ---
+stormshift_owner_email: "rbohne@redhat.com"
+stormshift_owner_purpose: "SSA playground"
+stormshift_owner_usage: "exclusive"
+
 cluster_type: classic
 cluster_api_vip: 10.32.105.64
 cluster_ingress_vip: 10.32.105.65
