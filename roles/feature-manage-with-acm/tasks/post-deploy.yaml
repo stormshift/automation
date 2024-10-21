@@ -3,7 +3,8 @@
 # Important: namespace must be equal to clustername - each cluster must have
 # its own namespace - multiple clusters in a single namespace does not work
 - name: "Create Namespace >{{ acm_hub_clustername }}< in hub cluster"
-  kubernetes.core.k8s:
+  tags: acm
+  redhat.openshift.k8s:
     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
     host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
     validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
@@ -17,6 +18,7 @@
         name: "{{ acm_hub_clustername }}"
 
 - name: Update requestor
+  tags: acm
   kubernetes.core.k8s:
     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
     host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
@@ -36,6 +38,7 @@
 
 
 - name: Apply admin privileges to new namespace
+  tags: acm
   kubernetes.core.k8s:
     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
     host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
@@ -64,6 +67,7 @@
         namespace: stormshift
 
 - name: Get cluster authentfication from Vault
+  tags: acm
   community.hashi_vault.vault_kv2_get:
     url: "{{ lookup('ansible.builtin.env', 'RH_VAULT_URL' ) }}"
     auth_method: approle
