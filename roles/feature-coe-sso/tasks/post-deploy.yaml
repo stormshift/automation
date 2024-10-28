@@ -2,6 +2,27 @@
 - name: Fetch cluster information
   ansible.builtin.include_tasks: "fetch-cluster-information.yaml"
 
+- name: Fetch cluster information - oauth url
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ temp.path }}/kubeconfig"
+
+    api_version: "config.openshift.io/v1"
+    kind: "Ingress"
+    name: "cluster"
+  register: ff
+
+- name: Cleanup oauth url
+  ansible.builtin.set_fact:
+    oauth_hostname: "{{ ff.resources | first | community.general.json_query(oauth_url_query) | first }}"
+    client_secret: "{{ ff | ansible.builtin.to_uuid }}"
+  vars:
+    oauth_url_query: "status.componentRoutes[?name=='oauth-openshift'].defaultHostname"
+
+- name: Check oauth_hostname
+  ansible.builtin.fail:
+    msg: "Can not findout oauth url"
+  when: oauth_hostname | length == 0
+
 - name: Create oidc clients
   with_items:
     - coe-sso
@@ -16,7 +37,7 @@
     realm: "{{ item }}"
     client_id: "{{  oauth_hostname  }}"
     secret: "{{ client_secret }}"
-    name: "{{   oauth_hostname }}"
+    name: "{{ oauth_hostname }}"
     redirect_uris:
       - "https://{{ oauth_hostname }}/oauth2callback/*"
     web_origins:
