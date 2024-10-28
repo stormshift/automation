@@ -1,4 +1,9 @@
 ---
+- name: Include pre-destroy-features
+  ansible.builtin.include_role:
+    name: "feature-{{ item }}"
+    tasks_from: pre-destroy-hcp.yaml
+  with_items: "{{ stormshift_cluster_features | default([]) }}"
 
 - name: Delete cluster authentfication in Vault
   community.hashi_vault.vault_kv2_delete:
@@ -18,48 +23,28 @@
     state: absent
     credential_type: "OpenShift Cluster v1"
 
-- name: Predict oauth url
-  ansible.builtin.set_fact:
-    oauth_hostname: "oauth-stormshift-{{ inventory_hostname  }}.apps.isar.coe.muc.redhat.com"
-
-- name: Destroy clients
-  with_items:
-    - coe-sso
-    - coe-sso-admin
-  community.general.keycloak_client:
-    validate_certs: false
-    auth_keycloak_url: https://sso.coe.muc.redhat.com
-    auth_realm: master
-    auth_username: admin
-    auth_password: "{{ sso_admin_pw }}"
-
-    realm: "{{ item }}"
-    client_id: "{{ oauth_hostname }}"
-    name: "{{ oauth_hostname }}"
-    state: absent
-
-  delegate_to: localhost
-
-- name: Create clientSecret k8s secret
+- name: Destroy managed cluster
   kubernetes.core.k8s:
     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
     host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
     validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
 
+    wait: true 
+
     state: absent
     definition:
-      apiVersion: v1
-      kind: Secret
-      type: Opaque
+      apiVersion: cluster.open-cluster-management.io/v1
+      kind: ManagedCluster
       metadata:
-        name: "{{ inventory_hostname }}-openid-client-secret-coe-sso"
-        namespace: "stormshift"
+        name: "{{ inventory_hostname }}"
 
 - name: Destroy hosted control plane
   kubernetes.core.k8s:
     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
     host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
     validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    wait: true 
 
     state: absent
     definition:
@@ -75,6 +60,8 @@
     host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
     validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
 
+    wait: true 
+
     state: absent
     definition:
       apiVersion: hypershift.openshift.io/v1beta1
@@ -83,3 +70,22 @@
         name: "{{ inventory_hostname }}-nodepool1"
         namespace: stormshift
 
+- name: Delete secrets
+  with_items:
+    - "{{ inventory_hostname }}-pull-secret"
+    - "{{ inventory_hostname }}-etcd-encryption-key"
+    - "{{ inventory_hostname }}-admin-kubeconfig"
+    - "{{ inventory_hostname }}-kubeadmin-password"
+    
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: absent
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "{{ item }}"
+        namespace: stormshift
