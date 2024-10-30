@@ -1,0 +1,13 @@
+#temp:
+ushift_virt_namespace: "rbohne-debug"
+
+stormshift_owner_email: "rbohne@redhat.com"
+stormshift_owner_purpose: "Network boot reproducer"
+vm_cores: 2
+vm_memory: "8Gi"
+# install_type - one of: rpm, ostree, imageMode
+ushift_install_type: ostree
+ushift_uefi_boot_file: "http://ushift-imgbld.stormshift.coe.muc.redhat.com/edge-network-install/EFI/BOOT/BOOTX64.EFI"
+
+network_ip_address: 10.32.99.17
+network_mac_address: 0E:C0:EF:20:63:11

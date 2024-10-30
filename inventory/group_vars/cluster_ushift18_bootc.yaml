@@ -1,0 +1,11 @@
+stormshift_owner_email: "dfroehli@redhat.com"
+stormshift_owner_purpose: "bootc"
+vm_cores: 2
+vm_memory: "8Gi"
+
+# install_type - one of: rpm, ostree, imageMode
+ushift_install_type: ostree
+ushift_uefi_boot_file: "http://ushift-imgbld.stormshift.coe.muc.redhat.com/ushift-bootc-install-iso/EFI/BOOT/BOOTX64.EFI"
+
+network_ip_address: 10.32.99.18
+network_mac_address: 0E:C0:EF:20:63:11
