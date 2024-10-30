@@ -22,6 +22,8 @@ control_plans:
   - vm_network_ip_address: 10.32.105.128
     vm_network_mac_address: 0E:C0:EF:20:6F:80
 
+openshift_version: 4.17.2
+
 # See https://docs.openshift.com/container-platform/4.17/installing/overview/cluster-capabilities.html
 cluster_capabilities:
   baselineCapabilitySet: None
