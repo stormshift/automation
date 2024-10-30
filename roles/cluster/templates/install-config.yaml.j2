@@ -43,5 +43,5 @@ sshKey: |
 
 {% if cluster_capabilities is defined %}
 capabilities:
-  {{ cluster_capabilities | to_yaml(indent=2) }}
+  {{ cluster_capabilities | to_nice_yaml(indent=2, sort_keys=false) }}
 {% endif %}
