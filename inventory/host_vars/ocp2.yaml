@@ -6,6 +6,13 @@ cluster_type: classic
 cluster_api_vip: 10.32.105.42
 cluster_ingress_vip: 10.32.105.49
 
+# See https://docs.openshift.com/container-platform/4.17/installing/overview/cluster-capabilities.html
+cluster_capabilities:
+  baselineCapabilitySet: None
+  additionalEnabledCapabilities:
+  - Console
+  - Storage
+
 control_plan_cores: 6
 control_plan_ram_gb: 24
 control_plans:

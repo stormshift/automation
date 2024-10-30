@@ -39,4 +39,9 @@ publish: External
 pullSecret:
   '{{ image_pull_secret }}'
 sshKey: |
-  {{ lookup('ansible.builtin.env', 'SSH_PUBLIC_KEY' ) }}
+{{ lookup('ansible.builtin.env', 'SSH_PUBLIC_KEY' ) }}
+
+{% if cluster_capabilities is defined %}
+capabilities:
+  {{cluster_capabilities}}
+{% endif %}
