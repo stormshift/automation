@@ -36,12 +36,13 @@ platform:
   none: {}
 {% endif %}
 publish: External
-pullSecret:
-  '{{ image_pull_secret }}'
-sshKey: |
-{{ lookup('ansible.builtin.env', 'SSH_PUBLIC_KEY' ) }}
 
 {% if cluster_capabilities is defined %}
 capabilities:
 {{ cluster_capabilities | to_nice_yaml(indent=2, sort_keys=false) | indent(2,true) }}
 {% endif %}
+
+pullSecret:
+  '{{ image_pull_secret }}'
+sshKey: |
+{{ lookup('ansible.builtin.env', 'SSH_PUBLIC_KEY' ) }}
