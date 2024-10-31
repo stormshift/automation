@@ -29,8 +29,6 @@
     host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
     validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
 
-    wait: true 
-
     state: absent
     definition:
       apiVersion: cluster.open-cluster-management.io/v1
@@ -44,14 +42,12 @@
     host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
     validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
 
-    wait: true 
-
     state: absent
     definition:
       apiVersion: hypershift.openshift.io/v1beta1
       kind: HostedCluster
       metadata:
-        name: "stormshift-{{ inventory_hostname }}"
+        name: "{{ inventory_hostname }}"
         namespace: stormshift
 
 - name: Delete node pool
@@ -60,7 +56,58 @@
     host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
     validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
 
+    state: absent
+    definition:
+      apiVersion: hypershift.openshift.io/v1beta1
+      kind: NodePool
+      metadata:
+        name: "{{ inventory_hostname }}-nodepool1"
+        namespace: stormshift
+
+- name: "Wait of: Destroy managed cluster"
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
     wait: true 
+    wait_sleep: 10
+    wait_timeout: 1200
+
+    state: absent
+    definition:
+      apiVersion: cluster.open-cluster-management.io/v1
+      kind: ManagedCluster
+      metadata:
+        name: "{{ inventory_hostname }}"
+
+- name: "Wait of: Destroy hosted control plane"
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    wait: true 
+    wait_sleep: 10
+    wait_timeout: 600
+
+    state: absent
+    definition:
+      apiVersion: hypershift.openshift.io/v1beta1
+      kind: HostedCluster
+      metadata:
+        name: "{{ inventory_hostname }}"
+        namespace: stormshift
+
+- name: "Wait of: Delete node pool"
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    wait: true 
+    wait_sleep: 10
+    wait_timeout: 600
 
     state: absent
     definition:
@@ -76,6 +123,7 @@
     - "{{ inventory_hostname }}-etcd-encryption-key"
     - "{{ inventory_hostname }}-admin-kubeconfig"
     - "{{ inventory_hostname }}-kubeadmin-password"
+    - "{{ inventory_hostname }}-ssh-key"
     
   kubernetes.core.k8s:
     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
@@ -89,3 +137,20 @@
       metadata:
         name: "{{ item }}"
         namespace: stormshift
+
+- name: Delete project
+  redhat.openshift.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    wait: true 
+    wait_sleep: 10
+    wait_timeout: 600
+
+    state: absent
+    definition:
+      kind: Project
+      apiVersion: project.openshift.io/v1
+      metadata:
+        name: "stormshift-{{ inventory_hostname }}"
