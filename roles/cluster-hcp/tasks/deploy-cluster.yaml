@@ -206,49 +206,8 @@
           name: redhat-current-it-root-cas-for-sso
         autoscaling: {}
         controllerAvailabilityPolicy: HighlyAvailable
-        # configuration: 
-        #   oauth:
-        #     identityProviders:
-        #       - name: COE-SSO
-        #         mappingMethod: add
-        #         openID:
-        #           ca:
-        #             name: redhat-current-it-root-cas-for-sso
-        #           claims:
-        #             email:
-        #             - email
-        #             groups:
-        #             - groups
-        #             name:
-        #             - name
-        #             preferredUsername:
-        #             - preferred_username
-        #           clientID: "{{  oauth_hostname  }}"
-        #           clientSecret:
-        #             name: "{{ inventory_hostname }}-openid-client-secret-coe-sso"
-        #           issuer: https://sso.coe.muc.redhat.com/realms/coe-sso
-        #         type: OpenID
-        #       - name: COE-SSO-Admin
-        #         mappingMethod: add
-        #         openID:
-        #           ca:
-        #             name: redhat-current-it-root-cas-for-sso
-        #           claims:
-        #             email:
-        #             - email
-        #             groups:
-        #             - groups
-        #             name:
-        #             - name
-        #             preferredUsername:
-        #             - preferred_username
-        #           clientID: "{{  oauth_hostname  }}"
-        #           clientSecret:
-        #             name: "{{ inventory_hostname }}-openid-client-secret-coe-sso"
-        #           issuer: https://sso.coe.muc.redhat.com/realms/coe-sso-admin
-        #         type: OpenID
         dns:
-          baseDomain: "apps.{{ inventory_hostname }}.stormshift.coe.muc.redhat.com"
+          baseDomain: "stormshift.coe.muc.redhat.com"
         etcd:
           managed:
             storage:
@@ -377,7 +336,70 @@
       type: AllMachinesReady
       status: "True"
 
-- debug: var=stormshift_cluster_features
+- name: Get child cluster access
+  community.hashi_vault.vault_kv2_get:
+    url: "{{ lookup('ansible.builtin.env', 'RH_VAULT_URL' ) }}"
+    auth_method: approle
+    role_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_ROLE_ID' ) }}"
+    secret_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_SECRET_ID' ) }}"
+    ca_cert: "{{ lookup('ansible.builtin.env', 'RH_VAULT_CA_CERT_FILENAME' ) }}"
+    engine_mount_point: apps
+
+    path: "coe-lab/cluster-credential/stormshift-{{ inventory_hostname }}"
+  register: cluster_credential 
+
+- name: Temp folder
+  ansible.builtin.tempfile:
+    state: "directory"
+  register: temp
+
+- name: Write kubeconfig
+  ansible.builtin.copy:
+    dest: "{{ temp.path }}/kubeconfig"
+    content: "{{ cluster_credential.secret.kubeconfig }}"
+
+- name: Get Ingress Service details
+  register: ingress_service
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ temp.path }}/kubeconfig"
+
+    api_version: v1
+    kind: Service
+    name: router-nodeport-default
+    namespace: openshift-ingress
+
+    wait: yes
+
+- name: Configure service type loadbalancer for ingress
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        annotations:
+          external-dns.alpha.kubernetes.io/hostname: "*.apps.{{ inventory_hostname }}.stormshift.coe.muc.redhat.com"
+        name: default-ingress
+        namespace: "stormshift-{{ inventory_hostname }}"
+      spec:
+        ports:
+        - name: http
+          port: 80
+          protocol: TCP
+          targetPort: "{{ ( ingress_service.resources[0].spec.ports | selectattr('name', 'equalto', 'http') | first ).nodePort }}"
+        - name: https
+          port: 443
+          protocol: TCP
+          targetPort: "{{ ( ingress_service.resources[0].spec.ports | selectattr('name', 'equalto', 'https') | first ).nodePort }}"
+        selector:
+          hypershift.openshift.io/nodepool-name: "{{ inventory_hostname }}-nodepool1"
+        sessionAffinity: None
+        type: LoadBalancer
+
 - name: Include post-deploy-features
   ansible.builtin.include_role:
     name: "feature-{{ item }}"
