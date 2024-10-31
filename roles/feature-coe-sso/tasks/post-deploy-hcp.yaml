@@ -22,7 +22,7 @@
     oauth_hostname: "oauth-stormshift-{{ inventory_hostname }}.apps.isar.coe.muc.redhat.com"
     client_secret: "{{ hosted_control_plane | ansible.builtin.to_uuid }}"
     # oauth_url: "{{ hosted_control_plane.result.status.oauthCallbackURLTemplate | replace('[identity-provider-name]', '*') }}"
-    
+
 - name: Create oidc clients
   with_items:
     - coe-sso
@@ -39,7 +39,7 @@
     secret: "{{ client_secret }}"
     name: "{{ oauth_hostname }}"
     redirect_uris:
-      - "https://{{ oauth_hostname }}/oauth2callback/*"
+      - "https://{{ oauth_hostname }}:443/oauth2callback/*"
     web_origins:
       - "https://{{ oauth_hostname }}/"
 
@@ -180,7 +180,7 @@
           - preferred_username
         clientID: "{{  oauth_hostname  }}"
         clientSecret:
-          name: openid-client-secret-coe-sso
+          name: "{{ inventory_hostname }}-openid-client-secret-coe-sso"
         issuer: https://sso.coe.muc.redhat.com/realms/coe-sso
       type: OpenID
     ip_coe_sso_admin:
@@ -200,7 +200,7 @@
           - preferred_username
         clientID: "{{  oauth_hostname  }}"
         clientSecret:
-          name: openid-client-secret-coe-sso
+          name: "{{ inventory_hostname }}-openid-client-secret-coe-sso"
         issuer: https://sso.coe.muc.redhat.com/realms/coe-sso-admin
       type: OpenID
 
@@ -223,7 +223,9 @@
 - name: Patch oauth
   ignore_errors: true
   kubernetes.core.k8s:
-    kubeconfig: "{{ temp.path }}/kubeconfig"
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
 
     merge_type: merge
     definition:
@@ -235,7 +237,7 @@
       spec:
         configuration: 
           oauth:
-            identityProviders:: "{{ final_identity_providers }}"
+            identityProviders: "{{ final_identity_providers }}"
 
 - name: Add cluster role
   kubernetes.core.k8s:
