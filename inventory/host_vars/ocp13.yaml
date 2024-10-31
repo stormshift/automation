@@ -1,0 +1,35 @@
+---
+# Single Node example
+
+# In case you want to exclude some actions
+# cluster_excluded_actions:
+#   - destroy
+#   - create
+stormshift_owner_email: "available"
+stormshift_owner_purpose: "SNO"
+stormshift_owner_usage: "exclusive"
+cluster_type: sno
+# This is also the zone in IPA!
+cluster_base_domain: stormshift.coe.muc.redhat.com
+cluster_name: ocp13
+# Not needed for SNO, it will use the ip of the node.
+# cluster_api_vip:
+# cluster_ingress_vip:
+
+control_plan_cores: 16
+control_plan_ram_gb: 32
+control_plans:
+  - vm_network_ip_address: 10.32.105.130
+    vm_network_mac_address: 0E:C0:EF:20:6F:82
+
+openshift_version: 4.17.2
+
+# See https://docs.openshift.com/container-platform/4.17/installing/overview/cluster-capabilities.html
+#cluster_capabilities:
+#  baselineCapabilitySet: None
+#  additionalEnabledCapabilities:
+#  - Storage
+#  - Console
+#  - Ingress
+#  - OperatorLifecycleManager
+#  - marketplace
