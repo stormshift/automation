@@ -277,6 +277,8 @@
     kind: Secret
     name: "{{ hosted_control_plane.result.status.kubeadminPassword.name }}"
     namespace: stormshift
+  when:
+    - hosted_control_plane.result.status.kubeadminPassword is defined
 
 - name: Get kubeconfig
   register: kubeconfig_raw
@@ -290,9 +292,6 @@
     name: "{{ hosted_control_plane.result.status.kubeconfig.name }}"
     namespace: stormshift
 
-- debug: var=kubeconfig_raw
-- debug: var=kubeadmin_password_raw
-
 - name: Store cluster authentfication in Vault
   community.hashi_vault.vault_kv2_write:
     url: "{{ lookup('ansible.builtin.env', 'RH_VAULT_URL' ) }}"
@@ -305,7 +304,7 @@
     path: "coe-lab/cluster-credential/stormshift-{{ inventory_hostname }}"
     data:
       kubeconfig: "{{ kubeconfig_raw.resources[0].data.kubeconfig  | b64decode }}"
-      kubeadmin-password: "{{ kubeadmin_password_raw.resources[0].data.password  | b64decode }}"
+      kubeadmin-password: "{{ kubeadmin_password_raw.resources[0].data.password | default('') | b64decode }}"
 
 - name: Store cluster authentfication in AAP
   awx.awx.credential:
@@ -316,7 +315,7 @@
     inputs:
       api: https://{{ hosted_control_plane.result.status.controlPlaneEndpoint.host }}:{{ hosted_control_plane.result.status.controlPlaneEndpoint.host }}
       kubeconfig: "{{ kubeconfig_raw.resources[0].data.kubeconfig  | b64decode }}"
-      kubeadmin_password: "{{ kubeadmin_password_raw.resources[0].data.password  | b64decode }}"
+      kubeadmin_password: "{{ kubeadmin_password_raw.resources[0].data.password | default('') | b64decode }}"
 
 - name: Wait of AllMachinesReady
   kubernetes.core.k8s_info:
