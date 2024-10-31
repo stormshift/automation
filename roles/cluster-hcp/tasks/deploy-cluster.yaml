@@ -93,7 +93,54 @@
       data:
         .dockerconfigjson: "{{ image_pull_secret | b64encode }}"
 
-    
+- name: Create ssh-key
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    wait: yes
+    wait_sleep: 10
+    wait_timeout: 600
+    wait_condition:
+      type: Ready
+      status: "True"
+
+    state: present
+    definition:
+      apiVersion: external-secrets.io/v1beta1
+      kind: ExternalSecret
+      metadata:
+        name: "{{ inventory_hostname }}-ssh-key"
+        namespace: stormshift
+      spec:
+        data:
+        - remoteRef:
+            conversionStrategy: Default
+            decodingStrategy: None
+            key: coe-lab/ssh-key/coe-muc-rsa
+            metadataPolicy: None
+            property: key
+          secretKey: id_rsa
+        - remoteRef:
+            conversionStrategy: Default
+            decodingStrategy: None
+            key: coe-lab/ssh-key/coe-muc-rsa
+            metadataPolicy: None
+            property: pub
+          secretKey: id_rsa.pub
+        refreshInterval: 12h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: redhat-vault
+        target:
+          creationPolicy: Owner
+          deletionPolicy: Retain
+          name: "{{ inventory_hostname }}-ssh-key"
+          template:
+            engineVersion: v2
+            mergePolicy: Replace
+
 - name: Create node pool
   kubernetes.core.k8s:
     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
@@ -258,7 +305,7 @@
           servicePublishingStrategy:
             type: LoadBalancer
         sshKey:
-          name: coe-ssh-key
+          name: "{{ inventory_hostname }}-ssh-key"
 
 - name: Get kubeadmin password
   register: kubeadmin_password_raw
