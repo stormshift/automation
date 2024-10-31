@@ -178,6 +178,72 @@
           image: "quay.io/openshift-release-dev/ocp-release:{{ openshift_version }}-x86_64"
         replicas: "{{ worker_count }}"
 
+
+- name: Cleanup oauth url
+  ansible.builtin.set_fact:
+    # ToDos:
+    #   - Create issue, to have for example oauthEndpoint
+    #   - Improve code
+    oauth_hostname: "oauth-stormshift-{{ inventory_hostname }}.apps.isar.coe.muc.redhat.com"
+    # oauth_url: "{{ hosted_control_plane.result.status.oauthCallbackURLTemplate | replace('[identity-provider-name]', '*') }}"
+
+- name: "Request certificate"
+  vars:
+    common_name: "{{ oauth_hostname }}"
+    subject_alt_name: "DNS: {{ oauth_hostname }}"
+
+  ansible.builtin.include_role:
+    name: req-cert-vault
+
+- name: Put certificate into a secret
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    wait: yes
+    wait_sleep: 10
+    wait_timeout: 600
+    wait_condition:
+      type: Ready
+      status: "True"
+
+    state: present
+    definition:
+      apiVersion: external-secrets.io/v1beta1
+      kind: ExternalSecret
+      metadata:
+        name: "{{ inventory_hostname }}-oauth-cert"
+        namespace: "stormshift"
+      spec:
+        data:
+        - remoteRef:
+            conversionStrategy: Default
+            decodingStrategy: None
+            key: "coe-lab/certificate/oauth-stormshift-{{ inventory_hostname }}.apps.isar.coe.muc.redhat.com"
+            metadataPolicy: None
+            property: cert_and_intermediate_pem
+          secretKey: tls.crt
+        - remoteRef:
+            conversionStrategy: Default
+            decodingStrategy: None
+            key: "coe-lab/certificate/oauth-stormshift-{{ inventory_hostname }}.apps.isar.coe.muc.redhat.com"
+            metadataPolicy: None
+            property: key
+          secretKey: tls.key
+        refreshInterval: 12h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: redhat-vault
+        target:
+          creationPolicy: Owner
+          deletionPolicy: Retain
+          name: "{{ inventory_hostname }}-oauth-cert"
+          template:
+            engineVersion: v2
+            mergePolicy: Replace
+            type: kubernetes.io/tls
+
 - name: Create hosted control plane
   register: hosted_control_plane
   kubernetes.core.k8s:
@@ -203,8 +269,20 @@
         # https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.11/html/clusters/cluster_mce_overview#handling-ingressb
       spec:
         additionalTrustBundle:
+          # ToDo: Should be {{ inventory_hostname }}-rootca....
+          #       And copy from vault?
           name: redhat-current-it-root-cas-for-sso
         autoscaling: {}
+        configuration:
+          apiServer:
+            audit:
+              profile: Default
+            servingCerts:
+              namedCertificates:
+              - names:
+                - "{{ oauth_hostname }}"
+                servingCertificate:
+                  name: ocp3-oauth-cert
         controllerAvailabilityPolicy: HighlyAvailable
         dns:
           baseDomain: "stormshift.coe.muc.redhat.com"
