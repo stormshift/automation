@@ -384,16 +384,16 @@
       kubeconfig: "{{ kubeconfig_raw.resources[0].data.kubeconfig  | b64decode }}"
       kubeadmin-password: "{{ kubeadmin_password_raw.resources[0].data.password | default('') | b64decode }}"
 
-- name: Store cluster authentfication in AAP
-  awx.awx.credential:
-    name: "{{ inventory_hostname }}"
-    organization: stormshift
-    state: present
-    credential_type: "OpenShift Cluster v1"
-    inputs:
-      api: https://{{ hosted_control_plane.result.status.controlPlaneEndpoint.host }}:{{ hosted_control_plane.result.status.controlPlaneEndpoint.host }}
-      kubeconfig: "{{ kubeconfig_raw.resources[0].data.kubeconfig  | b64decode }}"
-      kubeadmin_password: "{{ kubeadmin_password_raw.resources[0].data.password | default('') | b64decode }}"
+# - name: Store cluster authentfication in AAP
+#   awx.awx.credential:
+#     name: "{{ inventory_hostname }}"
+#     organization: stormshift
+#     state: present
+#     credential_type: "OpenShift Cluster v1"
+#     inputs:
+#       api: https://{{ hosted_control_plane.result.status.controlPlaneEndpoint.host }}:{{ hosted_control_plane.result.status.controlPlaneEndpoint.host }}
+#       kubeconfig: "{{ kubeconfig_raw.resources[0].data.kubeconfig  | b64decode }}"
+#       kubeadmin_password: "{{ kubeadmin_password_raw.resources[0].data.password | default('') | b64decode }}"
 
 - name: Wait of AllMachinesReady
   kubernetes.core.k8s_info:
