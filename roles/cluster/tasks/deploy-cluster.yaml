@@ -186,16 +186,16 @@
       kubeconfig: "{{ (files.results | selectattr('item', 'equalto', 'auth/kubeconfig') | first ).content  | b64decode}}"
       kubeadmin-password: "{{ (files.results | selectattr('item', 'equalto', 'auth/kubeadmin-password') | first ).content  | b64decode}}"
 
-- name: Store cluster authentfication in AAP
-  awx.awx.credential:
-    name: "{{ inventory_hostname }}"
-    organization: stormshift
-    state: present
-    credential_type: "OpenShift Cluster v1"
-    inputs:
-      api: https://api.{{ inventory_hostname }}.{{ cluster_base_domain }}:6443
-      kubeconfig: "{{ (files.results | selectattr('item', 'equalto', 'auth/kubeconfig') | first ).content  | b64decode}}"
-      kubeadmin_password: "{{ (files.results | selectattr('item', 'equalto', 'auth/kubeadmin-password') | first ).content  | b64decode}}"
+# - name: Store cluster authentfication in AAP
+#   awx.awx.credential:
+#     name: "{{ inventory_hostname }}"
+#     organization: stormshift
+#     state: present
+#     credential_type: "OpenShift Cluster v1"
+#     inputs:
+#       api: https://api.{{ inventory_hostname }}.{{ cluster_base_domain }}:6443
+#       kubeconfig: "{{ (files.results | selectattr('item', 'equalto', 'auth/kubeconfig') | first ).content  | b64decode}}"
+#       kubeadmin_password: "{{ (files.results | selectattr('item', 'equalto', 'auth/kubeadmin-password') | first ).content  | b64decode}}"
 
 # This is part of default project request template
 # - name: Create/Configure NetworkAttachmentDefinition

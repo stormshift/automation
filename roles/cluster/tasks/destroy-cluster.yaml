@@ -125,9 +125,9 @@
 
     path: "coe-lab/cluster-credential/stormshift-{{ inventory_hostname }}"
 
-- name: Delete cluster authentfication in AAP
-  awx.awx.credential:
-    name: "{{ inventory_hostname }}"
-    organization: stormshift
-    state: absent
-    credential_type: "OpenShift Cluster v1"
+# - name: Delete cluster authentfication in AAP
+#   awx.awx.credential:
+#     name: "{{ inventory_hostname }}"
+#     organization: stormshift
+#     state: absent
+#     credential_type: "OpenShift Cluster v1"
