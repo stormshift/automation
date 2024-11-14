@@ -1,0 +1,93 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: demo-app
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: sample-pvc
+  namespace: demo-app
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: sample-nginx
+  namespace: demo-app
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: sample-pvc
+        - name: restore
+          persistentVolumeClaim:
+            claimName: sample-pvc-snapshot-restore
+      containers:
+        - name: nginx
+          image: nginxinc/nginx-unprivileged
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          ports:
+            - containerPort: 8080
+              name: "http"
+            - containerPort: 8443
+              name: "https"
+          volumeMounts:
+            - mountPath: "/usr/share/nginx/html/storage"
+              name: storage
+            - mountPath: "/usr/share/nginx/html/restore"
+              name: restore
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: nginx
+  namespace: demo-app
+spec:
+  selector:
+    app: nginx
+  ports:
+    - protocol: TCP
+      name: http
+      port: 8080
+    - protocol: TCP
+      name: https
+      port: 8443
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: nginx-wild
+  namespace: demo-app
+spec:
+  port:
+    targetPort: http
+  to:
+    kind: Service
+    name: nginx
+    weight: 100
+  wildcardPolicy: None
