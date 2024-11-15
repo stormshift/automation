@@ -4,3 +4,5 @@ assisted-installer/vault-password-file
 development-example.env-private 
 development-example.vars-private
 .vault_pass 
+Current-IT-Root-CAs.crt
+ansible-navigator.log 

@@ -1,0 +1,22 @@
+podman machine init \
+   --volume /private:/private \
+   --volume /Users:/Users \
+   --volume /var/folders:/var/folders \
+   --memory 4096 podman-machine-default
+
+
+podman machine start
+
+ansible-navigator run stormshift-cluster-mgmt.yaml \
+        -e stormshift_cluster_action=deploy \
+        -e stormshift_cluster_name=ocp11 \
+        --vault-password-file=.vault_pass \
+        -e@development-example.vars-private  -v
+
+
+ansible-playbook -e@../stormshift-dev.vars -e ushift_env=ushift18_bootc 200-ushift-create.yaml
+
+ansible-navigator run 200-ushift-create.yaml \
+        -e ushift_env=ushift18_bootc \
+        -e@development-example.vars-private \
+        --vault-password-file=.vault_pass

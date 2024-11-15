@@ -1,12 +1,14 @@
 ---
 
 - name: Include pre-destroy-features
+  ignore_errors: true
   ansible.builtin.include_role:
     name: "feature-{{ item }}"
     tasks_from: pre-destroy.yaml
   with_items: "{{ stormshift_cluster_features | default([]) }}"
 
 - name: Remove api/api-int dns records
+  ignore_errors: true
   community.general.ipa_dnsrecord:
     zone_name: "{{ cluster_base_domain }}"
     record_name: "{{ item }}.{{ inventory_hostname }}"
@@ -22,6 +24,7 @@
     - api-int
 
 - name: Remove *.apps dns records
+  ignore_errors: true
   community.general.ipa_dnsrecord:
     zone_name: "{{ cluster_base_domain }}"
     record_name: "*.apps.{{ inventory_hostname }}"
@@ -36,6 +39,7 @@
 # https://github.com/kubevirt/containerized-data-importer/blob/main/doc/upload.md
 - name: Delete DataVolume
   # register: my_var_with_return_value
+  ignore_errors: true
   kubernetes.core.k8s:
     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
     host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
@@ -69,6 +73,7 @@
 
 - name: Delete DataVolume agent-iso
   # register: my_var_with_return_value
+  ignore_errors: true
   kubernetes.core.k8s:
     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
     host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
@@ -88,6 +93,7 @@
         namespace: "{{ target_namespace }}"
 
 - name: Delete installer authentication in a secret
+  ignore_errors: true
   kubernetes.core.k8s:
     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
     host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
@@ -102,6 +108,7 @@
         namespace: "{{ target_namespace }}"
 
 - name: Delete project
+  ignore_errors: true
   redhat.openshift.k8s:
     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
     host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
