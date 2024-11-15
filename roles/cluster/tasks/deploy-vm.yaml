@@ -1,6 +1,6 @@
 ---
 
-- name: "Deploy VM {{target_namespace}}/{{ vm_name }}" 
+- name: "Deploy VM {{target_namespace}}/{{ vm_name }}"
   kubevirt.core.kubevirt_vm:
     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
     host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
@@ -11,7 +11,8 @@
     wait: true
     name: "{{ vm_name }}"
     namespace: "{{ target_namespace }}"
-
+    labels:
+      vm_group: "{{ target_namespace }}"
     data_volume_templates:
       - metadata:
           name: "{{ vm_name }}-root"
@@ -27,6 +28,19 @@
             blank: {}
 
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: vm_group
+                  operator: In
+                  values:
+                  - "{{ target_namespace }}"
+              topologyKey: kubernetes.io/hostname
+
       volumes:
         - name: cdrom
           persistentVolumeClaim:

@@ -24,6 +24,12 @@ control_plans:
 
 openshift_version: 4.17.2
 
+stormshift_cluster_features:
+  - coe-sso
+  - redhat-internal-certificate
+  - manage-with-acm
+
+
 # See https://docs.openshift.com/container-platform/4.17/installing/overview/cluster-capabilities.html
 cluster_capabilities:
   baselineCapabilitySet: vCurrent

@@ -1,5 +1,19 @@
 ---
+- name: Check if cluster already exists
+  ignore_errors: True
+  wait_for:
+    host: "api.{{ inventory_hostname }}.{{ cluster_base_domain }}"
+    port: 443
+    timeout: 1
+  register: checkExists_results
+
+- name: Set flag
+  set_fact:
+    clusterAlreadyExists: True
+  when: checkExists_results is not failed
+
 - name: Download OpenShift Artifacts
+  when: not clusterAlreadyExists
   # Work-a-round: tags inheritance don't work without a block.
   # https://github.com/ansible/ansible/issues/41540#issuecomment-419433375
   block:
@@ -36,29 +50,29 @@
     validate_certs: false
 
 - name: Ensure installation directory
+  when: not clusterAlreadyExists
   ansible.builtin.file:
     path: "{{ openshift_install_dir }}"
     state: directory
     mode: 0755
 
 - name: Create install config
+  when: not clusterAlreadyExists
   ansible.builtin.template:
     src: install-config.yaml.j2
     dest: "{{ openshift_install_dir }}/install-config.yaml"
     mode: 0644
 
 - name: Save install-config from deletion
+  when: not clusterAlreadyExists
   ansible.builtin.copy:
     dest: "{{ openshift_install_dir }}/install-config.yaml.original"
     src: "{{ openshift_install_dir }}/install-config.yaml"
     remote_src: yes
     mode: 0644
 
-- name: Debug install-config
-  ansible.builtin.debug:
-    var: lookup('ansible.builtin.file', '{{ openshift_install_dir }}/install-config.yaml.original')
-
 - name: Create agent config
+  when: not clusterAlreadyExists
   ansible.builtin.template:
     src: agent-config.yaml.j2
     dest: "{{ openshift_install_dir }}/agent-config.yaml"
@@ -67,6 +81,7 @@
     - agent-config
 
 - name: Save agent-config from deletion
+  when: not clusterAlreadyExists
   ansible.builtin.copy:
     dest: "{{ openshift_install_dir }}/agent-config.yaml.original"
     src: "{{ openshift_install_dir }}/agent-config.yaml"
@@ -76,6 +91,7 @@
     - agent-config
 
 - name: Create agent.iso files
+  when: not clusterAlreadyExists
   ansible.builtin.shell: |
     export PATH={{ openshift_install_dest }}:$PATH
     {{ openshift_install_command }} --dir={{ openshift_install_dir }} agent create image
@@ -144,6 +160,7 @@
         namespace: stormshift
 
 - name: Slurp configurations
+  when: not clusterAlreadyExists
   ansible.builtin.slurp:
     src: '{{ openshift_install_dir }}/{{ item }}'
   register: files
@@ -154,6 +171,7 @@
     - auth/kubeconfig
 
 - name: Store installaer configuration and authentication in a secret
+  when: not clusterAlreadyExists
   kubernetes.core.k8s:
     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
     host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
@@ -173,6 +191,7 @@
         kubeadmin-password: "{{ (files.results | selectattr('item', 'equalto', 'auth/kubeadmin-password') | first ).content  | b64decode}}"
 
 - name: Store cluster authentfication in Vault
+  when: not clusterAlreadyExists
   community.hashi_vault.vault_kv2_write:
     url: "{{ lookup('ansible.builtin.env', 'RH_VAULT_URL' ) }}"
     auth_method: approle
@@ -218,6 +237,7 @@
 
 # https://github.com/kubevirt/containerized-data-importer/blob/main/doc/upload.md
 - name: Create DataVolume agent-iso
+  when: not clusterAlreadyExists
   # register: my_var_with_return_value
   kubernetes.core.k8s:
     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
@@ -248,6 +268,7 @@
               storage: 2Gi
 
 - name: Upload token
+  when: not clusterAlreadyExists
   register: my_var_with_return_value
   kubernetes.core.k8s:
     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
@@ -271,6 +292,7 @@
 #     msg: "curl -v --insecure -H 'Authorization: Bearer  {{ my_var_with_return_value.result.status.token }}' --data-binary @/var/home/rbohne/Downloads/beryllium-1-i386.hybrid.iso https://{{ upload_host }}/v1beta1/upload "
 
 - name: Upload agent-iso
+  when: not clusterAlreadyExists
   ansible.builtin.uri:
     url: "{{ upload_host }}/v1beta1/upload"
     method: POST
@@ -310,6 +332,7 @@
   with_indexed_items: "{{ workers | default([])}}"
 
 - name: Waiting installation to complete
+  when: not clusterAlreadyExists
   ansible.builtin.shell: |
     export PATH={{ openshift_install_dest }}:$PATH
     {{ openshift_install_command }} --dir={{ openshift_install_dir }} agent wait-for install-complete
