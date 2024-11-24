@@ -1,0 +1,8 @@
+---
+cluster_type: hosted
+openshift_version: 4.16.15
+
+worker_cores: 8
+worker_ram_gb: 16
+worker_count: 3
+

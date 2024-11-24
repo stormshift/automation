@@ -1,0 +1,408 @@
+---
+- name: Create project-req
+  redhat.openshift.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    apply: false
+    definition:
+      kind: Project
+      apiVersion: project.openshift.io/v1
+      metadata:
+        name: "stormshift-{{ inventory_hostname }}"
+
+- name: Update requestor
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    merge_type: merge
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "stormshift-{{ inventory_hostname }}"
+        annotations:
+          openshift.io/requester: "{{ tower_user_email }}"
+          openshift.io/display-name: "StormShift Cluster {{ inventory_hostname }}"
+          openshift.io/description: "Contains VMs running StormShift {{ inventory_hostname }} Cluster"
+
+- name: Apply admin privileges to new namespace
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      metadata:
+        name: admin
+        namespace: "stormshift-{{ inventory_hostname }}"
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: admin
+      subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: User
+        name: "{{ tower_user_name }}"
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: stormshift-admins
+      - kind: ServiceAccount
+        name: automation
+        namespace: stormshift
+
+- name: Predict oauth url
+  ansible.builtin.set_fact:
+    oauth_hostname: "oauth-stormshift-{{ inventory_hostname  }}.apps.isar.coe.muc.redhat.com"
+    client_secret: "{{ lookup('community.general.random_string') | ansible.builtin.to_uuid }}"
+
+- name: Create oidc clients
+  with_items:
+    - coe-sso
+    - coe-sso-admin
+  community.general.keycloak_client:
+    validate_certs: false
+    auth_keycloak_url: https://sso.coe.muc.redhat.com
+    auth_realm: master
+    auth_username: admin
+    auth_password: "{{ sso_admin_pw }}"
+
+    realm: "{{ item }}"
+    client_id: "{{ oauth_hostname }}"
+    secret: "{{ client_secret }}"
+    name: "{{ oauth_hostname }}"
+    redirect_uris:
+      - "https://{{ oauth_hostname }}/oauth2callback/*"
+    web_origins:
+      - "https://{{ oauth_hostname }}/"
+
+    public_client: false
+    frontchannel_logout: true
+    protocol_mappers:
+      - name: "groups"
+        protocol: "openid-connect"
+        protocolMapper: "oidc-group-membership-mapper"
+        consentRequired: false
+        config:
+          "full.path": false
+          "userinfo.token.claim": false
+          "multivalued": true
+          "id.token.claim": true
+          "access.token.claim": true
+          "claim.name": groups
+
+    state: present
+  delegate_to: localhost
+
+- name: Create clientSecret k8s secret
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      type: Opaque
+      metadata:
+        name: "{{ inventory_hostname }}-openid-client-secret-coe-sso"
+        namespace: "stormshift"
+      data:
+        clientSecret: "{{ client_secret | b64encode }}"
+
+- name: Apply Red Hat Root CA
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    definition:
+      apiVersion: v1
+      data:
+        ca-bundle.crt: | 
+          -----BEGIN CERTIFICATE-----
+          MIIENDCCAxygAwIBAgIJANunI0D662cnMA0GCSqGSIb3DQEBCwUAMIGlMQswCQYD
+          VQQGEwJVUzEXMBUGA1UECAwOTm9ydGggQ2Fyb2xpbmExEDAOBgNVBAcMB1JhbGVp
+          Z2gxFjAUBgNVBAoMDVJlZCBIYXQsIEluYy4xEzARBgNVBAsMClJlZCBIYXQgSVQx
+          GzAZBgNVBAMMElJlZCBIYXQgSVQgUm9vdCBDQTEhMB8GCSqGSIb3DQEJARYSaW5m
+          b3NlY0ByZWRoYXQuY29tMCAXDTE1MDcwNjE3MzgxMVoYDzIwNTUwNjI2MTczODEx
+          WjCBpTELMAkGA1UEBhMCVVMxFzAVBgNVBAgMDk5vcnRoIENhcm9saW5hMRAwDgYD
+          VQQHDAdSYWxlaWdoMRYwFAYDVQQKDA1SZWQgSGF0LCBJbmMuMRMwEQYDVQQLDApS
+          ZWQgSGF0IElUMRswGQYDVQQDDBJSZWQgSGF0IElUIFJvb3QgQ0ExITAfBgkqhkiG
+          9w0BCQEWEmluZm9zZWNAcmVkaGF0LmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEP
+          ADCCAQoCggEBALQt9OJQh6GC5LT1g80qNh0u50BQ4sZ/yZ8aETxt+5lnPVX6MHKz
+          bfwI6nO1aMG6j9bSw+6UUyPBHP796+FT/pTS+K0wsDV7c9XvHoxJBJJU38cdLkI2
+          c/i7lDqTfTcfLL2nyUBd2fQDk1B0fxrskhGIIZ3ifP1Ps4ltTkv8hRSob3VtNqSo
+          GxkKfvD2PKjTPxDPWYyruy9irLZioMffi3i/gCut0ZWtAyO3MVH5qWF/enKwgPES
+          X9po+TdCvRB/RUObBaM761EcrLSM1GqHNueSfqnho3AjLQ6dBnPWlo638Zm1VebK
+          BELyhkLWMSFkKwDmne0jQ02Y4g075vCKvCsCAwEAAaNjMGEwHQYDVR0OBBYEFH7R
+          4yC+UehIIPeuL8Zqw3PzbgcZMB8GA1UdIwQYMBaAFH7R4yC+UehIIPeuL8Zqw3Pz
+          bgcZMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0PAQH/BAQDAgGGMA0GCSqGSIb3DQEB
+          CwUAA4IBAQBDNvD2Vm9sA5A9AlOJR8+en5Xz9hXcxJB5phxcZQ8jFoG04Vshvd0e
+          LEnUrMcfFgIZ4njMKTQCM4ZFUPAieyLx4f52HuDopp3e5JyIMfW+KFcNIpKwCsak
+          oSoKtIUOsUJK7qBVZxcrIyeQV2qcYOeZhtS5wBqIwOAhFwlCET7Ze58QHmS48slj
+          S9K0JAcps2xdnGu0fkzhSQxY8GPQNFTlr6rYld5+ID/hHeS76gq0YG3q6RLWRkHf
+          4eTkRjivAlExrFzKcljC4axKQlnOvVAzz+Gm32U0xPBF4ByePVxCJUHw1TsyTmel
+          RxNEp7yHoXcwn+fXna+t5JWh1gxUZty3
+          -----END CERTIFICATE-----
+          -----BEGIN CERTIFICATE-----
+          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
+          56vmq8fwQYIcazjrygWiaOnoep/SMw==
+          -----END CERTIFICATE-----
+      kind: ConfigMap
+      metadata:
+        name: redhat-current-it-root-cas-for-sso
+        namespace: stormshift 
+
+- name: Create pull secret
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      type: Opaque
+      metadata:
+        name: "pull-secret"
+        namespace: "stormshift"
+      data:
+        .dockerconfigjson: "{{ image_pull_secret | b64encode }}"
+
+    
+- name: Create node pool
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    definition:
+      apiVersion: hypershift.openshift.io/v1beta1
+      kind: NodePool
+      metadata:
+        name: "{{ inventory_hostname }}-nodepool1"
+        namespace: stormshift
+      spec:
+        arch: amd64
+        clusterName: "{{ inventory_hostname }}"
+        management:
+          autoRepair: false
+          upgradeType: Replace
+        nodeDrainTimeout: 0s
+        platform:
+          kubevirt:
+            attachDefaultNetwork: true
+            compute:
+              cores: "{{ worker_cores | int }}"
+              memory: "{{ worker_ram_gb }}Gi"
+              qosClass: Burstable
+            rootVolume:
+              persistent:
+                size: 120Gi
+                storageClass: coe-netapp-san
+              type: Persistent
+          type: KubeVirt
+        release:
+          image: "quay.io/openshift-release-dev/ocp-release:{{ openshift_version }}-x86_64"
+        replicas: "{{ worker_count }}"
+
+- name: Create hosted control plane
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    wait: yes
+    wait_sleep: 10
+    wait_timeout: 600
+    wait_condition:
+      type: Available
+      status: "True"
+
+    state: present
+    definition:
+      apiVersion: hypershift.openshift.io/v1beta1
+      kind: HostedCluster
+      metadata:
+        name: "{{ inventory_hostname }}"
+        namespace: stormshift
+        annotations:  
+        # https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.11/html/clusters/cluster_mce_overview#handling-ingressb
+      spec:
+        additionalTrustBundle:
+          name: redhat-current-it-root-cas-for-sso
+        autoscaling: {}
+        controllerAvailabilityPolicy: HighlyAvailable
+        configuration: 
+          oauth:
+            identityProviders:
+              - name: COE-SSO
+                mappingMethod: add
+                openID:
+                  ca:
+                    name: redhat-current-it-root-cas-for-sso
+                  claims:
+                    email:
+                    - email
+                    groups:
+                    - groups
+                    name:
+                    - name
+                    preferredUsername:
+                    - preferred_username
+                  clientID: "{{  oauth_hostname  }}"
+                  clientSecret:
+                    name: "{{ inventory_hostname }}-openid-client-secret-coe-sso"
+                  issuer: https://sso.coe.muc.redhat.com/realms/coe-sso
+                type: OpenID
+              - name: COE-SSO-Admin
+                mappingMethod: add
+                openID:
+                  ca:
+                    name: redhat-current-it-root-cas-for-sso
+                  claims:
+                    email:
+                    - email
+                    groups:
+                    - groups
+                    name:
+                    - name
+                    preferredUsername:
+                    - preferred_username
+                  clientID: "{{  oauth_hostname  }}"
+                  clientSecret:
+                    name: "{{ inventory_hostname }}-openid-client-secret-coe-sso"
+                  issuer: https://sso.coe.muc.redhat.com/realms/coe-sso-admin
+                type: OpenID
+        dns:
+          baseDomain: "apps.{{ inventory_hostname }}.stormshift.coe.muc.redhat.com"
+        etcd:
+          managed:
+            storage:
+              persistentVolume:
+                size: 8Gi
+                storageClassName: lvms-for-etcd
+              type: PersistentVolume
+          managementType: Managed
+        fips: false
+        infraID: ocp3
+        issuerURL: https://kubernetes.default.svc
+        networking:
+          clusterNetwork:
+          - cidr: 10.132.0.0/14
+          networkType: OVNKubernetes
+          serviceNetwork:
+          - cidr: 172.31.0.0/16
+        olmCatalogPlacement: management
+        platform:
+          kubevirt:
+            storageDriver:
+              manual:
+                storageClassMapping:
+                  - guestStorageClassName: ocs-storagecluster-ceph-rbd
+                    infraStorageClassName: ocs-storagecluster-ceph-rbd
+              type: Manual
+            # ToDo - false and MetalLB
+            # https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.11/html/clusters/cluster_mce_overview#create-hosted-clusters-kubevirt-default-ingress-dns
+            baseDomainPassthrough: false
+          type: KubeVirt
+        pullSecret:
+          name: "pull-secret"
+        release:
+          image: "quay.io/openshift-release-dev/ocp-release:{{ openshift_version }}-multi"
+        secretEncryption:
+          aescbc:
+            activeKey:
+              name: "{{ inventory_hostname }}-etcd-encryption-key"
+          type: aescbc
+        services:
+        - service: OAuthServer
+          servicePublishingStrategy:
+            type: Route
+        - service: OIDC
+          servicePublishingStrategy:
+            type: Route
+        - service: Konnectivity
+          servicePublishingStrategy:
+            type: Route
+        - service: Ignition
+          servicePublishingStrategy:
+            type: Route
+        - service: APIServer
+          servicePublishingStrategy:
+            type: LoadBalancer
+        sshKey:
+          name: coe-ssh-key
+                                           
+# - name: Add cluster role
+#   kubernetes.core.k8s:
+#     kubeconfig: "{{ temp.path }}/kubeconfig"
+
+#     definition:
+#       apiVersion: rbac.authorization.k8s.io/v1
+#       kind: ClusterRoleBinding
+#       metadata:
+#         name: coe-sso-admin
+#       roleRef:
+#         apiGroup: rbac.authorization.k8s.io
+#         kind: ClusterRole
+#         name: cluster-admin
+#       subjects:
+#       - apiGroup: rbac.authorization.k8s.io
+#         kind: Group
+#         name: coe-sso-admin
+#       - apiGroup: rbac.authorization.k8s.io
+#         kind: User
+#         name: "{{ tower_user_email }}-admin"
+
+# https://sso.coe.muc.redhat.com/realms/coe-sso/protocol/openid-connect/token
+# https://sso.coe.muc.redhat.com/realms/coe-sso/protocol/openid-connect/token
+
+
+
