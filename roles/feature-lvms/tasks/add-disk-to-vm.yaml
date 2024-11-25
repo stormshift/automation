@@ -1,0 +1,61 @@
+---
+- name: Create empty disk data volume
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+    state: present
+    wait: yes
+    wait_condition:
+      type: Ready
+      status: True
+    definition:
+      apiVersion: cdi.kubevirt.io/v1beta1
+      kind: DataVolume
+      metadata:
+        name: "{{ vm_name }}-{{ disk_name }}"
+        namespace: "{{ target_namespace }}"
+      spec:
+        source:
+          blank: {}
+        storage:
+          resources:
+            requests:
+              storage: "{{ disk_size }}"
+          storageClassName: "{{ disk_storageclass }}"
+
+- name: Hotplug virtual disk to VM
+  kubevirt.core.kubevirt_vm:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    name: "{{ vm_name }}"
+    namespace: "{{ target_namespace }}"
+    spec:
+      domain:
+        devices:
+          disks:
+            - name: root
+              bootOrder: 1
+              disk:
+                bus: virtio
+            - name: cdrom
+              bootOrder: 2
+              cdrom:
+                bus: sata
+            - disk:
+                bus: scsi
+              name: "{{ disk_name }}"
+      volumes:
+        - name: cdrom
+          persistentVolumeClaim:
+            claimName: "{{ inventory_hostname }}-agent-iso"
+        - name: root
+          dataVolume:
+            name: "{{ vm_name }}-root"
+        - dataVolume:
+            hotpluggable: true
+            name: "{{ vm_name }}-{{ disk_name }}"
+          name: "{{ disk_name }}"

@@ -1,0 +1,81 @@
+- name: Add disks to control plane VMs
+  vars:
+    vm_name: "{{ inventory_hostname }}-cp-{{ item.0 }}"
+    disk_name: "lvms-disk1"
+    disk_size: "10Gi"
+    disk_storageclass:  coe-netapp-san
+  ansible.builtin.include_tasks: "add-disk-to-vm.yaml"
+  with_indexed_items: "{{ control_plans }}"
+  when: workers is undefined or workers|length == 0
+
+- name: Add disks to worker VMs
+  vars:
+    vm_name: "{{ inventory_hostname }}-worker-{{ item.0 }}"
+    disk_name: "lvms-disk1"
+    disk_size: "10Gi"
+    disk_storageclass:  coe-netapp-san
+  ansible.builtin.include_tasks: "add-disk-to-vm.yaml"
+  with_indexed_items: "{{ workers }}"
+  when: workers is defined and workers|length == 0
+
+- name: Get child cluster access
+  community.hashi_vault.vault_kv2_get:
+    url: "{{ lookup('ansible.builtin.env', 'RH_VAULT_URL' ) }}"
+    auth_method: approle
+    role_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_ROLE_ID' ) }}"
+    secret_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_SECRET_ID' ) }}"
+    ca_cert: "{{ lookup('ansible.builtin.env', 'RH_VAULT_CA_CERT_FILENAME' ) }}"
+    engine_mount_point: apps
+
+    path: "coe-lab/cluster-credential/stormshift-{{ inventory_hostname }}"
+  register: cluster_credential
+
+- name: Temp folder
+  ansible.builtin.tempfile:
+    state: "directory"
+  register: temp
+  changed_when: False
+
+- name: Write kubeconfig
+  ansible.builtin.copy:
+    dest: "{{ temp.path }}/kubeconfig"
+    content: "{{ cluster_credential.secret.kubeconfig }}"
+  changed_when: False
+
+- name: Install LVMS operator
+  kubernetes.core.k8s:
+    kubeconfig: "{{ temp.path }}/kubeconfig"
+    state: present
+    definition:
+      kind: Subscription
+      apiVersion: operators.coreos.com/v1alpha1
+      metadata:
+        name: lvms-operator
+        namespace: openshift-storage
+      spec:
+        installPlanApproval: Automatic
+        name: lvms-operator
+        source: redhat-operators
+        sourceNamespace: openshift-marketplace
+
+- name: Deploy LVMS
+  kubernetes.core.k8s:
+    kubeconfig: "{{ temp.path }}/kubeconfig"
+    state: present
+    definition:
+      kind: LVMCluster
+      apiVersion: lvm.topolvm.io/v1alpha1
+      metadata:
+        name: lvmcluster
+        namespace: openshift-storage
+      spec:
+        storage:
+          deviceClasses:
+            - name: vg1
+              default: true
+              fstype: xfs
+              thinPoolConfig:
+                chunkSizeCalculationPolicy: Static
+                name: thin-pool-1
+                overprovisionRatio: 10
+                sizePercent: 90
