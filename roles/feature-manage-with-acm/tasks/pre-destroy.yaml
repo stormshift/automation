@@ -1,6 +1,7 @@
 ---
 - name: "Remove ManagedCluster >{{ acm_hub_clustername }}< from ACM"
   tags: acm
+  ignore_errors: true
   kubernetes.core.k8s:
     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
     host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
@@ -19,6 +20,7 @@
 # but we might need it in case ACM failed for some reasons:
 - name: "Remove Project  >{{ acm_hub_clustername }}< from HubCluster"
   tags: acm
+  ignore_errors: true
   redhat.openshift.k8s:
     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
     host:            "{{ hostvars['isar']['k8s_auth_host'] }}"

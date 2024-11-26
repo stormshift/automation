@@ -6,6 +6,9 @@ cluster_type: classic
 cluster_api_vip: 10.32.105.42
 cluster_ingress_vip: 10.32.105.49
 
+stormshift_cluster_features:
+  - lvms
+
 # See https://docs.openshift.com/container-platform/4.17/installing/overview/cluster-capabilities.html
 cluster_capabilities:
   baselineCapabilitySet: None
