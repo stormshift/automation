@@ -1,5 +1,6 @@
 ---
 - name: Destroy clients
+  ignore_errors: true
   with_items:
     - coe-sso
     - coe-sso-admin
@@ -14,6 +15,6 @@
     realm: "{{ item }}"
     client_id: "oauth-openshift.apps.{{ inventory_hostname }}.{{ cluster_base_domain }}"
     name: "oauth-openshift.apps.{{ inventory_hostname }}.{{ cluster_base_domain }}"
-  
+
     state: absent
   delegate_to: localhost
