@@ -2,7 +2,7 @@
   vars:
     vm_name: "{{ inventory_hostname }}-cp-{{ item.0 }}"
     disk_name: "lvms-disk1"
-    disk_size: "10Gi"
+    disk_size: "100Gi"
     disk_storageclass:  coe-netapp-san
   ansible.builtin.include_tasks: "add-disk-to-vm.yaml"
   with_indexed_items: "{{ control_plans }}"
@@ -42,26 +42,70 @@
     content: "{{ cluster_credential.secret.kubeconfig }}"
   changed_when: False
 
+- name: Wait for API to be available (in case we rebooted to add a disk)
+  wait_for:
+    host: "api.{{ inventory_hostname }}.{{ cluster_base_domain }}"
+    port: 443
+    sleep: 1
+    timeout: 300
+
+
 - name: Install LVMS operator
   kubernetes.core.k8s:
     kubeconfig: "{{ temp.path }}/kubeconfig"
     state: present
     definition:
-      kind: Subscription
-      apiVersion: operators.coreos.com/v1alpha1
-      metadata:
-        name: lvms-operator
-        namespace: openshift-storage
-      spec:
-        installPlanApproval: Automatic
-        name: lvms-operator
-        source: redhat-operators
-        sourceNamespace: openshift-marketplace
+      - kind: Namespace
+        apiVersion: v1
+        metadata:
+          labels:
+            openshift.io/cluster-monitoring: "true"
+            pod-security.kubernetes.io/enforce: privileged
+            pod-security.kubernetes.io/audit: privileged
+            pod-security.kubernetes.io/warn: privileged
+          annotations:
+            workload.openshift.io/allowed: management
+          name: openshift-storage
+      - kind: OperatorGroup
+        apiVersion: operators.coreos.com/v1
+        metadata:
+          name: openshift-storage-operatorgroup
+          namespace: openshift-storage
+        spec:
+          targetNamespaces:
+          - openshift-storage
+
+      - kind: Subscription
+        apiVersion: operators.coreos.com/v1alpha1
+        metadata:
+          name: lvms-operator
+          namespace: openshift-storage
+        spec:
+          installPlanApproval: Automatic
+          channel: stable-4.17
+          name: lvms-operator
+          source: redhat-operators
+          sourceNamespace: openshift-marketplace
+
+- name: Wait for Operator Deployment to be complete
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ temp.path }}/kubeconfig"
+    kind: CustomResourceDefinition
+    name: lvmclusters.lvm.topolvm.io
+    wait: yes
+    wait_condition:
+      type: Established
+      status: True
+
 
 - name: Deploy LVMS
   kubernetes.core.k8s:
     kubeconfig: "{{ temp.path }}/kubeconfig"
     state: present
+    wait: yes
+    wait_condition:
+      type: VolumeGroupsReady
+      status: True
     definition:
       kind: LVMCluster
       apiVersion: lvm.topolvm.io/v1alpha1
