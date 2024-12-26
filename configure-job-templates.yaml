@@ -4,6 +4,23 @@
   gather_facts: false
   tasks:
     # - debug: msg="{{ inventory_hostname }}"
+    - name: Create coe-lab-stormshift-notifications notification template
+      awx.awx.notification_template:
+        state: present
+        name: "coe-lab-stormshift-notifications"
+        organization: "stormshift"
+        notification_type: email
+        notification_configuration:
+          sender: "coe-lab-stormshift-notifications@redhat.com"
+          recipients:
+            - "coe-lab-stormshift-notifications@redhat.com"
+          host: "smtp.corp.redhat.com"
+          port: 25
+          username: ''
+          password: ''
+          use_tls: no
+          use_ssl: no
+
     - name: "Create jobs: StormShift Cluster Mgmt - {{ inventory_hostname }}"
       awx.awx.job_template:
         name: "🌪️ StormShift Cluster Mgmt - {{ inventory_hostname }}"
@@ -28,6 +45,12 @@
         state: "present"
         survey_enabled: yes
         allow_simultaneous: false
+        notification_templates_error:
+          - coe-lab-stormshift-notifications
+        notification_templates_started: 
+          - coe-lab-stormshift-notifications
+        notification_templates_success:
+          - coe-lab-stormshift-notifications
         extra_vars: 
           stormshift_cluster_name: "{{ inventory_hostname }}"
         survey_spec: |
