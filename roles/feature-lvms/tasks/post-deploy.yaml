@@ -1,9 +1,6 @@
 - name: Add disks to control plane VMs
   vars:
     vm_name: "{{ inventory_hostname }}-cp-{{ item.0 }}"
-    disk_name: "lvms-disk1"
-    disk_size: "100Gi"
-    disk_storageclass:  coe-netapp-san
   ansible.builtin.include_tasks: "add-disk-to-vm.yaml"
   with_indexed_items: "{{ control_plans }}"
   when: workers is undefined or workers|length == 0
@@ -11,9 +8,6 @@
 - name: Add disks to worker VMs
   vars:
     vm_name: "{{ inventory_hostname }}-worker-{{ item.0 }}"
-    disk_name: "lvms-disk1"
-    disk_size: "10Gi"
-    disk_storageclass:  coe-netapp-san
   ansible.builtin.include_tasks: "add-disk-to-vm.yaml"
   with_indexed_items: "{{ workers }}"
   when: workers is defined and workers|length == 0
@@ -82,7 +76,7 @@
           namespace: openshift-storage
         spec:
           installPlanApproval: Automatic
-          channel: stable-4.17
+          channel: "{{ lvms_channel }}"
           name: lvms-operator
           source: redhat-operators
           sourceNamespace: openshift-marketplace
