@@ -35,6 +35,7 @@ ushift_repo_rc: "https://mirror.openshift.com/pub/openshift-v4/x86_64/microshift
 ushift_vm_storageclass: "coe-netapp-san"
 # possible additional features: cockpit, manage_with_acm
 ushift_additional_features: {}
+ushift_use_local_quay_proxy: false
 
 # echo -n SECRET | ansible-vault encrypt_string --vault-password-file .vault_pass
 sso_admin_pw: !vault |

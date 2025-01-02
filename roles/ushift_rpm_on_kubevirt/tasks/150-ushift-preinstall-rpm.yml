@@ -158,3 +158,36 @@
         permanent: yes
         port: 9090/tcp
         state: enabled
+
+    - name: Prep image registry proxy
+      tags: prep, img_proxy
+      when: ushift_use_local_quay_proxy
+      ansible.builtin.file:
+        path: /etc/containers/registries.conf.d/
+        state: directory
+        recurse: true
+        mode: '0755'
+
+    - name: Configure image registry proxy
+      tags: prep, img_proxy
+      when: ushift_use_local_quay_proxy
+      template:
+        trim_blocks: false
+        src: templates/microshift-registries-proxy.conf
+        dest: /etc/containers/registries.conf.d/100-microshift-proxy.conf
+
+    - name: Add Red Hat Internal Root CA to trust local registry
+      tags: prep, img_proxy
+      when: ushift_use_local_quay_proxy
+      copy:
+        src: "Current-IT-Root-CAs.crt"
+        dest: /etc/pki/ca-trust/source/anchors
+        mode: 0644
+        owner: root
+        group: root
+      register: ca_trust
+
+    - name: Update CA Trust
+      tags: prep, img_proxy
+      when: ushift_use_local_quay_proxy and ca_trust is changed
+      shell: update-ca-trust
