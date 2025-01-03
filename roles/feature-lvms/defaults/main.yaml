@@ -1,0 +1,6 @@
+---
+# defaults file
+disk_name: "lvms-disk1"
+disk_size: "25Gi"
+disk_storageclass:  "coe-netapp-san"
+lvms_channel: "stable-{{ openshift_version.split('.').0 }}.{{ openshift_version.split('.').1 }}"
