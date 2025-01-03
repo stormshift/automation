@@ -1,16 +1,16 @@
 ---
+# Execution
+# cp -v $KUBECONFIG .
+# /Users/rbohne/.kube/.switch_tmp/config.2962012707.tmp -> ./config.2962012707.tmp
+# export K8S_AUTH_KUBECONFIG=$(basename $KUBECONFIG)
+# ansible-navigator run configure-oauth-sso.yaml \
+#  --vault-password-file=.vault_pass
+
 # This is use a test
 - hosts: localhost
   connection: local
   gather_facts: false
-  vars:
-    sso_admin_pw: ...
   tasks:
-
-    - name: debug
-      shell:
-        env | grep K8S
-    # At HCP it's empty
     - name: Fetch cluster information - oauth url
       kubernetes.core.k8s_info:
         api_version: "config.openshift.io/v1"
@@ -35,7 +35,6 @@
         - coe-sso
         - coe-sso-admin
       community.general.keycloak_client:
-
         validate_certs: false
         auth_keycloak_url: https://sso.coe.muc.redhat.com
         auth_realm: master
@@ -45,7 +44,7 @@
         realm: "{{ item }}"
         client_id: "{{  oauth_hostname  }}"
         secret: "{{ client_secret }}"
-        name: "{{   oauth_hostname }}"
+        name: "{{ oauth_hostname }}"
         redirect_uris:
           - "https://{{ oauth_hostname }}/oauth2callback/*"
         web_origins:

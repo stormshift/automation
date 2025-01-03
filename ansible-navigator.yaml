@@ -3,6 +3,7 @@ ansible-navigator:
   execution-environment:
     environment-variables:
       pass:
+        - K8S_AUTH_KUBECONFIG
         - IPA_HOST
         - IPA_PASS
         - IPA_USER
