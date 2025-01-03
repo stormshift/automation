@@ -1,3 +1,5 @@
+
+######### Run automation locally on mac using navigator and podman machine:
 podman machine init \
    --volume /private:/private \
    --volume /Users:/Users \
@@ -20,3 +22,29 @@ ansible-navigator run 200-ushift-create.yaml \
         -e ushift_env=ushift18_bootc \
         -e@development-example.vars-private \
         --vault-password-file=.vault_pass
+
+
+#####################################
+# Add a service of type loadbalncer to be able to ssh into a
+# VM using podnetwork only: 
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+  name: ushift08-lb-ssh
+  namespace: stormshift-microshift
+spec:
+  allocateLoadBalancerNodePorts: false
+  externalTrafficPolicy: Cluster
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - port: 22000
+    protocol: TCP
+    targetPort: 22
+  selector:
+    vm.kubevirt.io/name: ushift08
+  sessionAffinity: None
+  type: LoadBalancer
