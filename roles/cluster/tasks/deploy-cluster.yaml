@@ -233,7 +233,7 @@
 #         name: coe-bridge
 #         namespace: "{{ target_namespace }}"
 #       spec:
-#         config: '{"name":"coe-bridge","type":"cnv-bridge","cniVersion":"0.3.1","bridge":"coe-bridge","macspoofchk":true,"ipam":{}}'
+#         config: '{"name":"coe-bridge","type":"cnv-bridge","cniVersion":"0.3.1","bridge":"coe-bridge","macspoofchk":false,"ipam":{}}'
 
 # https://github.com/kubevirt/containerized-data-importer/blob/main/doc/upload.md
 - name: Create DataVolume agent-iso
