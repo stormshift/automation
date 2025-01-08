@@ -28,7 +28,7 @@
         state: "present"
         survey_enabled: yes
         allow_simultaneous: false
-        extra_vars: 
+        extra_vars:
           stormshift_cluster_name: "{{ inventory_hostname }}"
         survey_spec: |
           {
@@ -54,7 +54,8 @@
                     "choices": [
                         "manage-with-acm",
                         "redhat-internal-certificate",
-                        "coe-sso"
+                        "coe-sso",
+                        "lvms"
                     ],
                     "default": "manage-with-acm\nredhat-internal-certificate\ncoe-sso",
                     "max": 1024,
