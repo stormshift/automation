@@ -1,0 +1,240 @@
+# This deploys RHOAI Operator to a cluster
+# Based on:
+# https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/2.16/html/installing_and_uninstalling_openshift_ai_self-managed/installing-and-deploying-openshift-ai_install#installing-openshift-ai-operator-using-cli_operator-install
+
+# TODO: Do we need to create Object Storage on ISAR ODF???
+
+
+- name: Get child cluster access
+  community.hashi_vault.vault_kv2_get:
+    url: "{{ lookup('ansible.builtin.env', 'RH_VAULT_URL' ) }}"
+    auth_method: approle
+    role_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_ROLE_ID' ) }}"
+    secret_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_SECRET_ID' ) }}"
+    ca_cert: "{{ lookup('ansible.builtin.env', 'RH_VAULT_CA_CERT_FILENAME' ) }}"
+    engine_mount_point: apps
+
+    path: "coe-lab/cluster-credential/stormshift-{{ inventory_hostname }}"
+  register: cluster_credential
+
+- name: Temp folder
+  ansible.builtin.tempfile:
+    state: "directory"
+  register: temp
+  changed_when: False
+
+- name: Write kubeconfig
+  ansible.builtin.copy:
+    dest: "{{ temp.path }}/kubeconfig"
+    content: "{{ cluster_credential.secret.kubeconfig }}"
+  changed_when: False
+
+- name: Ensure cluster is online
+  wait_for:
+    host: "api.{{ inventory_hostname }}.{{ cluster_base_domain }}"
+    port: 443
+    sleep: 1
+    timeout: 10
+
+# --------------------------------------------
+# ----- Service Mesh Operator
+# --------------------------------------------
+- name: Install Service Mesh  operator
+  kubernetes.core.k8s:
+    kubeconfig: "{{ temp.path }}/kubeconfig"
+    state: present
+    definition:
+      - kind: Subscription
+        apiVersion: operators.coreos.com/v1alpha1
+        metadata:
+          name: servicemeshoperator
+          namespace: openshift-operators
+        spec:
+          name: servicemeshoperator
+          installPlanApproval: Automatic
+          channel: "{{ service_mesh_operator_channel }}"
+          source: redhat-operators
+          sourceNamespace: openshift-marketplace
+
+# --------------------------------------------
+# ----- Serverless Operator
+# --------------------------------------------
+# See: https://docs.redhat.com/en/documentation/red_hat_openshift_serverless/1.33/html/installing_openshift_serverless/install-serverless-operator#serverless-install-cli_install-serverless-operator
+- name: Install Serverless operator
+  kubernetes.core.k8s:
+    kubeconfig: "{{ temp.path }}/kubeconfig"
+    state: present
+    definition:
+      - apiVersion: v1
+        kind: Namespace
+        metadata:
+          name: openshift-serverless
+      - apiVersion: operators.coreos.com/v1
+        kind: OperatorGroup
+        metadata:
+          name: serverless-operators
+          namespace: openshift-serverless
+        spec: {}
+      - apiVersion: operators.coreos.com/v1alpha1
+        kind: Subscription
+        metadata:
+          name: serverless-operator
+          namespace: openshift-serverless
+        spec:
+          channel: "{{ serverless_operator_channel }}"
+          name: serverless-operator
+          source: redhat-operators
+          sourceNamespace: openshift-marketplace
+
+# --------------------------------------------
+# ----- Cert-Manager (Required for KServe)
+# --------------------------------------------
+- name: Install Cert-Manager operator
+  kubernetes.core.k8s:
+    kubeconfig: "{{ temp.path }}/kubeconfig"
+    state: present
+    definition:
+      - apiVersion: v1
+        kind: Namespace
+        metadata:
+          name: cert-manager-operator
+      - apiVersion: operators.coreos.com/v1
+        kind: OperatorGroup
+        metadata:
+          name: openshift-cert-manager-operator
+          namespace: cert-manager-operator
+        spec:
+          targetNamespaces:
+          - "cert-manager-operator"
+
+      - apiVersion: operators.coreos.com/v1alpha1
+        kind: Subscription
+        metadata:
+          name: openshift-cert-manager-operator
+          namespace: cert-manager-operator
+        spec:
+          channel: "{{ certmgr_operator_channel }}"
+          name: openshift-cert-manager-operator
+          source: redhat-operators
+          sourceNamespace: openshift-marketplace
+          installPlanApproval: Automatic
+
+# --------------------------------------------
+# ----- KServe
+# --------------------------------------------
+# Source: https://github.com/opendatahub-io/kserve
+# This failed using k8s module, doing brute force "oc apply" here.
+- name: "Probe for KServe"
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ temp.path }}/kubeconfig"
+    kind: CustomResourceDefinition
+    name: inferenceservices.serving.kserve.io
+  register: probe4kserve
+
+# Needs some retries for e.g. the cert-mgr operator to be fully deployed
+- name: "Apply KServe manifests"
+  when: probe4kserve.resources | length == 0
+  ansible.builtin.command: "oc apply --kubeconfig={{ temp.path }}/kubeconfig --server-side -f {{ kserve_manifest_url}}"
+  retries: 12
+  delay: 10
+  register: result
+  until: result.rc == 0
+
+# --------------------------------------------
+# ----- RHOAI Operator
+# --------------------------------------------
+
+- name: Install RHOAI operator
+  kubernetes.core.k8s:
+    kubeconfig: "{{ temp.path }}/kubeconfig"
+    state: present
+    definition:
+      - kind: Namespace
+        apiVersion: v1
+        metadata:
+          name: redhat-ods-operator
+
+      - kind: OperatorGroup
+        apiVersion: operators.coreos.com/v1
+        metadata:
+          name: rhods-operator
+          namespace: redhat-ods-operator
+
+      - kind: Subscription
+        apiVersion: operators.coreos.com/v1alpha1
+        metadata:
+          name: rhods-operator
+          namespace: redhat-ods-operator
+        spec:
+          name: rhods-operator
+          installPlanApproval: Automatic
+          channel: "{{ rhods_operator_channel }}"
+          source: redhat-operators
+          sourceNamespace: openshift-marketplace
+
+- name: Wait for Operator to be installed
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ temp.path }}/kubeconfig"
+    kind: InstallPlan
+    api_version: operators.coreos.com/v1alpha1
+    namespace: redhat-ods-operator
+    label_selectors:
+      - operators.coreos.com/rhods-operator.redhat-ods-operator = ''
+    wait: yes
+    wait_condition:
+      type: Installed
+      status: True
+
+- name: Wait for DSCInitilization to be completed
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ temp.path }}/kubeconfig"
+    kind: DSCInitialization
+    name: default-dsci
+    wait: yes
+    wait_condition:
+      type: Available
+      status: True
+
+- name: Install DataScienceCluster (time for coffee)
+  kubernetes.core.k8s:
+    kubeconfig: "{{ temp.path }}/kubeconfig"
+    state: present
+    wait: yes
+    wait_timeout: 300
+    wait_condition:
+      type: Available
+      status: True
+    definition:
+    - apiVersion: datasciencecluster.opendatahub.io/v1
+      kind: DataScienceCluster
+      metadata:
+        name: default-dsc
+      spec:
+        components:
+          codeflare:
+            managementState: Removed
+          dashboard:
+            managementState: Managed
+          datasciencepipelines:
+            managementState: Managed
+          kserve:
+            managementState: Managed
+            serving:
+              name: knative-serving
+              managementState: Managed
+              ingressGateway:
+               certificate:
+                 secretName: knative-serving-cert
+                 type: OpenshiftDefaultIngress
+          kueue:
+            managementState: Removed
+          modelmeshserving:
+            managementState: Removed
+          ray:
+            managementState: Removed
+          trainingoperator:
+            managementState: Removed
+          trustyai:
+            managementState: Removed
+          workbenches:
+            managementState: Removed

@@ -55,7 +55,8 @@
                         "manage-with-acm",
                         "redhat-internal-certificate",
                         "coe-sso",
-                        "lvms"
+                        "lvms",
+                        "rhoai"
                     ],
                     "default": "manage-with-acm\nredhat-internal-certificate\ncoe-sso",
                     "max": 1024,
