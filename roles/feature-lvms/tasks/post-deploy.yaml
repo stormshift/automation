@@ -84,13 +84,10 @@
 - name: Wait for Operator Deployment to be complete
   kubernetes.core.k8s_info:
     kubeconfig: "{{ temp.path }}/kubeconfig"
-    kind: CustomResourceDefinition
-    name: lvmclusters.lvm.topolvm.io
+    kind: Endpoints
+    name: lvms-operator-service
+    namespace: openshift-storage
     wait: yes
-    wait_condition:
-      type: Established
-      status: True
-
 
 - name: Deploy LVMS
   kubernetes.core.k8s:
