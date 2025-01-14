@@ -145,6 +145,7 @@
 # --------------------------------------------
 
 - name: Install RHOAI operator
+  register: rhoai_operator
   kubernetes.core.k8s:
     kubeconfig: "{{ temp.path }}/kubeconfig"
     state: present
@@ -173,6 +174,7 @@
           sourceNamespace: openshift-marketplace
 
 - name: Wait for Operator to be installed
+  when: rhoai_operator is changed
   kubernetes.core.k8s_info:
     kubeconfig: "{{ temp.path }}/kubeconfig"
     kind: InstallPlan
@@ -181,9 +183,33 @@
     label_selectors:
       - operators.coreos.com/rhods-operator.redhat-ods-operator = ''
     wait: yes
+    wait_timeout: 300
     wait_condition:
       type: Installed
       status: True
+
+- name: Wait for DSCInitilization to start Progressing
+  when: rhoai_operator is changed
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ temp.path }}/kubeconfig"
+    kind: DSCInitialization
+    name: default-dsci
+    wait: yes
+    wait_timeout: 300
+    wait_condition:
+      type: Progressing
+      status: True
+
+- name: Wait for DSCInitilization to stop Progressing
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ temp.path }}/kubeconfig"
+    kind: DSCInitialization
+    name: default-dsci
+    wait: yes
+    wait_timeout: 300
+    wait_condition:
+      type: Progressing
+      status: False
 
 - name: Wait for DSCInitilization to be completed
   kubernetes.core.k8s_info:
@@ -191,8 +217,22 @@
     kind: DSCInitialization
     name: default-dsci
     wait: yes
+    wait_timeout: 300
     wait_condition:
       type: Available
+      status: True
+
+- name: Wait for operator pod to be ready
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ temp.path }}/kubeconfig"
+    kind: Pod
+    namespace: redhat-ods-operator
+    label_selectors:
+      - "name = rhods-operator"
+    wait: yes
+    wait_timeout: 300
+    wait_condition:
+      type: Ready
       status: True
 
 - name: Install DataScienceCluster (time for coffee)
