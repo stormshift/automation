@@ -41,7 +41,7 @@
     host: "api.{{ inventory_hostname }}.{{ cluster_base_domain }}"
     port: 443
     sleep: 1
-    timeout: 300
+    timeout: 600
 
 
 - name: Install LVMS operator
@@ -68,7 +68,6 @@
         spec:
           targetNamespaces:
           - openshift-storage
-
       - kind: Subscription
         apiVersion: operators.coreos.com/v1alpha1
         metadata:
@@ -84,10 +83,26 @@
 - name: Wait for Operator Deployment to be complete
   kubernetes.core.k8s_info:
     kubeconfig: "{{ temp.path }}/kubeconfig"
-    kind: Endpoints
-    name: lvms-operator-service
-    namespace: openshift-storage
+    kind: CustomResourceDefinition
+    name: lvmclusters.lvm.topolvm.io
     wait: yes
+    wait_timeout: 300
+    wait_condition:
+      type: Established
+      status: True
+
+- name: Wait for operator pod to be ready
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ temp.path }}/kubeconfig"
+    kind: Pod
+    namespace: openshift-storage
+    label_selectors:
+      - "app.kubernetes.io/name = lvms-operator"
+    wait: yes
+    wait_timeout: 300
+    wait_condition:
+      type: Ready
+      status: True
 
 - name: Deploy LVMS
   kubernetes.core.k8s:

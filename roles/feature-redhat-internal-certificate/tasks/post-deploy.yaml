@@ -164,14 +164,18 @@
         defaultCertificate:
           name: redhat-cluster-certificate
     wait: yes
+  register: apply_cert
+
 
 - name: Wait for IngressController to start Progressing
+  when: apply_cert is changed
   kubernetes.core.k8s_info:
     kubeconfig: "{{ temp.path }}/kubeconfig"
     kind: IngressController
     name: default
     namespace: openshift-ingress-operator
     wait: yes
+    wait_timeout: 480
     wait_condition:
       type: Progressing
       status: True
@@ -183,6 +187,7 @@
     name: default
     namespace: openshift-ingress-operator
     wait: yes
+    wait_timeout: 480
     wait_condition:
       type: Progressing
       status: False
@@ -194,6 +199,7 @@
     name: kube-apiserver
     namespace: openshift-ingress-operator
     wait: yes
+    wait_timeout: 480
     wait_condition:
       type: Progressing
       status: False
