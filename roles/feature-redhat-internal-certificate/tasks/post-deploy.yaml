@@ -17,7 +17,7 @@
     engine_mount_point: apps
 
     path: "coe-lab/cluster-credential/stormshift-{{ inventory_hostname }}"
-  register: cluster_credential 
+  register: cluster_credential
 
 - name: Temp folder
   ansible.builtin.tempfile:
@@ -37,7 +37,7 @@
     definition:
       apiVersion: v1
       data:
-        ca-bundle.crt: | 
+        ca-bundle.crt: |
           -----BEGIN CERTIFICATE-----
           MIIENDCCAxygAwIBAgIJANunI0D662cnMA0GCSqGSIb3DQEBCwUAMIGlMQswCQYD
           VQQGEwJVUzEXMBUGA1UECAwOTm9ydGggQ2Fyb2xpbmExEDAOBgNVBAcMB1JhbGVp
@@ -103,7 +103,7 @@
       kind: ConfigMap
       metadata:
         name: redhat-current-it-root-cas
-        namespace: openshift-config 
+        namespace: openshift-config
 
 - name: Configure Red Hat Root CA
   kubernetes.core.k8s:
@@ -119,7 +119,7 @@
         trustedCA:
           name: redhat-current-it-root-cas
 
-- name: Fetch cluster certificate 
+- name: Fetch cluster certificate
   community.hashi_vault.vault_kv2_get:
     url: "{{ lookup('ansible.builtin.env', 'RH_VAULT_URL' ) }}"
     auth_method: approle
@@ -129,7 +129,7 @@
     engine_mount_point: apps
 
     path: "coe-lab/certificate/api.{{ inventory_hostname }}.{{ cluster_base_domain }}"
-  register: certificate 
+  register: certificate
 # certificate.secret.cert_and_intermediate_pem
 # certificate.secret.key
 
@@ -153,7 +153,6 @@
 - name: Apply certificate
   kubernetes.core.k8s:
     kubeconfig: "{{ temp.path }}/kubeconfig"
-
     state: present
     definition:
       apiVersion: operator.openshift.io/v1
@@ -164,4 +163,47 @@
       spec:
         defaultCertificate:
           name: redhat-cluster-certificate
+    wait: yes
+  register: apply_cert
 
+
+- name: Wait for IngressController to start Progressing
+  when: apply_cert is changed
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ temp.path }}/kubeconfig"
+    kind: IngressController
+    name: default
+    namespace: openshift-ingress-operator
+    wait: yes
+    wait_timeout: 480
+    wait_condition:
+      type: Progressing
+      status: True
+
+- name: Wait for IngressController to be stable again
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ temp.path }}/kubeconfig"
+    kind: IngressController
+    name: default
+    namespace: openshift-ingress-operator
+    wait: yes
+    wait_timeout: 480
+    wait_condition:
+      type: Progressing
+      status: False
+
+- name: Wait for API to be stable again
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ temp.path }}/kubeconfig"
+    kind: ClusterOperator
+    name: kube-apiserver
+    namespace: openshift-ingress-operator
+    wait: yes
+    wait_timeout: 480
+    wait_condition:
+      type: Progressing
+      status: False
+
+#
+# Todo:
+# to avoid subsequent features to fail while it is restarting

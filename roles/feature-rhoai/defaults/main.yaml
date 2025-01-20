@@ -1,0 +1,8 @@
+---
+# defaults file
+rhods_operator_channel: fast
+service_mesh_operator_channel: stable
+serverless_operator_channel: stable
+certmgr_operator_channel: stable-v1
+
+kserve_manifest_url: "https://github.com/kserve/kserve/releases/download/v0.14.1/kserve.yaml"
