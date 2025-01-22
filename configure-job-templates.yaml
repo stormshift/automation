@@ -30,6 +30,7 @@
         allow_simultaneous: false
         extra_vars:
           stormshift_cluster_name: "{{ inventory_hostname }}"
+        ask_variables_on_launch: true
         survey_spec: |
           {
             "description": "",
@@ -38,7 +39,8 @@
                 {
                     "choices": [
                         "deploy",
-                        "destroy"
+                        "destroy",
+                        "apply"
                     ],
                     "default": "",
                     "max": 1024,
