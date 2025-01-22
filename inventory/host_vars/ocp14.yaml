@@ -16,7 +16,7 @@ cluster_name: ocp14
 # cluster_api_vip:
 # cluster_ingress_vip:
 
-control_plan_cores: 16
+control_plan_cores: 6
 control_plan_ram_gb: 32
 control_plans:
   - vm_network_ip_address: 10.32.105.131
