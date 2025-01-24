@@ -22,7 +22,8 @@ control_plans:
   - vm_network_ip_address: 10.32.105.131
     vm_network_mac_address: 0E:C0:EF:20:6F:83
 
-openshift_version: 4.17.2
+# Default is in roles/cluster/defaults/main.yaml - Override if needed:
+#openshift_version: 4.17.2
 
 # See https://docs.openshift.com/container-platform/4.17/installing/overview/cluster-capabilities.html
 #cluster_capabilities:

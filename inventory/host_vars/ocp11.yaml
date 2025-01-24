@@ -22,7 +22,8 @@ control_plans:
   - vm_network_ip_address: 10.32.105.128
     vm_network_mac_address: 0E:C0:EF:20:6F:80
 
-openshift_version: 4.17.2
+# Default is in roles/cluster/defaults/main.yaml - Override if needed:
+# openshift_version: 4.17.12
 
 stormshift_cluster_features:
   - redhat-internal-certificate
