@@ -263,8 +263,8 @@
       apiVersion: hypershift.openshift.io/v1beta1
       kind: HostedCluster
       metadata:
-        name: "{{ inventory_hostname }}"
-        namespace: stormshift
+        name: "stormshift-{{ inventory_hostname }}"
+        namespace: clusters
         annotations:  
         # https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.11/html/clusters/cluster_mce_overview#handling-ingressb
       spec:
@@ -403,8 +403,8 @@
 
     api_version: hypershift.openshift.io/v1beta1
     kind: NodePool
-    name: "{{ inventory_hostname }}-nodepool1"
-    namespace: stormshift
+    name: "stormshift-{{ inventory_hostname }}-nodepool1"
+    namespace: clusters
 
     wait: yes
     wait_sleep: 10
