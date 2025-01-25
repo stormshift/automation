@@ -1,0 +1,3 @@
+---
+
+cluster_hcp_node_root_volume_storage_class: "coe-netapp-san"

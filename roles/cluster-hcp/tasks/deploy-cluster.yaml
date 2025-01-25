@@ -171,7 +171,7 @@
             rootVolume:
               persistent:
                 size: 120Gi
-                storageClass: coe-netapp-san
+                storageClass: "{{ cluster_hcp_node_root_volume_storage_class }}"
               type: Persistent
           type: KubeVirt
         release:
@@ -282,7 +282,7 @@
               - names:
                 - "{{ oauth_hostname }}"
                 servingCertificate:
-                  name: ocp3-oauth-cert
+                  name: "{{ inventory_hostname }}-oauth-cert"
         controllerAvailabilityPolicy: HighlyAvailable
         dns:
           baseDomain: "stormshift.coe.muc.redhat.com"
@@ -291,11 +291,11 @@
             storage:
               persistentVolume:
                 size: 8Gi
-                storageClassName: lvms-for-etcd
+                storageClassName: "{{ cluster_hcp_etcd_storage_class }}"
               type: PersistentVolume
           managementType: Managed
         fips: false
-        infraID: ocp3
+        infraID: "{{ inventory_hostname }}"
         issuerURL: https://kubernetes.default.svc
         networking:
           clusterNetwork:
