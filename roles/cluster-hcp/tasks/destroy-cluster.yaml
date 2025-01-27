@@ -34,7 +34,7 @@
       apiVersion: cluster.open-cluster-management.io/v1
       kind: ManagedCluster
       metadata:
-        name: "{{ inventory_hostname }}"
+        name: "stormshift-{{ inventory_hostname }}"
 
 - name: Destroy hosted control plane
   kubernetes.core.k8s:
@@ -47,8 +47,8 @@
       apiVersion: hypershift.openshift.io/v1beta1
       kind: HostedCluster
       metadata:
-        name: "{{ inventory_hostname }}"
-        namespace: stormshift
+        name: "stormshift-{{ inventory_hostname }}"
+        namespace: "{{ cluster_hcp_namespace }}"
 
 - name: Delete node pool
   kubernetes.core.k8s:
@@ -61,8 +61,8 @@
       apiVersion: hypershift.openshift.io/v1beta1
       kind: NodePool
       metadata:
-        name: "{{ inventory_hostname }}-nodepool1"
-        namespace: stormshift
+        name: "stormshift-{{ inventory_hostname }}-nodepool1"
+        namespace: "{{ cluster_hcp_namespace }}"
 
 - name: "Wait of: Destroy managed cluster"
   kubernetes.core.k8s:
@@ -79,7 +79,7 @@
       apiVersion: cluster.open-cluster-management.io/v1
       kind: ManagedCluster
       metadata:
-        name: "{{ inventory_hostname }}"
+        name: "stormshift-{{ inventory_hostname }}"
 
 - name: "Wait of: Destroy hosted control plane"
   kubernetes.core.k8s:
@@ -96,8 +96,8 @@
       apiVersion: hypershift.openshift.io/v1beta1
       kind: HostedCluster
       metadata:
-        name: "{{ inventory_hostname }}"
-        namespace: stormshift
+        name: "stormshift-{{ inventory_hostname }}"
+        namespace: "{{ cluster_hcp_namespace }}"
 
 - name: "Wait of: Delete node pool"
   kubernetes.core.k8s:
@@ -114,8 +114,27 @@
       apiVersion: hypershift.openshift.io/v1beta1
       kind: NodePool
       metadata:
-        name: "{{ inventory_hostname }}-nodepool1"
-        namespace: stormshift
+        name: "stormshift-{{ inventory_hostname }}-nodepool1"
+        namespace: "{{ cluster_hcp_namespace }}"
+
+- name: Delete ExternalSecrets
+  with_items:
+    - "{{ inventory_hostname }}-ssh-key"
+    - "{{ inventory_hostname }}-oauth-cert"
+    
+    
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: absent
+    definition:
+      apiVersion: external-secrets.io/v1beta1
+      kind: ExternalSecret
+      metadata:
+        name: "{{ item }}"
+        namespace: "{{ cluster_hcp_namespace }}"
 
 - name: Delete secrets
   with_items:
@@ -123,7 +142,6 @@
     - "{{ inventory_hostname }}-etcd-encryption-key"
     - "{{ inventory_hostname }}-admin-kubeconfig"
     - "{{ inventory_hostname }}-kubeadmin-password"
-    - "{{ inventory_hostname }}-ssh-key"
     
   kubernetes.core.k8s:
     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
@@ -136,7 +154,24 @@
       kind: Secret
       metadata:
         name: "{{ item }}"
-        namespace: stormshift
+        namespace: "{{ cluster_hcp_namespace }}"
+
+- name: Delete ConfigMaps
+  with_items:
+    - "{{ inventory_hostname }}-redhat-current-it-root-cas-for-sso"
+    
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: absent
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: "{{ item }}"
+        namespace: "{{ cluster_hcp_namespace }}"
 
 - name: Delete project
   redhat.openshift.k8s:
@@ -153,4 +188,4 @@
       kind: Project
       apiVersion: project.openshift.io/v1
       metadata:
-        name: "stormshift-{{ inventory_hostname }}"
+        name: "{{ cluster_hcp_namespace}}-stormshift-{{ inventory_hostname }}"

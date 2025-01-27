@@ -11,15 +11,15 @@
 
     api_version: hypershift.openshift.io/v1beta1
     kind: HostedCluster
-    name: "{{ inventory_hostname }}"
-    namespace: stormshift
+    name: "stormshift-{{ inventory_hostname }}"
+    namespace: clusters
 
 - name: Cleanup oauth url
   ansible.builtin.set_fact:
     # ToDos:
     #   - Create issue, to have for example oauthEndpoint
     #   - Improve code
-    oauth_hostname: "oauth-stormshift-{{ inventory_hostname }}.apps.isar.coe.muc.redhat.com"
+    oauth_hostname: "oauth-clusters-stormshift-{{ inventory_hostname }}.apps.isar.coe.muc.redhat.com"
     client_secret: "{{ hosted_control_plane | ansible.builtin.to_uuid }}"
     # oauth_url: "{{ hosted_control_plane.result.status.oauthCallbackURLTemplate | replace('[identity-provider-name]', '*') }}"
 
@@ -75,11 +75,10 @@
       type: Opaque
       metadata:
         name: "{{ inventory_hostname }}-openid-client-secret-coe-sso"
-        namespace: "stormshift"
+        namespace: "clusters"
       data:
         clientSecret: "{{ client_secret | b64encode }}"
  
-
 - name: Apply Red Hat Root CA
   kubernetes.core.k8s:
     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
@@ -156,9 +155,7 @@
       kind: ConfigMap
       metadata:
         name: "{{ inventory_hostname }}-redhat-current-it-root-cas-for-sso"
-        namespace: stormshift 
-
-
+        namespace: clusters 
 
 - name: Build identity_providers configuration
   ansible.builtin.set_fact:
@@ -168,7 +165,7 @@
       name: COE-SSO
       openID:
         ca:
-          name: redhat-current-it-root-cas-for-sso
+          name: "{{ inventory_hostname }}-redhat-current-it-root-cas-for-sso"
         claims:
           email:
           - email
@@ -188,7 +185,7 @@
       name: COE-SSO-Admin
       openID:
         ca:
-          name: redhat-current-it-root-cas-for-sso
+          name: "{{ inventory_hostname }}-redhat-current-it-root-cas-for-sso"
         claims:
           email:
           - email
@@ -221,7 +218,6 @@
     verbosity: 2
 
 - name: Patch oauth
-  ignore_errors: true
   kubernetes.core.k8s:
     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
     host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
@@ -232,8 +228,8 @@
       apiVersion: "hypershift.openshift.io/v1beta1"
       kind: "HostedCluster"
       metadata:
-        name: "{{ inventory_hostname }}"
-        namespace: stormshift
+        name: "stormshift-{{ inventory_hostname }}"
+        namespace: "clusters"
       spec:
         configuration: 
           oauth:
