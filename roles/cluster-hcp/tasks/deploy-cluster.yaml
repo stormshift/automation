@@ -218,7 +218,7 @@
     ca_cert: "{{ lookup('ansible.builtin.env', 'RH_VAULT_CA_CERT_FILENAME' ) }}"
     engine_mount_point: apps
 
-    path: "coe-lab/certificate/oauth-stormshift-{{ inventory_hostname }}.apps.isar.coe.muc.redhat.com"
+    path: "coe-lab/certificate/{{ oauth_hostname }}"
   register: root_ca 
 
 - name: Store root ca  
