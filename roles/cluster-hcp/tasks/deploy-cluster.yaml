@@ -190,7 +190,7 @@
 - name: "Request certificate"
   vars:
     common_name: "{{ oauth_hostname }}"
-    subject_alt_name: "DNS: {{ oauth_hostname }}"
+    subject_alt_name: "DNS:{{ oauth_hostname }}"
 
   ansible.builtin.include_role:
     name: req-cert-vault
