@@ -13,7 +13,7 @@
       type: Opaque
       metadata:
         name: "{{ inventory_hostname }}-openid-client-secret-coe-sso"
-        namespace: "clusters"
+        namespace: "{{ cluster_hcp_namespace }}"
 
 
 - name: Remove Red Hat Root CA
@@ -28,7 +28,7 @@
       kind: ConfigMap
       metadata:
         name: "{{ inventory_hostname }}-redhat-current-it-root-cas-for-sso"
-        namespace: clusters 
+        namespace: "{{ cluster_hcp_namespace }}" 
 
 - name: Destroy clients
   with_items:

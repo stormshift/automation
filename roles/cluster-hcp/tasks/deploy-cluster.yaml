@@ -184,7 +184,7 @@
     # ToDos:
     #   - Create issue, to have for example oauthEndpoint
     #   - Improve code
-    oauth_hostname: "oauth-clusters-stormshift-{{ inventory_hostname }}.apps.isar.coe.muc.redhat.com"
+    oauth_hostname: "oauth-{{ cluster_hcp_namespace }}-stormshift-{{ inventory_hostname }}.apps.isar.coe.muc.redhat.com"
     # oauth_url: "{{ hosted_control_plane.result.status.oauthCallbackURLTemplate | replace('[identity-provider-name]', '*') }}"
 
 - name: "Request certificate"
@@ -249,14 +249,14 @@
         - remoteRef:
             conversionStrategy: Default
             decodingStrategy: None
-            key: "coe-lab/certificate/oauth-clusters-stormshift-{{ inventory_hostname }}.apps.isar.coe.muc.redhat.com"
+            key: "coe-lab/certificate/oauth-{{ cluster_hcp_namespace }}-stormshift-{{ inventory_hostname }}.apps.isar.coe.muc.redhat.com"
             metadataPolicy: None
             property: cert_and_intermediate_pem
           secretKey: tls.crt
         - remoteRef:
             conversionStrategy: Default
             decodingStrategy: None
-            key: "coe-lab/certificate/oauth-clusters-stormshift-{{ inventory_hostname }}.apps.isar.coe.muc.redhat.com"
+            key: "coe-lab/certificate/oauth-{{ cluster_hcp_namespace }}-stormshift-{{ inventory_hostname }}.apps.isar.coe.muc.redhat.com"
             metadataPolicy: None
             property: key
           secretKey: tls.key

@@ -12,14 +12,14 @@
     api_version: hypershift.openshift.io/v1beta1
     kind: HostedCluster
     name: "stormshift-{{ inventory_hostname }}"
-    namespace: clusters
+    namespace: "{{ cluster_hcp_namespace }}"
 
 - name: Cleanup oauth url
   ansible.builtin.set_fact:
     # ToDos:
     #   - Create issue, to have for example oauthEndpoint
     #   - Improve code
-    oauth_hostname: "oauth-clusters-stormshift-{{ inventory_hostname }}.apps.isar.coe.muc.redhat.com"
+    oauth_hostname: "oauth-{{ cluster_hcp_namespace }}-stormshift-{{ inventory_hostname }}.apps.isar.coe.muc.redhat.com"
     client_secret: "{{ hosted_control_plane | ansible.builtin.to_uuid }}"
     # oauth_url: "{{ hosted_control_plane.result.status.oauthCallbackURLTemplate | replace('[identity-provider-name]', '*') }}"
 
@@ -75,7 +75,7 @@
       type: Opaque
       metadata:
         name: "{{ inventory_hostname }}-openid-client-secret-coe-sso"
-        namespace: "clusters"
+        namespace: "{{ cluster_hcp_namespace }}"
       data:
         clientSecret: "{{ client_secret | b64encode }}"
  
@@ -155,7 +155,7 @@
       kind: ConfigMap
       metadata:
         name: "{{ inventory_hostname }}-redhat-current-it-root-cas-for-sso"
-        namespace: clusters 
+        namespace: "{{ cluster_hcp_namespace }}" 
 
 - name: Build identity_providers configuration
   ansible.builtin.set_fact:
@@ -229,7 +229,7 @@
       kind: "HostedCluster"
       metadata:
         name: "stormshift-{{ inventory_hostname }}"
-        namespace: "clusters"
+        namespace: "{{ cluster_hcp_namespace }}"
       spec:
         configuration: 
           oauth:
