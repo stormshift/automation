@@ -1,0 +1,119 @@
+---
+- name: "Request certificate"
+  vars:
+    common_name: "api.{{ inventory_hostname }}.{{ cluster_base_domain }}"
+    subject_alt_name: "DNS:api.{{ inventory_hostname }}.{{ cluster_base_domain }},DNS:*.apps.{{ inventory_hostname }}.{{ cluster_base_domain }}"
+
+  ansible.builtin.include_role:
+    name: req-cert-vault
+
+- name: Get child cluster access
+  community.hashi_vault.vault_kv2_get:
+    url: "{{ lookup('ansible.builtin.env', 'RH_VAULT_URL' ) }}"
+    auth_method: approle
+    role_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_ROLE_ID' ) }}"
+    secret_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_SECRET_ID' ) }}"
+    ca_cert: "{{ lookup('ansible.builtin.env', 'RH_VAULT_CA_CERT_FILENAME' ) }}"
+    engine_mount_point: apps
+
+    path: "coe-lab/cluster-credential/stormshift-{{ inventory_hostname }}"
+  register: cluster_credential
+
+- name: Temp folder
+  ansible.builtin.tempfile:
+    state: "directory"
+  register: temp
+
+- name: Write kubeconfig
+  ansible.builtin.copy:
+    dest: "{{ temp.path }}/kubeconfig"
+    content: "{{ cluster_credential.secret.kubeconfig }}"
+
+- name: Fetch cluster certificate
+  community.hashi_vault.vault_kv2_get:
+    url: "{{ lookup('ansible.builtin.env', 'RH_VAULT_URL' ) }}"
+    auth_method: approle
+    role_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_ROLE_ID' ) }}"
+    secret_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_SECRET_ID' ) }}"
+    ca_cert: "{{ lookup('ansible.builtin.env', 'RH_VAULT_CA_CERT_FILENAME' ) }}"
+    engine_mount_point: apps
+
+    path: "coe-lab/certificate/api.{{ inventory_hostname }}.{{ cluster_base_domain }}"
+  register: certificate
+# certificate.secret.cert_and_intermediate_pem
+# certificate.secret.key
+
+- name: Apply certificate
+  kubernetes.core.k8s:
+    kubeconfig: "{{ temp.path }}/kubeconfig"
+
+    state: present
+    definition:
+      apiVersion: v1
+      stringData:
+        tls.crt: "{{ certificate.secret.cert_and_intermediate_pem }}"
+        tls.key: "{{ certificate.secret.key }}"
+      immutable: false
+      kind: Secret
+      metadata:
+        name: redhat-cluster-certificate
+        namespace: openshift-ingress
+      type: kubernetes.io/tls
+
+- name: Apply certificate
+  kubernetes.core.k8s:
+    kubeconfig: "{{ temp.path }}/kubeconfig"
+    state: present
+    definition:
+      apiVersion: operator.openshift.io/v1
+      kind: IngressController
+      metadata:
+        name: default
+        namespace: openshift-ingress-operator
+      spec:
+        defaultCertificate:
+          name: redhat-cluster-certificate
+    wait: yes
+  register: apply_cert
+
+
+- name: Wait for IngressController to start Progressing
+  when: apply_cert is changed
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ temp.path }}/kubeconfig"
+    kind: IngressController
+    name: default
+    namespace: openshift-ingress-operator
+    wait: yes
+    wait_timeout: 480
+    wait_condition:
+      type: Progressing
+      status: True
+
+- name: Wait for IngressController to be stable again
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ temp.path }}/kubeconfig"
+    kind: IngressController
+    name: default
+    namespace: openshift-ingress-operator
+    wait: yes
+    wait_timeout: 480
+    wait_condition:
+      type: Progressing
+      status: False
+
+- name: Wait for API to be stable again
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ temp.path }}/kubeconfig"
+    kind: ClusterOperator
+    name: kube-apiserver
+    namespace: openshift-ingress-operator
+    wait: yes
+    wait_timeout: 480
+    wait_condition:
+      type: Progressing
+      status: False
+
+#
+# Todo:
+# to avoid subsequent features to fail while it is restarting
