@@ -89,7 +89,7 @@
     definition:
       apiVersion: v1
       data:
-        ca-bundle.crt: | 
+        ca.crt: |
           -----BEGIN CERTIFICATE-----
           MIIENDCCAxygAwIBAgIJANunI0D662cnMA0GCSqGSIb3DQEBCwUAMIGlMQswCQYD
           VQQGEwJVUzEXMBUGA1UECAwOTm9ydGggQ2Fyb2xpbmExEDAOBgNVBAcMB1JhbGVp
