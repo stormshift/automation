@@ -1,8 +1,8 @@
 ---
 - name: "Request certificate"
   vars:
-    common_name: "api.{{ inventory_hostname }}.{{ cluster_base_domain }}"
-    subject_alt_name: "DNS:api.{{ inventory_hostname }}.{{ cluster_base_domain }},DNS:*.apps.{{ inventory_hostname }}.{{ cluster_base_domain }}"
+    common_name: "api.{{ cluster_hcp_name }}.{{ cluster_base_domain }}"
+    subject_alt_name: "DNS:api.{{ cluster_hcp_name }}.{{ cluster_base_domain }},DNS:*.apps.{{ cluster_hcp_name }}.{{ cluster_base_domain }}"
 
   ansible.builtin.include_role:
     name: req-cert-vault
@@ -16,7 +16,7 @@
     ca_cert: "{{ lookup('ansible.builtin.env', 'RH_VAULT_CA_CERT_FILENAME' ) }}"
     engine_mount_point: apps
 
-    path: "coe-lab/cluster-credential/stormshift-{{ inventory_hostname }}"
+    path: "coe-lab/cluster-credential/{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}"
   register: cluster_credential
 
 - name: Temp folder
@@ -38,7 +38,7 @@
     ca_cert: "{{ lookup('ansible.builtin.env', 'RH_VAULT_CA_CERT_FILENAME' ) }}"
     engine_mount_point: apps
 
-    path: "coe-lab/certificate/api.{{ inventory_hostname }}.{{ cluster_base_domain }}"
+    path: "coe-lab/certificate/api.{{ cluster_hcp_name }}.{{ cluster_base_domain }}"
   register: certificate
 # certificate.secret.cert_and_intermediate_pem
 # certificate.secret.key

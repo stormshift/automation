@@ -11,7 +11,7 @@
       kind: Project
       apiVersion: project.openshift.io/v1
       metadata:
-        name: "{{ cluster_hcp_namespace }}-stormshift-{{ inventory_hostname }}"
+        name: "{{ cluster_hcp_namespace }}-{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}"
 
 - name: Update requestor
   kubernetes.core.k8s:
@@ -25,11 +25,11 @@
       apiVersion: v1
       kind: Namespace
       metadata:
-        name: "stormshift-{{ inventory_hostname }}"
+        name: "{{ cluster_hcp_namespace }}-{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}"
         annotations:
           openshift.io/requester: "{{ tower_user_email }}"
-          openshift.io/display-name: "StormShift Cluster {{ inventory_hostname }}"
-          openshift.io/description: "Contains VMs running StormShift {{ inventory_hostname }} Cluster"
+          openshift.io/display-name: "StormShift Cluster {{ cluster_hcp_name }}"
+          openshift.io/description: "Contains VMs running StormShift {{ cluster_hcp_name }} Cluster"
 
 - name: Apply admin privileges to new namespace
   kubernetes.core.k8s:
@@ -43,7 +43,7 @@
       kind: RoleBinding
       metadata:
         name: admin
-        namespace: "stormshift-{{ inventory_hostname }}"
+        namespace: "{{ cluster_hcp_namespace }}-{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}"
       roleRef:
         apiGroup: rbac.authorization.k8s.io
         kind: ClusterRole
@@ -67,7 +67,7 @@
 
     api_version: v1
     kind: Secret
-    name: "{{ inventory_hostname }}-etcd-encryption-key"
+    name: "{{ cluster_hcp_name }}-etcd-encryption-key"
     namespace: "{{ cluster_hcp_namespace }}"
   register: check_etcd_encryption_key
 
@@ -85,7 +85,7 @@
       kind: Secret
       type: Opaque
       metadata:
-        name: "{{ inventory_hostname }}-etcd-encryption-key"
+        name: "{{ cluster_hcp_name }}-etcd-encryption-key"
         namespace: "{{ cluster_hcp_namespace }}"
       data:
         key: "{{ lookup('community.general.random_string', length=32) | b64encode }}"
@@ -102,7 +102,7 @@
       kind: Secret
       type: Opaque
       metadata:
-        name: "{{ inventory_hostname }}-pull-secret"
+        name: "{{ cluster_hcp_name }}-pull-secret"
         namespace: "{{ cluster_hcp_namespace }}"
       data:
         .dockerconfigjson: "{{ image_pull_secret | b64encode }}"
@@ -125,7 +125,7 @@
       apiVersion: external-secrets.io/v1beta1
       kind: ExternalSecret
       metadata:
-        name: "{{ inventory_hostname }}-ssh-key"
+        name: "{{ cluster_hcp_name }}-ssh-key"
         namespace: "{{ cluster_hcp_namespace }}"
       spec:
         data:
@@ -150,7 +150,7 @@
         target:
           creationPolicy: Owner
           deletionPolicy: Retain
-          name: "{{ inventory_hostname }}-ssh-key"
+          name: "{{ cluster_hcp_name }}-ssh-key"
           template:
             engineVersion: v2
             mergePolicy: Replace
@@ -166,11 +166,11 @@
       apiVersion: hypershift.openshift.io/v1beta1
       kind: NodePool
       metadata:
-        name: "stormshift-{{ inventory_hostname }}-nodepool1"
+        name: "{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}-nodepool1"
         namespace: "{{ cluster_hcp_namespace }}"
       spec:
         arch: amd64
-        clusterName: "stormshift-{{ inventory_hostname }}"
+        clusterName: "{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}"
         management:
           autoRepair: false
           upgradeType: Replace
@@ -192,13 +192,12 @@
           image: "quay.io/openshift-release-dev/ocp-release:{{ openshift_version }}-x86_64"
         replicas: "{{ worker_count }}"
 
-
 - name: Cleanup oauth url
   ansible.builtin.set_fact:
     # ToDos:
     #   - Create issue, to have for example oauthEndpoint
     #   - Improve code
-    oauth_hostname: "oauth-{{ cluster_hcp_namespace }}-stormshift-{{ inventory_hostname }}.apps.isar.coe.muc.redhat.com"
+    oauth_hostname: "oauth-{{ cluster_hcp_namespace }}-{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}.apps.isar.coe.muc.redhat.com"
     # oauth_url: "{{ hosted_control_plane.result.status.oauthCallbackURLTemplate | replace('[identity-provider-name]', '*') }}"
 
 - name: "Request certificate"
@@ -232,13 +231,15 @@
       apiVersion: v1
       kind: ConfigMap
       metadata:
-        name: "{{ inventory_hostname }}-redhat-current-it-root-cas"
+        name: "{{ cluster_hcp_name }}-redhat-current-it-root-cas"
         namespace: "{{ cluster_hcp_namespace }}"
       data:
         ca-bundle.crt: |
           {{ root_ca.secret.root_ca_pem }}
+        ca.crt: |
+          {{ root_ca.secret.root_ca_pem }}
 
-- name: Put certificate into a secret
+- name: Store oauth certificate in a secret
   kubernetes.core.k8s:
     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
     host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
@@ -256,21 +257,21 @@
       apiVersion: external-secrets.io/v1beta1
       kind: ExternalSecret
       metadata:
-        name: "{{ inventory_hostname }}-oauth-cert"
+        name: "{{ cluster_hcp_name }}-oauth-cert"
         namespace: "{{ cluster_hcp_namespace }}"
       spec:
         data:
         - remoteRef:
             conversionStrategy: Default
             decodingStrategy: None
-            key: "coe-lab/certificate/oauth-{{ cluster_hcp_namespace }}-stormshift-{{ inventory_hostname }}.apps.isar.coe.muc.redhat.com"
+            key: "coe-lab/certificate/oauth-{{ cluster_hcp_namespace }}-{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}.apps.isar.coe.muc.redhat.com"
             metadataPolicy: None
             property: cert_and_intermediate_pem
           secretKey: tls.crt
         - remoteRef:
             conversionStrategy: Default
             decodingStrategy: None
-            key: "coe-lab/certificate/oauth-{{ cluster_hcp_namespace }}-stormshift-{{ inventory_hostname }}.apps.isar.coe.muc.redhat.com"
+            key: "coe-lab/certificate/oauth-{{ cluster_hcp_namespace }}-{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}.apps.isar.coe.muc.redhat.com"
             metadataPolicy: None
             property: key
           secretKey: tls.key
@@ -281,7 +282,7 @@
         target:
           creationPolicy: Owner
           deletionPolicy: Retain
-          name: "{{ inventory_hostname }}-oauth-cert"
+          name: "{{ cluster_hcp_name }}-oauth-cert"
           template:
             engineVersion: v2
             mergePolicy: Replace
@@ -306,20 +307,20 @@
       apiVersion: hypershift.openshift.io/v1beta1
       kind: HostedCluster
       metadata:
-        name: "stormshift-{{ inventory_hostname }}"
+        name: "{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}"
         namespace: "{{ cluster_hcp_namespace }}"
         annotations:  
         # https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.11/html/clusters/cluster_mce_overview#handling-ingressb
       spec:
         additionalTrustBundle:
-          name: "{{ inventory_hostname }}-redhat-current-it-root-cas"
+          name: "{{ cluster_hcp_name }}-redhat-current-it-root-cas"
         autoscaling: {}
         configuration:
           proxy:
             trustedCA:
-              name: "{{ inventory_hostname }}-redhat-current-it-root-cas"
+              name: "{{ cluster_hcp_name }}-redhat-current-it-root-cas"
           ingress:
-            appsDomain: "apps.{{ inventory_hostname }}.stormshift.coe.muc.redhat.com"
+            appsDomain: "apps.{{ cluster_hcp_name }}.{{ cluster_base_domain }}"
           apiServer:
             audit:
               profile: Default
@@ -328,10 +329,10 @@
               - names:
                 - "{{ oauth_hostname }}"
                 servingCertificate:
-                  name: "{{ inventory_hostname }}-oauth-cert"
+                  name: "{{ cluster_hcp_name }}-oauth-cert"
         controllerAvailabilityPolicy: HighlyAvailable
         dns:
-          baseDomain: "stormshift.coe.muc.redhat.com"
+          baseDomain: "{{ cluster_base_domain }}"
         etcd:
           managed:
             storage:
@@ -341,7 +342,7 @@
               type: PersistentVolume
           managementType: Managed
         fips: false
-        infraID: "{{ inventory_hostname }}"
+        infraID: "{{ cluster_hcp_name }}"
         issuerURL: https://kubernetes.default.svc
         networking:
           clusterNetwork:
@@ -363,13 +364,13 @@
             baseDomainPassthrough: false
           type: KubeVirt
         pullSecret:
-          name: "{{ inventory_hostname }}-pull-secret"
+          name: "{{ cluster_hcp_name }}-pull-secret"
         release:
           image: "quay.io/openshift-release-dev/ocp-release:{{ openshift_version }}-multi"
         secretEncryption:
           aescbc:
             activeKey:
-              name: "{{ inventory_hostname }}-etcd-encryption-key"
+              name: "{{ cluster_hcp_name }}-etcd-encryption-key"
           type: aescbc
         services:
         - service: OAuthServer
@@ -388,7 +389,7 @@
           servicePublishingStrategy:
             type: LoadBalancer
         sshKey:
-          name: "{{ inventory_hostname }}-ssh-key"
+          name: "{{ cluster_hcp_name }}-ssh-key"
 
 - name: Get kubeadmin password
   register: kubeadmin_password_raw
@@ -425,14 +426,14 @@
     ca_cert: "{{ lookup('ansible.builtin.env', 'RH_VAULT_CA_CERT_FILENAME' ) }}"
     engine_mount_point: apps
 
-    path: "coe-lab/cluster-credential/stormshift-{{ inventory_hostname }}"
+    path: "coe-lab/cluster-credential/{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}"
     data:
       kubeconfig: "{{ kubeconfig_raw.resources[0].data.kubeconfig  | b64decode }}"
       kubeadmin-password: "{{ kubeadmin_password_raw.resources[0].data.password | default('') | b64decode }}"
 
 # - name: Store cluster authentfication in AAP
 #   awx.awx.credential:
-#     name: "{{ inventory_hostname }}"
+#     name: "{{ cluster_hcp_name }}"
 #     organization: stormshift
 #     state: present
 #     credential_type: "OpenShift Cluster v1"
@@ -449,7 +450,7 @@
 
     api_version: hypershift.openshift.io/v1beta1
     kind: NodePool
-    name: "stormshift-{{ inventory_hostname }}-nodepool1"
+    name: "{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}-nodepool1"
     namespace: "{{ cluster_hcp_namespace }}"
 
     wait: yes
@@ -468,7 +469,7 @@
     ca_cert: "{{ lookup('ansible.builtin.env', 'RH_VAULT_CA_CERT_FILENAME' ) }}"
     engine_mount_point: apps
 
-    path: "coe-lab/cluster-credential/stormshift-{{ inventory_hostname }}"
+    path: "coe-lab/cluster-credential/{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}"
   register: cluster_credential 
 
 - name: Temp folder
@@ -505,9 +506,9 @@
       kind: Service
       metadata:
         annotations:
-          external-dns.alpha.kubernetes.io/hostname: "*.apps.{{ inventory_hostname }}.stormshift.coe.muc.redhat.com"
+          external-dns.alpha.kubernetes.io/hostname: "*.apps.{{ cluster_hcp_name }}.{{ cluster_base_domain }}"
         name: default-ingress
-        namespace: "{{ cluster_hcp_namespace }}-stormshift-{{ inventory_hostname }}"
+        namespace: "{{ cluster_hcp_namespace }}-{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}"
       spec:
         ports:
         - name: http
@@ -519,7 +520,7 @@
           protocol: TCP
           targetPort: "{{ ( ingress_service.resources[0].spec.ports | selectattr('name', 'equalto', 'https') | first ).nodePort }}"
         selector:
-          hypershift.openshift.io/nodepool-name: "stormshift-{{ inventory_hostname }}-nodepool1"
+          hypershift.openshift.io/nodepool-name: "{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}-nodepool1"
         sessionAffinity: None
         type: LoadBalancer
 

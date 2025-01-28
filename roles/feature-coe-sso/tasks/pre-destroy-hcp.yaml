@@ -1,5 +1,4 @@
 ---
-
 - name: Destroy clientSecret k8s secret
   kubernetes.core.k8s:
     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
@@ -12,9 +11,8 @@
       kind: Secret
       type: Opaque
       metadata:
-        name: "{{ inventory_hostname }}-openid-client-secret-coe-sso"
+        name: "{{ cluster_hcp_name }}-openid-client-secret-coe-sso"
         namespace: "{{ cluster_hcp_namespace }}"
-
 
 - name: Remove Red Hat Root CA
   kubernetes.core.k8s:
@@ -27,7 +25,7 @@
       apiVersion: v1
       kind: ConfigMap
       metadata:
-        name: "{{ inventory_hostname }}-redhat-current-it-root-cas-for-sso"
+        name: "{{ cluster_hcp_name }}-redhat-current-it-root-cas-for-sso"
         namespace: "{{ cluster_hcp_namespace }}" 
 
 - name: Destroy clients
@@ -43,8 +41,8 @@
     auth_password: "{{ sso_admin_pw }}"
 
     realm: "{{ item }}"
-    client_id: "oauth-stormshift-{{ inventory_hostname }}.apps.isar.coe.muc.redhat.com"
-    name: "oauth-stormshift-{{ inventory_hostname }}.apps.isar.coe.muc.redhat.com"
+    client_id: "oauth-{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}.apps.isar.coe.muc.redhat.com"
+    name: "oauth-{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}.apps.isar.coe.muc.redhat.com"
   
     state: absent
   delegate_to: localhost

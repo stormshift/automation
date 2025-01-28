@@ -1,6 +1,4 @@
 ---
-cluster_hcp_etcd_storage_class: "coe-netapp-san"
-cluster_hcp_node_root_volume_storage_class: "coe-netapp-san"
 cluster_hcp_namespace: "clusters"
 cluster_hcp_name: "{{ inventory_hostname }}"
 cluster_hcp_prefix: "stormshift-"
