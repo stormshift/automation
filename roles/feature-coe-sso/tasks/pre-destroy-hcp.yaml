@@ -22,7 +22,7 @@
     host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
     validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
 
-    state: present
+    state: absent
     definition:
       apiVersion: v1
       kind: ConfigMap
