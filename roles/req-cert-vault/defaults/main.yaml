@@ -6,3 +6,5 @@ ca_profile: caDirServerCert-coe-lab-mgmt-domains
 # 3 Monate =   2628000 sekunden
 # 12 Monate = 31536000 sekunden
 renew_in_seconds: 2628000
+
+sent_email: false

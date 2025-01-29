@@ -9,9 +9,13 @@
     engine_mount_point: apps
 
     path: "coe-lab/certificate/{{ common_name }}"
-  register: certificate 
+  register: certificate
   ignore_errors: true
 
 - name: Certificate does not exist or is to old request on
   ansible.builtin.include_tasks: request-cert.yaml
   when: certificate.failed or (( (certificate.secret.not_after_epoch|int) - (now().strftime('%s')|int) ) < renew_in_seconds)
+
+- name: Include optional E-Mail sent
+  ansible.builtin.include_tasks: sent-email.yaml
+  when: sent_email
