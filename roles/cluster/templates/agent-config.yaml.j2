@@ -5,7 +5,7 @@ metadata:
 rendezvousIP: {{ control_plans[0]['vm_network_ip_address'] }}
 hosts:
 {% for host in control_plans %}
-  - hostname: {{ inventory_hostname }}-cp-{{ loop.index }}
+  - hostname: {{ inventory_hostname }}-cp-{{ loop.index - 1 }}
     role: master
     interfaces:
       - name: eth0
@@ -37,7 +37,7 @@ hosts:
             table-id: 254
 {% endfor %}
 {% for host in workers | default([]) %}
-  - hostname: {{ inventory_hostname }}-worker-{{ loop.index }}
+  - hostname: {{ inventory_hostname }}-worker-{{ loop.index - 1 }}
     role: worker
     interfaces:
       - name: eth0
