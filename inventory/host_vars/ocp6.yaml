@@ -3,6 +3,9 @@ stormshift_owner_email: "rbohne@redhat.com"
 stormshift_owner_purpose: "Let's try 4.18"
 stormshift_owner_usage: "shared"
 
+# Same color as for the labels: https://github.com/stormshift/support/labels
+cluster_color: #FEF2C0
+
 openshift_version: 4.18.0-rc.6
 
 stormshift_cluster_features:
