@@ -24,7 +24,13 @@ ansible-navigator:
         - CONTROLLER_PASSWORD
         - CONTROLLER_USERNAME
         - CONTROLLER_VERIFY_SSL
-    image: quay.coe.muc.redhat.com/stormshift/automation-execution-environment:202410072305
+    image: quay.coe.muc.redhat.com/stormshift/automation-execution-environment:202412231546
+    pull:
+      arguments:
+        - "--tls-verify=false"
+    volume-mounts:
+     - src: "/Users/dfroehli"
+       dest: "/Users/dfroehli"
   logging:
     level: debug
   mode: stdout
