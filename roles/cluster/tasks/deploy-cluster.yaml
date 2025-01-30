@@ -341,6 +341,9 @@
   delay: 60
   until: install_status.rc == 0
 
+- name: Include post-configuration
+  ansible.builtin.include_tasks: "post-configuration.yaml"
+
 - name: Include post-deploy-features
   ansible.builtin.include_role:
     name: "feature-{{ item }}"
