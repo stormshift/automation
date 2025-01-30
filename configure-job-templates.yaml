@@ -4,7 +4,7 @@
   gather_facts: false
   tasks:
     # - debug: msg="{{ inventory_hostname }}"
-    - name: "Create jobs: StormShift Cluster Mgmt - {{ inventory_hostname }}"
+    - name: "Create jobs: StormShift Cluster Mgmt"
       awx.awx.job_template:
         name: "🌪️ StormShift Cluster Mgmt - {{ inventory_hostname }}"
         description: "Do NOT edit, managed by Ansible: https://github.com/stormshift/automation/blob/master/configure-job-templates.yaml"
@@ -59,7 +59,9 @@
                         "redhat-internal-certificate",
                         "coe-sso",
                         "lvms",
-                        "rhoai"
+                        "rhoai",
+                        "look-and-feel",
+                        "netapp-trident"
                     ],
                     "default": "manage-with-acm\nredhat-internal-certificate\ncoe-sso",
                     "max": 1024,
