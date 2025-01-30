@@ -203,7 +203,3 @@
     wait_condition:
       type: Progressing
       status: False
-
-#
-# Todo:
-# to avoid subsequent features to fail while it is restarting
