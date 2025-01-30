@@ -1,0 +1,12 @@
+apiVersion: trident.netapp.io/v1
+kind: TridentOrchestrator
+metadata:
+  name: trident
+spec:
+  debug: false
+  namespace: netapp-trident
+  imagePullPolicy: IfNotPresent
+  tridentImage: quay.coe.muc.redhat.com/netapp/trident:24.10.0
+  autosupportImage: quay.coe.muc.redhat.com/netapp/trident-autosupport:24.10.0
+  windows: false
+  cloudProvider: ""
