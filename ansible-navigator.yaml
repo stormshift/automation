@@ -28,9 +28,6 @@ ansible-navigator:
     pull:
       arguments:
         - "--tls-verify=false"
-    volume-mounts:
-     - src: "/Users/dfroehli"
-       dest: "/Users/dfroehli"
   logging:
     level: debug
   mode: stdout
