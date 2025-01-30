@@ -133,6 +133,14 @@ ansible-navigator run stormshift-cluster-mgmt.yaml \
     -e stormshift_cluster_name=ocp3 \
     --vault-password-file=.vault_pass \
     -e @development-example.vars-private -v
+
+ansible-navigator run request-cert.yaml \
+    --vault-password-file=.vault_pass \
+    -e @development-example.vars-private \
+    -e common_name=api.ocp1.stormshift.coe.muc.redhat.com \
+    -e subject_alt_name='DNS:api.ocp1.stormshift.coe.muc.redhat.com,DNS:*.apps.ocp1.stormshift.coe.muc.redhat.com' \
+    -e tower_user_email=rbohne@redhat.com \
+    -e tower_user_name='Robert Bohne'
 ```
 
 ## Ansible inventory structure (folder: `inventory/`)

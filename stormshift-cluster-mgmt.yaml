@@ -5,17 +5,19 @@
   connection: local
   gather_facts: false
   tasks:
-    - name: Job informations 
+    - name: Job informations
       ansible.builtin.debug:
         msg:
-          - "Run aggpainst {{inventory_hostname}}, vars:"
-          - " - stormshift_cluster_action : {{ stormshift_cluster_action }}"
-          - " - stormshift_cluster_name : {{ stormshift_cluster_name }}"
+          - "Run against {{inventory_hostname}}, vars:"
+          - " - cluster_type: {{ cluster_type }}"
+          - " - stormshift_cluster_action: {{ stormshift_cluster_action }}"
+          - " - stormshift_cluster_name: {{ stormshift_cluster_name }}"
+          - " - stormshift_cluster_features: {{ stormshift_cluster_features | join(',') }}"
 
     - name: Check if action is supported/allowed
-      fail: 
+      fail:
         msg: "Action {{  stormshift_cluster_action }} is not supported/allowed"
-      when: 
+      when:
         - cluster_excluded_actions is defined
         - stormshift_cluster_action is in cluster_excluded_actions
 
@@ -23,3 +25,18 @@
       include_role:
         name: cluster
         tasks_from: "{{ stormshift_cluster_action }}-cluster.yaml"
+      when: stormshift_cluster_action in ('destroy','deploy')
+
+    - name: Add features to cluster
+      ansible.builtin.include_role:
+        name: "feature-{{ item }}"
+        tasks_from: post-deploy.yaml
+      with_items: "{{ stormshift_cluster_features | default([]) }}"
+      when: stormshift_cluster_action == 'add-features'
+
+    - name: Remove features from cluster
+      ansible.builtin.include_role:
+        name: "feature-{{ item }}"
+        tasks_from: pre-destroy.yaml
+      with_items: "{{ stormshift_cluster_features | default([]) }}"
+      when: stormshift_cluster_action == 'remove-features'

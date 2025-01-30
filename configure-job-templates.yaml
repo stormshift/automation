@@ -40,7 +40,8 @@
                     "choices": [
                         "deploy",
                         "destroy",
-                        "apply"
+                        "add-features",
+                        "remove-features"
                     ],
                     "default": "",
                     "max": 1024,

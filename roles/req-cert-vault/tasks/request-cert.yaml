@@ -1,7 +1,4 @@
 ---
-# - set_fact:
-#     temp:
-#       path: "."
 - name: Temp folder
   ansible.builtin.tempfile:
     state: "directory"

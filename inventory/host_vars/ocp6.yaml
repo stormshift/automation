@@ -1,0 +1,38 @@
+---
+stormshift_owner_email: "rbohne@redhat.com"
+stormshift_owner_purpose: "Let's try 4.18"
+stormshift_owner_usage: "shared"
+
+# Same color as for the labels: https://github.com/stormshift/support/labels
+cluster_color: #FEF2C0
+
+openshift_version: 4.18.0-rc.6
+
+stormshift_cluster_features:
+  - redhat-internal-certificate
+  - coe-sso
+  - manage-with-acm
+
+cluster_type: classic
+cluster_api_vip: 10.32.105.90
+cluster_ingress_vip: 10.32.105.91
+
+control_plan_cores: 8
+control_plan_ram_gb: 16
+control_plans:
+  - vm_network_ip_address: 10.32.105.92
+    vm_network_mac_address: 0E:C0:EF:20:69:5C
+  - vm_network_ip_address: 10.32.105.93
+    vm_network_mac_address: 0E:C0:EF:20:69:5D
+  - vm_network_ip_address: 10.32.105.94
+    vm_network_mac_address: 0E:C0:EF:20:69:5E
+
+worker_cores: 8
+worker_ram_gb: 16
+workers:
+  - vm_network_ip_address: 10.32.105.95
+    vm_network_mac_address: 0E:C0:EF:20:69:5F
+  - vm_network_ip_address: 10.32.105.96
+    vm_network_mac_address: 0E:C0:EF:20:69:60
+  - vm_network_ip_address: 10.32.105.97
+    vm_network_mac_address: 0E:C0:EF:20:69:61

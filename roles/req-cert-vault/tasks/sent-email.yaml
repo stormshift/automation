@@ -1,0 +1,41 @@
+---
+- name: E-Mail temp folder
+  ansible.builtin.tempfile:
+    state: "directory"
+    suffix: "{{ common_name }}"
+  register: email_temp
+
+- name: Write files into E-Mail temp
+  with_items:
+    - { key: 'root_ca_pem', filename: 'root_ca.pem' }
+    - { key: pkcs7, filename: cert.pkcs7 }
+    - { key: key, filename: cert-key.pem }
+    - { key: cert_pem, filename: cert.pem }
+    - { key: intermediate_pem, filename: intermediate.pem }
+    - { key: cert_and_intermediate_pem, filename: cert_and_intermediate.pem }
+  ansible.builtin.copy:
+    content: "{{ certificate.secret[item.key] }}"
+    dest: "{{ email_temp.path  }}/{{ item.filename }}"
+
+- name: Sent E-Mail to requester
+  community.general.mail:
+    host: smtp.corp.redhat.com
+    port: 25
+    subject: "Requested Munich COE Lab Certificate ({{ common_name }})"
+    body: |
+      Hello {{ tower_user_name }},
+      
+      attached your requested certificates. 
+
+      Regards
+      COE Lab Team
+
+    from: "coe-lab-stormshift-notifications@redhat.com"
+    to: "{{ tower_user_name  }} <{{ tower_user_email }}>"
+    attach:
+      - "{{ email_temp.path }}/root_ca.pem"
+      - "{{ email_temp.path }}/cert.pkcs7"
+      - "{{ email_temp.path }}/cert-key.pem"
+      - "{{ email_temp.path }}/cert.pem"
+      - "{{ email_temp.path }}/intermediate.pem"
+      - "{{ email_temp.path }}/cert_and_intermediate.pem"
