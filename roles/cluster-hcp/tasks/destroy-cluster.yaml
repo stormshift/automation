@@ -2,7 +2,7 @@
 - name: Include pre-destroy-features
   ansible.builtin.include_role:
     name: "feature-{{ item }}"
-    tasks_from: pre-destroy-hcp.yaml
+    tasks_from: pre-destroy.yaml
   with_items: "{{ stormshift_cluster_features | default([]) }}"
 
 - name: Delete cluster authentfication in Vault
