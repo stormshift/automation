@@ -1,0 +1,14 @@
+---
+- name: Fetch kubeconfig from vault
+  ansible.builtin.include_role:
+    name: internal-fetch-kubeconfig
+
+# - name: Apply ConsoleNotification
+#   kubernetes.core.k8s:
+#     kubeconfig: "{{ cluster_access_kubeconfig }}"
+#     state: absent
+#     definition:
+#       apiVersion: console.openshift.io/v1
+#       kind: ConsoleNotification
+#       metadata:
+#         name: "stormshift-{{ inventory_hostname }}"
