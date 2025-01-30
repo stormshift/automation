@@ -7,3 +7,4 @@ development-example.vars-private
 Current-IT-Root-CAs.crt
 ansible-navigator.log 
 scrible/kubeconfig-stormshift*
+.dockerconfigjson
