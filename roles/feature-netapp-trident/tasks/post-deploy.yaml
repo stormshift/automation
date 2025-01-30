@@ -1,0 +1,218 @@
+---
+- name: Fetch kubeconfig from vault
+  ansible.builtin.include_role:
+    name: internal-fetch-kubeconfig
+
+- name: Create MachineConfig/90-worker-iscsi-multipathing.yaml
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    definition:
+      # https://access.redhat.com/articles/7008552
+      # https://docs.netapp.com/us-en/trident/trident-use/worker-node-prep.html#install-the-iscsi-tools
+      apiVersion: machineconfiguration.openshift.io/v1
+      kind: MachineConfig
+      metadata:
+        labels:
+          machineconfiguration.openshift.io/role: worker
+        name: 90-worker-iscsi-multipathing
+      spec:
+        config:
+          ignition:
+            version: 3.4.0
+          storage:
+            files:
+            - contents:
+                source: data:text/plain;charset=utf-8;base64,ZGVmYXVsdHMgewogICB1c2VyX2ZyaWVuZGx5X25hbWVzIG5vCiAgIGZpbmRfbXVsdGlwYXRocyBubwogICBlbmFibGVfZm9yZWlnbiAiXiQiCn0KCmJsYWNrbGlzdF9leGNlcHRpb25zIHsKICAgIHByb3BlcnR5ICIoU0NTSV9JREVOVF98SURfV1dOKSIKfQoKYmxhY2tsaXN0IHsKICAgIGRldm5vZGUgIl4ocmFtfHJhd3xsb29wfGZkfG1kfGRtLXxzcnxzY2R8c3QpWzAtOV0qIgogICAgZGV2bm9kZSAiXih0ZHxoYSlkW2Etel0iCiAgICBkZXZpY2UgewogICAgICAgIHZlbmRvciAgIkhQIgogICAgfQogICAgZGV2aWNlIHsKICAgICAgICB2ZW5kb3IgICJJbnRlbCIKICAgIH0KICAgIGRldmljZSB7CiAgICAgICAgdmVuZG9yICAiSEdTVCIKICAgIH0KICAgIGRldmljZSB7CiAgICAgICAgdmVuZG9yICAiREVMTCIKICAgIH0KICAgIGRldmljZSB7CiAgICAgICAgdmVuZG9yICAiSU5URUwiCiAgICB9CiAgICBkZXZpY2UgewogICAgICAgIHZlbmRvciAgIlFFTVUiCiAgICB9CiAgICBkZXZpY2UgewogICAgICAgIHZlbmRvciAgIk5WTUUiCiAgICB9Cn0K
+              filesystem: root
+              mode: 420
+              path: /etc/multipath.conf
+          systemd:
+            units:
+            - name: iscsid.service
+              enabled: true
+            - name: iscsi.service
+              enabled: true
+            - name: multipathd.service
+              enabled: true
+
+- name: Create MachineConfig/90-master-iscsi-multipathing.yaml
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    definition:
+      # https://access.redhat.com/articles/7008552
+      # https://docs.netapp.com/us-en/trident/trident-use/worker-node-prep.html#install-the-iscsi-tools
+      apiVersion: machineconfiguration.openshift.io/v1
+      kind: MachineConfig
+      metadata:
+        labels:
+          machineconfiguration.openshift.io/role: master
+        name: 90-master-iscsi-multipathing
+      spec:
+        config:
+          ignition:
+            version: 3.4.0
+          storage:
+            files:
+            - contents:
+                source: data:text/plain;charset=utf-8;base64,ZGVmYXVsdHMgewogICB1c2VyX2ZyaWVuZGx5X25hbWVzIG5vCiAgIGZpbmRfbXVsdGlwYXRocyBubwogICBlbmFibGVfZm9yZWlnbiAiXiQiCn0KCmJsYWNrbGlzdF9leGNlcHRpb25zIHsKICAgIHByb3BlcnR5ICIoU0NTSV9JREVOVF98SURfV1dOKSIKfQoKYmxhY2tsaXN0IHsKICAgIGRldm5vZGUgIl4ocmFtfHJhd3xsb29wfGZkfG1kfGRtLXxzcnxzY2R8c3QpWzAtOV0qIgogICAgZGV2bm9kZSAiXih0ZHxoYSlkW2Etel0iCiAgICBkZXZpY2UgewogICAgICAgIHZlbmRvciAgIkhQIgogICAgfQogICAgZGV2aWNlIHsKICAgICAgICB2ZW5kb3IgICJJbnRlbCIKICAgIH0KICAgIGRldmljZSB7CiAgICAgICAgdmVuZG9yICAiSEdTVCIKICAgIH0KICAgIGRldmljZSB7CiAgICAgICAgdmVuZG9yICAiREVMTCIKICAgIH0KICAgIGRldmljZSB7CiAgICAgICAgdmVuZG9yICAiSU5URUwiCiAgICB9CiAgICBkZXZpY2UgewogICAgICAgIHZlbmRvciAgIlFFTVUiCiAgICB9CiAgICBkZXZpY2UgewogICAgICAgIHZlbmRvciAgIk5WTUUiCiAgICB9Cn0K
+              filesystem: root
+              mode: 420
+              path: /etc/multipath.conf
+          systemd:
+            units:
+            - name: iscsid.service
+              enabled: true
+            - name: iscsi.service
+              enabled: true
+            - name: multipathd.service
+              enabled: true
+- name: Create namespace
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        labels:
+          pod-security.kubernetes.io/enforce: privileged
+        name: netapp-trident
+
+- name: Create CRD's
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    src: "{{ netapp_trident_version }}/trident.netapp.io_tridentorchestrators_crd_post1.16.yaml"
+
+- name: Create deploy operator
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    src: "{{ netapp_trident_version }}/bundle_post_1_25.yaml"
+
+- name: Apply TridentOrchestrator
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    src: "{{ netapp_trident_version }}/tridentorchestrator.yaml"
+
+- name: Apply SnapShotClass
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    definition:
+      apiVersion: snapshot.storage.k8s.io/v1
+      kind: VolumeSnapshotClass
+      metadata:
+        name: coe-netapp
+      driver: csi.trident.netapp.io
+      deletionPolicy: Delete
+
+- name: Create secret with NetApp credentials
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: coe-netapp-svm-trident
+        namespace: netapp-trident
+      type: Opaque    
+      data:
+        password: "{{ netapp_password | b64encode }}"
+        username: "{{ netapp_username | b64encode }}"
+
+- name: Create TridentBackendConfig/coe-netapp-san
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    definition:
+      apiVersion: trident.netapp.io/v1
+      kind: TridentBackendConfig
+      metadata:
+        name: coe-netapp-san
+        namespace: netapp-trident
+      spec:
+        version: 1
+        storageDriverName: ontap-san-economy
+        managementLIF: "{{ netapp_managementLIF }}"
+        backendName: coe-netapp-san
+        storagePrefix: "stormshift_{{ inventory_hostname }}_"
+        credentials:
+          name: coe-netapp-svm-trident
+
+- name: Create TridentBackendConfig/coe-netapp-nas
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    definition:
+      apiVersion: trident.netapp.io/v1
+      kind: TridentBackendConfig
+      metadata:
+        name: coe-netapp-nas
+        namespace: netapp-trident
+      spec:
+        version: 1
+        storageDriverName: ontap-nas
+        managementLIF: "{{ netapp_managementLIF }}"
+        backendName: coe-netapp-nas
+        storagePrefix: "stormshift_{{ inventory_hostname }}_"
+        credentials:
+          name: coe-netapp-svm-trident
+
+- name: Create StorageClass/coe-netapp-san
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    definition:
+      apiVersion: storage.k8s.io/v1
+      kind: StorageClass
+      metadata:
+        annotations:
+          storageclass.kubevirt.io/is-default-virt-class: "true"
+        name: coe-netapp-san
+      provisioner: csi.trident.netapp.io
+      parameters:
+        backendType: "ontap-san-economy"
+        fsType: "ext4"
+      mountOptions:
+        - discard
+      allowVolumeExpansion: true
+
+- name: Create StorageClass/coe-netapp-nas
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    definition:
+      apiVersion: storage.k8s.io/v1
+      kind: StorageClass
+      metadata:
+        annotations:
+          storageclass.kubernetes.io/is-default-class: "true"
+        name: coe-netapp-nas
+      provisioner: csi.trident.netapp.io
+      parameters:
+        backendType: "ontap-nas"
+        provisioningType: "thin"
+        snapshots: "true"
+
+# - name: Apply ConsoleNotification
+#   kubernetes.core.k8s:
+#     kubeconfig: "{{ cluster_access_kubeconfig }}"
+#     state: present
+#     definition:
+#       apiVersion: console.openshift.io/v1
+#       kind: ConsoleNotification
+#       metadata:
+#         name: "stormshift-{{ inventory_hostname }}"
+#       spec:
+#         backgroundColor: "{{ cluster_color }}"
+#         color: '#000'
+#         link:
+#           href: https://source.redhat.com/groups/public/solution-architects/stormshift/stormshift_wiki/current_status_of_stormshift_clusters
+#           text: Details
+#         location: BannerTop
+#         text: "\U0001F32A StormShift {{ inventory_hostname }} - Managed by {{ stormshift_owner_email |default('Anonymous')}}"
