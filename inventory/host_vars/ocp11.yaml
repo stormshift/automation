@@ -51,11 +51,11 @@ cluster_additionalTrustBundle: ./Current-IT-Root-CAs.crt
 cluster_imagesource:
   imageDigestSources:
   - source: quay.io/openshift-release-dev/ocp-release
-    mirrorSourcePolicy: AllowContactingSource
+#    mirrorSourcePolicy: AllowContactingSource
+    mirrorSourcePolicy: NeverContactSource
     mirrors:
-      - quay.coe.muc.redhat.com/proxy_quay_openshift_release
+      - quay.coe.muc.redhat.com/proxy_quay_openshift_release/ocp-release
   - source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
-    mirrorSourcePolicy: AllowContactingSource
-#    mirrorSourcePolicy: NeverContactSource
+    mirrorSourcePolicy: NeverContactSource
     mirrors:
-      - quay.coe.muc.redhat.com/proxy_quay_openshift_release
+      - quay.coe.muc.redhat.com/proxy_quay_openshift_release/ocp-v4.0-art-dev
