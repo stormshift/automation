@@ -3,10 +3,14 @@
   ansible.builtin.include_role:
     name: internal-fetch-kubeconfig
 
-- name: Apply ConsoleNotification
+- name: Remove ConsoleNotification
+  ignore_errors: true
+  when: cluster_access_kubeconfig is defined and stormshift_cluster_action != destroy 
   kubernetes.core.k8s:
     kubeconfig: "{{ cluster_access_kubeconfig }}"
     state: absent
+    wait: true
+    wait_timeout: 10
     definition:
       apiVersion: console.openshift.io/v1
       kind: ConsoleNotification
