@@ -7,31 +7,13 @@
   ansible.builtin.include_role:
     name: req-cert-vault
 
-- name: Get child cluster access
-  community.hashi_vault.vault_kv2_get:
-    url: "{{ lookup('ansible.builtin.env', 'RH_VAULT_URL' ) }}"
-    auth_method: approle
-    role_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_ROLE_ID' ) }}"
-    secret_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_SECRET_ID' ) }}"
-    ca_cert: "{{ lookup('ansible.builtin.env', 'RH_VAULT_CA_CERT_FILENAME' ) }}"
-    engine_mount_point: apps
-
-    path: "coe-lab/cluster-credential/stormshift-{{ inventory_hostname }}"
-  register: cluster_credential
-
-- name: Temp folder
-  ansible.builtin.tempfile:
-    state: "directory"
-  register: temp
-
-- name: Write kubeconfig
-  ansible.builtin.copy:
-    dest: "{{ temp.path }}/kubeconfig"
-    content: "{{ cluster_credential.secret.kubeconfig }}"
+- name: Fetch kubeconfig from vault
+  ansible.builtin.include_role:
+    name: internal-fetch-kubeconfig
 
 - name: Apply Red Hat Root CA
   kubernetes.core.k8s:
-    kubeconfig: "{{ temp.path }}/kubeconfig"
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
 
     state: present
     definition:
@@ -107,7 +89,7 @@
 
 - name: Configure Red Hat Root CA
   kubernetes.core.k8s:
-    kubeconfig: "{{ temp.path }}/kubeconfig"
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
 
     state: present
     definition:
@@ -135,7 +117,7 @@
 
 - name: Apply certificate
   kubernetes.core.k8s:
-    kubeconfig: "{{ temp.path }}/kubeconfig"
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
 
     state: present
     definition:
@@ -152,7 +134,7 @@
 
 - name: Apply certificate
   kubernetes.core.k8s:
-    kubeconfig: "{{ temp.path }}/kubeconfig"
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
     state: present
     definition:
       apiVersion: operator.openshift.io/v1
@@ -170,7 +152,7 @@
 - name: Wait for IngressController to start Progressing
   when: apply_cert is changed
   kubernetes.core.k8s_info:
-    kubeconfig: "{{ temp.path }}/kubeconfig"
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
     kind: IngressController
     name: default
     namespace: openshift-ingress-operator
@@ -182,7 +164,7 @@
 
 - name: Wait for IngressController to be stable again
   kubernetes.core.k8s_info:
-    kubeconfig: "{{ temp.path }}/kubeconfig"
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
     kind: IngressController
     name: default
     namespace: openshift-ingress-operator
@@ -194,7 +176,7 @@
 
 - name: Wait for API to be stable again
   kubernetes.core.k8s_info:
-    kubeconfig: "{{ temp.path }}/kubeconfig"
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
     kind: ClusterOperator
     name: kube-apiserver
     namespace: openshift-ingress-operator

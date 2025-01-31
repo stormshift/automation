@@ -12,41 +12,20 @@
   with_indexed_items: "{{ workers }}"
   when: workers is defined and workers|length == 0
 
-- name: Get child cluster access
-  community.hashi_vault.vault_kv2_get:
-    url: "{{ lookup('ansible.builtin.env', 'RH_VAULT_URL' ) }}"
-    auth_method: approle
-    role_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_ROLE_ID' ) }}"
-    secret_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_SECRET_ID' ) }}"
-    ca_cert: "{{ lookup('ansible.builtin.env', 'RH_VAULT_CA_CERT_FILENAME' ) }}"
-    engine_mount_point: apps
-
-    path: "coe-lab/cluster-credential/stormshift-{{ inventory_hostname }}"
-  register: cluster_credential
-
-- name: Temp folder
-  ansible.builtin.tempfile:
-    state: "directory"
-  register: temp
-  changed_when: False
-
-- name: Write kubeconfig
-  ansible.builtin.copy:
-    dest: "{{ temp.path }}/kubeconfig"
-    content: "{{ cluster_credential.secret.kubeconfig }}"
-  changed_when: False
-
 - name: Wait for API to be available (in case we rebooted to add a disk)
   wait_for:
     host: "api.{{ inventory_hostname }}.{{ cluster_base_domain }}"
-    port: 443
+    port: 6443
     sleep: 1
     timeout: 600
 
+- name: Fetch kubeconfig from vault
+  ansible.builtin.include_role:
+    name: internal-fetch-kubeconfig
 
 - name: Install LVMS operator
   kubernetes.core.k8s:
-    kubeconfig: "{{ temp.path }}/kubeconfig"
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
     state: present
     definition:
       - kind: Namespace
@@ -82,7 +61,7 @@
 
 - name: Wait for Operator Deployment to be complete
   kubernetes.core.k8s_info:
-    kubeconfig: "{{ temp.path }}/kubeconfig"
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
     kind: CustomResourceDefinition
     name: lvmclusters.lvm.topolvm.io
     wait: yes
@@ -93,7 +72,7 @@
 
 - name: Wait for operator pod to be ready
   kubernetes.core.k8s_info:
-    kubeconfig: "{{ temp.path }}/kubeconfig"
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
     kind: Pod
     namespace: openshift-storage
     label_selectors:
@@ -106,7 +85,7 @@
 
 - name: Deploy LVMS
   kubernetes.core.k8s:
-    kubeconfig: "{{ temp.path }}/kubeconfig"
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
     state: present
     wait: yes
     wait_condition:
