@@ -5,6 +5,11 @@ images:
   base_image:
     name: quay.io/fedora/fedora:latest
 
+additional_build_steps:
+  append_final:
+    - ADD execution-environment/Current-IT-Root-CAs.crt /etc/pki/ca-trust/source/anchors/Current-IT-Root-CAs.crt
+    - RUN update-ca-trust
+
 dependencies:
   ansible_core:
     package_pip: ansible-core
