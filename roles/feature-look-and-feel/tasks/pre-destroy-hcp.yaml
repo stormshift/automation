@@ -1,3 +1,0 @@
-------
-- name: Include standalone stasks
-  ansible.builtin.include_tasks: "pre-destroy.yaml"

@@ -23,7 +23,7 @@
 
     - name: "Include {{stormshift_cluster_action}}-cluster"
       include_role:
-        name: cluster
+        name: "cluster{{ '-hcp'  if cluster_type == 'hosted' }}"
         tasks_from: "{{ stormshift_cluster_action }}-cluster.yaml"
       when: stormshift_cluster_action in ('destroy','deploy')
 

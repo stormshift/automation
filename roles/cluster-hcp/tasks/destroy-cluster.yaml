@@ -1,0 +1,191 @@
+---
+- name: Include pre-destroy-features
+  ansible.builtin.include_role:
+    name: "feature-{{ item }}"
+    tasks_from: pre-destroy.yaml
+  with_items: "{{ stormshift_cluster_features | default([]) }}"
+
+- name: Delete cluster authentfication in Vault
+  community.hashi_vault.vault_kv2_delete:
+    url: "{{ lookup('ansible.builtin.env', 'RH_VAULT_URL' ) }}"
+    auth_method: approle
+    role_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_ROLE_ID' ) }}"
+    secret_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_SECRET_ID' ) }}"
+    ca_cert: "{{ lookup('ansible.builtin.env', 'RH_VAULT_CA_CERT_FILENAME' ) }}"
+    engine_mount_point: apps
+
+    path: "coe-lab/cluster-credential/{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}"
+
+# - name: Delete cluster authentfication in AAP
+#   awx.awx.credential:
+#     name: "{{ cluster_hcp_name }}"
+#     organization: stormshift
+#     state: absent
+#     credential_type: "OpenShift Cluster v1"
+
+- name: Destroy managed cluster
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: absent
+    definition:
+      apiVersion: cluster.open-cluster-management.io/v1
+      kind: ManagedCluster
+      metadata:
+        name: "{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}"
+
+- name: Destroy hosted control plane
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: absent
+    definition:
+      apiVersion: hypershift.openshift.io/v1beta1
+      kind: HostedCluster
+      metadata:
+        name: "{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}"
+        namespace: "{{ cluster_hcp_namespace }}"
+
+- name: Delete node pool
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: absent
+    definition:
+      apiVersion: hypershift.openshift.io/v1beta1
+      kind: NodePool
+      metadata:
+        name: "{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}-nodepool1"
+        namespace: "{{ cluster_hcp_namespace }}"
+
+- name: "Wait of: Destroy managed cluster"
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    wait: true 
+    wait_sleep: 10
+    wait_timeout: 1200
+
+    state: absent
+    definition:
+      apiVersion: cluster.open-cluster-management.io/v1
+      kind: ManagedCluster
+      metadata:
+        name: "{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}"
+
+- name: "Wait of: Destroy hosted control plane"
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    wait: true 
+    wait_sleep: 10
+    wait_timeout: 600
+
+    state: absent
+    definition:
+      apiVersion: hypershift.openshift.io/v1beta1
+      kind: HostedCluster
+      metadata:
+        name: "{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}"
+        namespace: "{{ cluster_hcp_namespace }}"
+
+- name: "Wait of: Delete node pool"
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    wait: true 
+    wait_sleep: 10
+    wait_timeout: 600
+
+    state: absent
+    definition:
+      apiVersion: hypershift.openshift.io/v1beta1
+      kind: NodePool
+      metadata:
+        name: "{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}-nodepool1"
+        namespace: "{{ cluster_hcp_namespace }}"
+
+- name: Delete ExternalSecrets
+  with_items:
+    - "{{ cluster_hcp_name }}-ssh-key"
+    - "{{ cluster_hcp_name }}-oauth-cert"
+    
+    
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: absent
+    definition:
+      apiVersion: external-secrets.io/v1beta1
+      kind: ExternalSecret
+      metadata:
+        name: "{{ item }}"
+        namespace: "{{ cluster_hcp_namespace }}"
+
+- name: Delete secrets
+  with_items:
+    - "{{ cluster_hcp_name }}-pull-secret"
+    - "{{ cluster_hcp_name }}-etcd-encryption-key"
+    - "{{ cluster_hcp_name }}-admin-kubeconfig"
+    - "{{ cluster_hcp_name }}-kubeadmin-password"
+    
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: absent
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "{{ item }}"
+        namespace: "{{ cluster_hcp_namespace }}"
+
+- name: Delete ConfigMaps
+  with_items:
+    - "{{ cluster_hcp_name }}-redhat-current-it-root-cas"
+    
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: absent
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: "{{ item }}"
+        namespace: "{{ cluster_hcp_namespace }}"
+
+- name: Delete project
+  redhat.openshift.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    wait: true 
+    wait_sleep: 10
+    wait_timeout: 600
+
+    state: absent
+    definition:
+      kind: Project
+      apiVersion: project.openshift.io/v1
+      metadata:
+        name: "{{ cluster_hcp_namespace}}-{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}"

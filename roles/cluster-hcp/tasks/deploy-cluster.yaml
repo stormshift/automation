@@ -1,0 +1,531 @@
+---
+- name: Create project-req
+  redhat.openshift.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    apply: false
+    definition:
+      kind: Project
+      apiVersion: project.openshift.io/v1
+      metadata:
+        name: "{{ cluster_hcp_namespace }}-{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}"
+
+- name: Update requestor
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    merge_type: merge
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ cluster_hcp_namespace }}-{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}"
+        annotations:
+          openshift.io/requester: "{{ tower_user_email }}"
+          openshift.io/display-name: "StormShift Cluster {{ cluster_hcp_name }}"
+          openshift.io/description: "Contains VMs running StormShift {{ cluster_hcp_name }} Cluster"
+
+- name: Apply admin privileges to new namespace
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      metadata:
+        name: admin
+        namespace: "{{ cluster_hcp_namespace }}-{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}"
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: admin
+      subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: User
+        name: "{{ tower_user_name }}"
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: stormshift-admins
+      - kind: ServiceAccount
+        name: automation
+        namespace: stormshift
+
+- name: Check etcd-encryption-key secret
+  kubernetes.core.k8s_info:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    api_version: v1
+    kind: Secret
+    name: "{{ cluster_hcp_name }}-etcd-encryption-key"
+    namespace: "{{ cluster_hcp_namespace }}"
+  register: check_etcd_encryption_key
+
+- name: Create etcd-encryption-key secret
+  # Create only of doesn't exist.
+  when: check_etcd_encryption_key.resources | length <= 0
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      type: Opaque
+      metadata:
+        name: "{{ cluster_hcp_name }}-etcd-encryption-key"
+        namespace: "{{ cluster_hcp_namespace }}"
+      data:
+        key: "{{ lookup('community.general.random_string', length=32) | b64encode }}"
+
+- name: Create pull secret
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      type: Opaque
+      metadata:
+        name: "{{ cluster_hcp_name }}-pull-secret"
+        namespace: "{{ cluster_hcp_namespace }}"
+      data:
+        .dockerconfigjson: "{{ image_pull_secret | b64encode }}"
+
+- name: Create ssh-key
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    wait: yes
+    wait_sleep: 10
+    wait_timeout: 600
+    wait_condition:
+      type: Ready
+      status: "True"
+
+    state: present
+    definition:
+      apiVersion: external-secrets.io/v1beta1
+      kind: ExternalSecret
+      metadata:
+        name: "{{ cluster_hcp_name }}-ssh-key"
+        namespace: "{{ cluster_hcp_namespace }}"
+      spec:
+        data:
+        - remoteRef:
+            conversionStrategy: Default
+            decodingStrategy: None
+            key: coe-lab/ssh-key/coe-muc-rsa
+            metadataPolicy: None
+            property: key
+          secretKey: id_rsa
+        - remoteRef:
+            conversionStrategy: Default
+            decodingStrategy: None
+            key: coe-lab/ssh-key/coe-muc-rsa
+            metadataPolicy: None
+            property: pub
+          secretKey: id_rsa.pub
+        refreshInterval: 12h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: redhat-vault
+        target:
+          creationPolicy: Owner
+          deletionPolicy: Retain
+          name: "{{ cluster_hcp_name }}-ssh-key"
+          template:
+            engineVersion: v2
+            mergePolicy: Replace
+
+- name: Create node pool
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    definition:
+      apiVersion: hypershift.openshift.io/v1beta1
+      kind: NodePool
+      metadata:
+        name: "{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}-nodepool1"
+        namespace: "{{ cluster_hcp_namespace }}"
+      spec:
+        arch: amd64
+        clusterName: "{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}"
+        management:
+          autoRepair: false
+          upgradeType: Replace
+        nodeDrainTimeout: 0s
+        platform:
+          kubevirt:
+            attachDefaultNetwork: true
+            compute:
+              cores: "{{ worker_cores | int }}"
+              memory: "{{ worker_ram_gb }}Gi"
+              qosClass: Burstable
+            rootVolume:
+              persistent:
+                size: 120Gi
+                storageClass: "{{ cluster_hcp_node_root_volume_storage_class }}"
+              type: Persistent
+          type: KubeVirt
+        release:
+          image: "quay.io/openshift-release-dev/ocp-release:{{ openshift_version }}-x86_64"
+        replicas: "{{ worker_count }}"
+
+- name: Cleanup oauth url
+  ansible.builtin.set_fact:
+    # ToDos:
+    #   - Create issue, to have for example oauthEndpoint
+    #   - Improve code
+    oauth_hostname: "oauth-{{ cluster_hcp_namespace }}-{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}.apps.isar.coe.muc.redhat.com"
+    # oauth_url: "{{ hosted_control_plane.result.status.oauthCallbackURLTemplate | replace('[identity-provider-name]', '*') }}"
+
+- name: "Request certificate"
+  vars:
+    common_name: "{{ oauth_hostname }}"
+    subject_alt_name: "DNS:{{ oauth_hostname }}"
+
+  ansible.builtin.include_role:
+    name: req-cert-vault
+
+- name: Fetch root ca
+  community.hashi_vault.vault_kv2_get:
+    url: "{{ lookup('ansible.builtin.env', 'RH_VAULT_URL' ) }}"
+    auth_method: approle
+    role_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_ROLE_ID' ) }}"
+    secret_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_SECRET_ID' ) }}"
+    ca_cert: "{{ lookup('ansible.builtin.env', 'RH_VAULT_CA_CERT_FILENAME' ) }}"
+    engine_mount_point: apps
+
+    path: "coe-lab/certificate/{{ oauth_hostname }}"
+  register: root_ca 
+
+- name: Store root ca  
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: "{{ cluster_hcp_name }}-redhat-current-it-root-cas"
+        namespace: "{{ cluster_hcp_namespace }}"
+      data:
+        ca-bundle.crt: |
+          {{ root_ca.secret.root_ca_pem }}
+        ca.crt: |
+          {{ root_ca.secret.root_ca_pem }}
+
+- name: Store oauth certificate in a secret
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    wait: yes
+    wait_sleep: 10
+    wait_timeout: 600
+    wait_condition:
+      type: Ready
+      status: "True"
+
+    state: present
+    definition:
+      apiVersion: external-secrets.io/v1beta1
+      kind: ExternalSecret
+      metadata:
+        name: "{{ cluster_hcp_name }}-oauth-cert"
+        namespace: "{{ cluster_hcp_namespace }}"
+      spec:
+        data:
+        - remoteRef:
+            conversionStrategy: Default
+            decodingStrategy: None
+            key: "coe-lab/certificate/oauth-{{ cluster_hcp_namespace }}-{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}.apps.isar.coe.muc.redhat.com"
+            metadataPolicy: None
+            property: cert_and_intermediate_pem
+          secretKey: tls.crt
+        - remoteRef:
+            conversionStrategy: Default
+            decodingStrategy: None
+            key: "coe-lab/certificate/oauth-{{ cluster_hcp_namespace }}-{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}.apps.isar.coe.muc.redhat.com"
+            metadataPolicy: None
+            property: key
+          secretKey: tls.key
+        refreshInterval: 12h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: redhat-vault
+        target:
+          creationPolicy: Owner
+          deletionPolicy: Retain
+          name: "{{ cluster_hcp_name }}-oauth-cert"
+          template:
+            engineVersion: v2
+            mergePolicy: Replace
+            type: kubernetes.io/tls
+
+- name: Create hosted control plane
+  register: hosted_control_plane
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    wait: yes
+    wait_sleep: 10
+    wait_timeout: 600
+    wait_condition:
+      type: Available
+      status: "True"
+
+    state: present
+    definition:
+      apiVersion: hypershift.openshift.io/v1beta1
+      kind: HostedCluster
+      metadata:
+        name: "{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}"
+        namespace: "{{ cluster_hcp_namespace }}"
+        annotations:  
+        # https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.11/html/clusters/cluster_mce_overview#handling-ingressb
+      spec:
+        additionalTrustBundle:
+          name: "{{ cluster_hcp_name }}-redhat-current-it-root-cas"
+        autoscaling: {}
+        configuration:
+          proxy:
+            trustedCA:
+              name: "{{ cluster_hcp_name }}-redhat-current-it-root-cas"
+          ingress:
+            appsDomain: "apps.{{ cluster_hcp_name }}.{{ cluster_base_domain }}"
+          apiServer:
+            audit:
+              profile: Default
+            servingCerts:
+              namedCertificates:
+              - names:
+                - "{{ oauth_hostname }}"
+                servingCertificate:
+                  name: "{{ cluster_hcp_name }}-oauth-cert"
+        controllerAvailabilityPolicy: HighlyAvailable
+        dns:
+          baseDomain: "{{ cluster_base_domain }}"
+        etcd:
+          managed:
+            storage:
+              persistentVolume:
+                size: 8Gi
+                storageClassName: "{{ cluster_hcp_etcd_storage_class }}"
+              type: PersistentVolume
+          managementType: Managed
+        fips: false
+        infraID: "{{ cluster_hcp_name }}"
+        issuerURL: https://kubernetes.default.svc
+        networking:
+          clusterNetwork:
+          - cidr: 10.132.0.0/14
+          networkType: OVNKubernetes
+          serviceNetwork:
+          - cidr: 172.31.0.0/16
+        olmCatalogPlacement: management
+        platform:
+          kubevirt:
+            storageDriver:
+              manual:
+                storageClassMapping:
+                  - guestStorageClassName: ocs-storagecluster-ceph-rbd-virtualization
+                    infraStorageClassName: ocs-storagecluster-ceph-rbd-virtualization
+              type: Manual
+            # ToDo - false and MetalLB
+            # https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.11/html/clusters/cluster_mce_overview#create-hosted-clusters-kubevirt-default-ingress-dns
+            baseDomainPassthrough: false
+          type: KubeVirt
+        pullSecret:
+          name: "{{ cluster_hcp_name }}-pull-secret"
+        release:
+          image: "quay.io/openshift-release-dev/ocp-release:{{ openshift_version }}-multi"
+        secretEncryption:
+          aescbc:
+            activeKey:
+              name: "{{ cluster_hcp_name }}-etcd-encryption-key"
+          type: aescbc
+        services:
+        - service: OAuthServer
+          servicePublishingStrategy:
+            type: Route
+        - service: OIDC
+          servicePublishingStrategy:
+            type: Route
+        - service: Konnectivity
+          servicePublishingStrategy:
+            type: Route
+        - service: Ignition
+          servicePublishingStrategy:
+            type: Route
+        - service: APIServer
+          servicePublishingStrategy:
+            type: LoadBalancer
+        sshKey:
+          name: "{{ cluster_hcp_name }}-ssh-key"
+
+- name: Get kubeadmin password
+  register: kubeadmin_password_raw
+  kubernetes.core.k8s_info:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    api_version: v1
+    kind: Secret
+    name: "{{ hosted_control_plane.result.status.kubeadminPassword.name }}"
+    namespace: "{{ cluster_hcp_namespace }}"
+  when:
+    - hosted_control_plane.result.status.kubeadminPassword is defined
+
+- name: Get kubeconfig
+  register: kubeconfig_raw
+  kubernetes.core.k8s_info:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    api_version: v1
+    kind: Secret
+    name: "{{ hosted_control_plane.result.status.kubeconfig.name }}"
+    namespace: "{{ cluster_hcp_namespace }}"
+
+- name: Store cluster authentfication in Vault
+  community.hashi_vault.vault_kv2_write:
+    url: "{{ lookup('ansible.builtin.env', 'RH_VAULT_URL' ) }}"
+    auth_method: approle
+    role_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_ROLE_ID' ) }}"
+    secret_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_SECRET_ID' ) }}"
+    ca_cert: "{{ lookup('ansible.builtin.env', 'RH_VAULT_CA_CERT_FILENAME' ) }}"
+    engine_mount_point: apps
+
+    path: "coe-lab/cluster-credential/{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}"
+    data:
+      kubeconfig: "{{ kubeconfig_raw.resources[0].data.kubeconfig  | b64decode }}"
+      kubeadmin-password: "{{ kubeadmin_password_raw.resources[0].data.password | default('') | b64decode }}"
+
+# - name: Store cluster authentfication in AAP
+#   awx.awx.credential:
+#     name: "{{ cluster_hcp_name }}"
+#     organization: stormshift
+#     state: present
+#     credential_type: "OpenShift Cluster v1"
+#     inputs:
+#       api: https://{{ hosted_control_plane.result.status.controlPlaneEndpoint.host }}:{{ hosted_control_plane.result.status.controlPlaneEndpoint.host }}
+#       kubeconfig: "{{ kubeconfig_raw.resources[0].data.kubeconfig  | b64decode }}"
+#       kubeadmin_password: "{{ kubeadmin_password_raw.resources[0].data.password | default('') | b64decode }}"
+
+- name: Wait of AllMachinesReady
+  kubernetes.core.k8s_info:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    api_version: hypershift.openshift.io/v1beta1
+    kind: NodePool
+    name: "{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}-nodepool1"
+    namespace: "{{ cluster_hcp_namespace }}"
+
+    wait: yes
+    wait_sleep: 10
+    wait_timeout: 600
+    wait_condition:
+      type: AllMachinesReady
+      status: "True"
+
+- name: Get child cluster access
+  community.hashi_vault.vault_kv2_get:
+    url: "{{ lookup('ansible.builtin.env', 'RH_VAULT_URL' ) }}"
+    auth_method: approle
+    role_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_ROLE_ID' ) }}"
+    secret_id: "{{ lookup('ansible.builtin.env', 'RH_VAULT_SECRET_ID' ) }}"
+    ca_cert: "{{ lookup('ansible.builtin.env', 'RH_VAULT_CA_CERT_FILENAME' ) }}"
+    engine_mount_point: apps
+
+    path: "coe-lab/cluster-credential/{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}"
+  register: cluster_credential 
+
+- name: Temp folder
+  ansible.builtin.tempfile:
+    state: "directory"
+  register: temp
+
+- name: Write kubeconfig
+  ansible.builtin.copy:
+    dest: "{{ temp.path }}/kubeconfig"
+    content: "{{ cluster_credential.secret.kubeconfig }}"
+
+- name: Get Ingress Service details
+  register: ingress_service
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ temp.path }}/kubeconfig"
+
+    api_version: v1
+    kind: Service
+    name: router-nodeport-default
+    namespace: openshift-ingress
+
+    wait: yes
+
+- name: Configure service type loadbalancer for ingress
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        annotations:
+          external-dns.alpha.kubernetes.io/hostname: "*.apps.{{ cluster_hcp_name }}.{{ cluster_base_domain }}"
+        name: default-ingress
+        namespace: "{{ cluster_hcp_namespace }}-{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}"
+      spec:
+        ports:
+        - name: http
+          port: 80
+          protocol: TCP
+          targetPort: "{{ ( ingress_service.resources[0].spec.ports | selectattr('name', 'equalto', 'http') | first ).nodePort }}"
+        - name: https
+          port: 443
+          protocol: TCP
+          targetPort: "{{ ( ingress_service.resources[0].spec.ports | selectattr('name', 'equalto', 'https') | first ).nodePort }}"
+        selector:
+          hypershift.openshift.io/nodepool-name: "{{ cluster_hcp_prefix }}{{ cluster_hcp_name }}-nodepool1"
+        sessionAffinity: None
+        type: LoadBalancer
+
+- name: Include post-deploy-features
+  ansible.builtin.include_role:
+    name: "feature-{{ item }}"
+    tasks_from: post-deploy.yaml
+  with_items: "{{ stormshift_cluster_features | default([]) }}"
