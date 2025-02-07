@@ -12,7 +12,7 @@ cluster_type: sno
 # This is also the zone in IPA!
 cluster_base_domain: stormshift.coe.muc.redhat.com
 cluster_name: ocp11
-cluster_color: #FFC0CB
+cluster_color: #F0F
 
 # Not needed for SNO, it will use the ip of the node.
 # cluster_api_vip:
