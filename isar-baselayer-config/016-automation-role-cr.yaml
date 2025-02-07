@@ -31,6 +31,30 @@ rules:
   - list
   - patch
   - get
+- apiGroups:
+  - v1
+  resources:
+  - namespaces
+  verbs:
+  - create
+  - list
+  - patch
+  - get
+  - edit
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: hcp-automation
+  namespace: clusters
+rules:
+- apiGroups:
+  - "hypershift.openshift.io"
+  resources:
+  - hostedclusters
+  - nodepools
+  verbs:
+  - "*"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -66,6 +90,34 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: open-cluster-management:managedclusterset:admin:stormshift
+subjects:
+- kind: ServiceAccount
+  name: automation
+  namespace: stormshift
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: stormshift-automation-hcp-admin
+  namespace: clusters
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: hcp-automation
+subjects:
+- kind: ServiceAccount
+  name: automation
+  namespace: stormshift
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: stormshift-automation-admin
+  namespace: clusters
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
 subjects:
 - kind: ServiceAccount
   name: automation

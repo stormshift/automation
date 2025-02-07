@@ -1,0 +1,4 @@
+---
+cluster_hcp_namespace: "clusters"
+cluster_hcp_name: "{{ inventory_hostname }}"
+cluster_hcp_prefix: "stormshift-"

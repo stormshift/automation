@@ -1,0 +1,20 @@
+---
+- name: Destroy clients
+  ignore_errors: true
+  with_items:
+    - coe-sso
+    - coe-sso-admin
+  community.general.keycloak_client:
+
+    validate_certs: false
+    auth_keycloak_url: https://sso.coe.muc.redhat.com
+    auth_realm: master
+    auth_username: admin
+    auth_password: "{{ sso_admin_pw }}"
+
+    realm: "{{ item }}"
+    client_id: "oauth-openshift.apps.{{ inventory_hostname }}.{{ cluster_base_domain }}"
+    name: "oauth-openshift.apps.{{ inventory_hostname }}.{{ cluster_base_domain }}"
+
+    state: absent
+  delegate_to: localhost
