@@ -6,5 +6,6 @@ development-example.vars-private
 .vault_pass 
 Current-IT-Root-CAs.crt
 ansible-navigator.log 
-scrible/kubeconfig-stormshift*
+scrible/kubeadmin-*
+scrible/kubeconfig-*
 .dockerconfigjson

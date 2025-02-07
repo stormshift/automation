@@ -129,10 +129,15 @@ source development-example.env-private
 ```bash
 
 ansible-navigator run stormshift-cluster-mgmt.yaml \
-    -e stormshift_cluster_action=deploy \
+    -e stormshift_cluster_action=destroy \
     -e stormshift_cluster_name=ocp3 \
     --vault-password-file=.vault_pass \
-    -e @development-example.vars-private -v
+    -e @development-example.vars-private
+
+ansible-navigator run configure-job-templates.yaml \
+    --vault-password-file=.vault_pass \
+    -e @development-example.vars-private \
+    -l ocp3
 
 ansible-navigator run request-cert.yaml \
     --vault-password-file=.vault_pass \

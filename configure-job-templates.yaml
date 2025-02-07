@@ -2,8 +2,51 @@
 - hosts: cluster
   connection: local
   gather_facts: false
+  vars:
+    features_by_cluster_type:
+      classic:
+        all_available_features:
+          - manage-with-acm
+          - redhat-internal-certificate
+          - coe-sso
+          - lvms
+          - rhoai
+          - look-and-feel
+        default_features:
+          - manage-with-acm
+          - redhat-internal-certificate
+          - coe-sso
+          - look-and-feel
+      hosted:
+        all_available_features:
+          - redhat-internal-certificate
+          - coe-sso
+          # - lvms - not tested
+          # - rhoai - not tested
+          - look-and-feel
+        default_features:
+          - redhat-internal-certificate
+          - coe-sso
+          - look-and-feel
   tasks:
     # - debug: msg="{{ inventory_hostname }}"
+    - name: Create coe-lab-stormshift-notifications notification template
+      awx.awx.notification_template:
+        state: present
+        name: "coe-lab-stormshift-notifications"
+        organization: "stormshift"
+        notification_type: email
+        notification_configuration:
+          sender: "coe-lab-stormshift-notifications@redhat.com"
+          recipients:
+            - "coe-lab-stormshift-notifications@redhat.com"
+          host: "smtp.corp.redhat.com"
+          port: 25
+          username: ''
+          password: ''
+          use_tls: no
+          use_ssl: no
+
     - name: "Create jobs: StormShift Cluster Mgmt - {{ inventory_hostname }}"
       awx.awx.job_template:
         name: "🌪️ StormShift Cluster Mgmt - {{ inventory_hostname }}"
@@ -28,7 +71,13 @@
         state: "present"
         survey_enabled: yes
         allow_simultaneous: false
-        extra_vars:
+        notification_templates_error:
+          - coe-lab-stormshift-notifications
+        notification_templates_started: 
+          - coe-lab-stormshift-notifications
+        notification_templates_success:
+          - coe-lab-stormshift-notifications
+        extra_vars: 
           stormshift_cluster_name: "{{ inventory_hostname }}"
         ask_variables_on_launch: true
         survey_spec: |
@@ -55,13 +104,11 @@
                 },
                 {
                     "choices": [
-                        "manage-with-acm",
-                        "redhat-internal-certificate",
-                        "coe-sso",
-                        "lvms",
-                        "rhoai"
+                      {% for feature in features_by_cluster_type[cluster_type].all_available_features %}
+                        "{{ feature }}"{% if not loop.last %},{% endif %}
+                      {% endfor %}
                     ],
-                    "default": "manage-with-acm\nredhat-internal-certificate\ncoe-sso",
+                    "default": "{{ features_by_cluster_type[cluster_type].default_features | join('\n') }}",
                     "max": 1024,
                     "min": 0,
                     "new_question": false,
