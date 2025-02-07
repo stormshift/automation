@@ -5,7 +5,7 @@
 
 - name: Remove ConsoleNotification
   ignore_errors: true
-  when: cluster_access_kubeconfig is defined and stormshift_cluster_action != destroy 
+  when: cluster_access_kubeconfig is defined and stormshift_cluster_action != "destroy" 
   kubernetes.core.k8s:
     kubeconfig: "{{ cluster_access_kubeconfig }}"
     state: absent
