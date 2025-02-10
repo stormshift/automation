@@ -17,6 +17,18 @@
           - redhat-internal-certificate
           - coe-sso
           - look-and-feel
+      sno:
+        all_available_features:
+          - manage-with-acm
+          - redhat-internal-certificate
+          - coe-sso
+          - lvms
+          - rhoai
+          - look-and-feel
+        default_features:
+          - redhat-internal-certificate
+          - coe-sso
+          - look-and-feel
       hosted:
         all_available_features:
           - redhat-internal-certificate
@@ -73,11 +85,11 @@
         allow_simultaneous: false
         notification_templates_error:
           - coe-lab-stormshift-notifications
-        notification_templates_started: 
+        notification_templates_started:
           - coe-lab-stormshift-notifications
         notification_templates_success:
           - coe-lab-stormshift-notifications
-        extra_vars: 
+        extra_vars:
           stormshift_cluster_name: "{{ inventory_hostname }}"
         ask_variables_on_launch: true
         survey_spec: |
