@@ -120,7 +120,11 @@
                         "{{ feature }}"{% if not loop.last %},{% endif %}
                       {% endfor %}
                     ],
+                    {% if stormshift_cluster_features is defined %}
+                    "default": "{{ stormshift_cluster_features | join('\n') }}",
+                    {% else %}
                     "default": "{{ features_by_cluster_type[cluster_type].default_features | join('\n') }}",
+                    {% endif %}
                     "max": 1024,
                     "min": 0,
                     "new_question": false,
