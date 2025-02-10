@@ -6,7 +6,7 @@ cluster_type: classic
 cluster_api_vip: 10.32.105.42
 cluster_ingress_vip: 10.32.105.49
 
-cluster_color: #0FF
+cluster_color: "#0FF"
 
 # Default is in roles/cluster/defaults/main.yaml - Override if needed:
 #openshift_version: 4.17.12
