@@ -17,18 +17,6 @@
           - redhat-internal-certificate
           - coe-sso
           - look-and-feel
-      sno:
-        all_available_features:
-          - manage-with-acm
-          - redhat-internal-certificate
-          - coe-sso
-          - lvms
-          - rhoai
-          - look-and-feel
-        default_features:
-          - redhat-internal-certificate
-          - coe-sso
-          - look-and-feel
       hosted:
         all_available_features:
           - redhat-internal-certificate

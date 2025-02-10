@@ -8,7 +8,7 @@
 stormshift_owner_email: "available"
 stormshift_owner_purpose: "SNO"
 stormshift_owner_usage: "exclusive"
-cluster_type: sno
+cluster_type: classic
 # This is also the zone in IPA!
 cluster_base_domain: stormshift.coe.muc.redhat.com
 cluster_name: ocp14
