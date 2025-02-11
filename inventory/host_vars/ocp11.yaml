@@ -14,6 +14,9 @@ cluster_base_domain: stormshift.coe.muc.redhat.com
 cluster_name: ocp11
 cluster_color: "#F0F"
 
+# See: https://docs.openshift.com/container-platform/4.17/scalability_and_performance/enabling-workload-partitioning.html#enabling-workload-partitioning_enabling-workload-partitioning
+cluster_cpuPartitioningMode: AllNodes
+
 # Not needed for SNO, it will use the ip of the node.
 # cluster_api_vip:
 # cluster_ingress_vip:
@@ -28,11 +31,12 @@ control_plans:
 # openshift_version: 4.17.12
 
 stormshift_cluster_features:
-  - redhat-internal-certificate
-  - coe-sso
-  - look-and-feel
-  - lvms
-  - rhoai
+#  - redhat-internal-certificate
+#  - coe-sso
+#  - look-and-feel
+  - workload-partitioning
+#  - lvms
+#  - rhoai
 
 
 

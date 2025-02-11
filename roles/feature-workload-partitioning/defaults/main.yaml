@@ -1,0 +1,7 @@
+---
+wrkld:
+  cpu:
+     reserved: "0-0"
+     isolated: "2-5"
+  kernel:
+    realtime: false

@@ -1,0 +1,65 @@
+---
+- name: Fetch kubeconfig from vault
+  ansible.builtin.include_role:
+    name: internal-fetch-kubeconfig
+
+- name: Create Performance Profile
+  register: performanceProfile
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    definition:
+# See https://docs.openshift.com/container-platform/4.17/scalability_and_performance/enabling-workload-partitioning.html#sample-performance-profile-configuration
+      apiVersion: performance.openshift.io/v2
+      kind: PerformanceProfile
+      metadata:
+        name: openshift-node-performance-profile
+      spec:
+        cpu:
+          isolated: "{{ wrkld.cpu.isolated }}"
+          reserved: "{{ wrkld.cpu.reserved }}"
+        machineConfigPoolSelector:
+          pools.operator.machineconfiguration.openshift.io/master: ""
+        nodeSelector:
+          node-role.kubernetes.io/master: ""
+        realTimeKernel:
+          enabled: "{{ wrkld.kernel.realtime }}"
+        workloadHints:
+          realTime: false
+          highPowerConsumption: false
+          perPodPowerManagement: false
+
+- name: Wait for machineconfig pool to start Updating
+  when: performanceProfile is changed
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    kind: MachineConfigPool
+    name: master
+    api_version: machineconfiguration.openshift.io/v1
+    wait: yes
+    wait_timeout: 300
+    wait_condition:
+      type: Updating
+      status: True
+
+- name: Wait for machineconfig pool to stop Updating
+#  when: performanceProfile is changed
+  retries: 60
+  delay: 10
+  register: result
+  until: result is not failed
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    kind: MachineConfigPool
+    name: master
+    api_version: machineconfiguration.openshift.io/v1
+    wait: yes
+    wait_timeout: 10
+    wait_condition:
+      type: Updating
+      status: False
+
+
+
+# TODO: when changed, this can create a reboot
+# wait for mcp to be ready again
