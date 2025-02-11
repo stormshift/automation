@@ -8,25 +8,29 @@
 stormshift_owner_email: "dfroehli@redhat.com"
 stormshift_owner_purpose: "Edge SNO"
 stormshift_owner_usage: "exclusive"
-cluster_type: sno
+cluster_type: classic
 # This is also the zone in IPA!
 cluster_base_domain: stormshift.coe.muc.redhat.com
 cluster_name: ocp11
+cluster_color: "#F0F"
+
 # Not needed for SNO, it will use the ip of the node.
 # cluster_api_vip:
 # cluster_ingress_vip:
 
-control_plan_cores: 12
+control_plan_cores: 8
 control_plan_ram_gb: 48
 control_plans:
   - vm_network_ip_address: 10.32.105.128
     vm_network_mac_address: 0E:C0:EF:20:6F:80
 
-openshift_version: 4.17.2
+# Default is in roles/cluster/defaults/main.yaml - Override if needed:
+# openshift_version: 4.17.12
 
 stormshift_cluster_features:
   - redhat-internal-certificate
   - coe-sso
+  - look-and-feel
   - lvms
   - rhoai
 
@@ -42,3 +46,16 @@ cluster_capabilities:
 #  - Ingress
 #  - OperatorLifecycleManager
 #  - marketplace
+
+cluster_additionalTrustBundle: ./Current-IT-Root-CAs.crt
+cluster_imagesource:
+  imageDigestSources:
+  - source: quay.io/openshift-release-dev/ocp-release
+#    mirrorSourcePolicy: AllowContactingSource
+    mirrorSourcePolicy: NeverContactSource
+    mirrors:
+      - quay.coe.muc.redhat.com/proxy_quay_openshift_release/ocp-release
+  - source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
+    mirrorSourcePolicy: NeverContactSource
+    mirrors:
+      - quay.coe.muc.redhat.com/proxy_quay_openshift_release/ocp-v4.0-art-dev

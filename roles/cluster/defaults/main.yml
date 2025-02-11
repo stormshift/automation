@@ -4,7 +4,7 @@ cluster_name: "{{ inventory_hostname }}"
 
 artifacts_dir: "{{ playbook_dir }}"
 openshift_install_dir: "{{ artifacts_dir }}/{{ inventory_hostname }}"
-openshift_version: 4.15.10
+openshift_version: 4.17.12
 openshift_install_dest: "{{ artifacts_dir }}/{{ openshift_version }}"
 
 openshift_mirror: "https://mirror.openshift.com"

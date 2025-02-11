@@ -24,7 +24,7 @@ networking:
   networkType: OVNKubernetes
   serviceNetwork:
     - 172.30.0.0/16
-{% if cluster_type == "classic" %}
+{% if cluster_api_vip is defined %}
 platform:
   baremetal:
     apiVIPs:
@@ -46,3 +46,13 @@ pullSecret:
   '{{ image_pull_secret }}'
 sshKey: |
   {{ lookup('ansible.builtin.env', 'SSH_PUBLIC_KEY' ) }}
+
+
+{% if cluster_imagesource is defined %}
+{{ cluster_imagesource | to_nice_yaml(indent=0, sort_keys=false) | indent(0,true) }}
+{% endif %}
+
+{% if cluster_additionalTrustBundle is defined %}
+additionalTrustBundle: |
+{{lookup('file', '{{ cluster_additionalTrustBundle }}') | indent(2,true) }}
+{% endif %}

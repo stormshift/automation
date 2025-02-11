@@ -11,6 +11,7 @@
   ansible.builtin.include_role:
     name: internal-fetch-kubeconfig
 
+
 - name: Fetch cluster certificate
   community.hashi_vault.vault_kv2_get:
     url: "{{ lookup('ansible.builtin.env', 'RH_VAULT_URL' ) }}"
@@ -95,7 +96,3 @@
     wait_condition:
       type: Progressing
       status: False
-
-#
-# Todo:
-# to avoid subsequent features to fail while it is restarting

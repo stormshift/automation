@@ -73,11 +73,11 @@
         allow_simultaneous: false
         notification_templates_error:
           - coe-lab-stormshift-notifications
-        notification_templates_started: 
+        notification_templates_started:
           - coe-lab-stormshift-notifications
         notification_templates_success:
           - coe-lab-stormshift-notifications
-        extra_vars: 
+        extra_vars:
           stormshift_cluster_name: "{{ inventory_hostname }}"
         ask_variables_on_launch: true
         survey_spec: |
@@ -108,7 +108,11 @@
                         "{{ feature }}"{% if not loop.last %},{% endif %}
                       {% endfor %}
                     ],
+                    {% if stormshift_cluster_features is defined %}
+                    "default": "{{ stormshift_cluster_features | join('\n') }}",
+                    {% else %}
                     "default": "{{ features_by_cluster_type[cluster_type].default_features | join('\n') }}",
+                    {% endif %}
                     "max": 1024,
                     "min": 0,
                     "new_question": false,

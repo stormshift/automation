@@ -6,18 +6,26 @@ cluster_type: classic
 cluster_api_vip: 10.32.105.42
 cluster_ingress_vip: 10.32.105.49
 
+cluster_color: "#0FF"
+
+# Default is in roles/cluster/defaults/main.yaml - Override if needed:
+#openshift_version: 4.17.12
 stormshift_cluster_features:
+  - redhat-internal-certificate
+  - coe-sso
+  - look-and-feel
   - lvms
 
 # See https://docs.openshift.com/container-platform/4.17/installing/overview/cluster-capabilities.html
 cluster_capabilities:
-  baselineCapabilitySet: None
-  additionalEnabledCapabilities:
-  - Console
-  - Storage
-
+  baselineCapabilitySet: vCurrent
+#  baselineCapabilitySet: None
+#  additionalEnabledCapabilities:
+#  - baremetal
+#  - Ingress
 control_plan_cores: 6
-control_plan_ram_gb: 24
+control_plan_ram_gb: 32
+
 control_plans:
   - vm_network_ip_address: 10.32.105.80
     vm_network_mac_address: 0E:C0:EF:20:69:50

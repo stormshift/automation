@@ -8,3 +8,4 @@ Current-IT-Root-CAs.crt
 ansible-navigator.log 
 scrible/kubeadmin-*
 scrible/kubeconfig-*
+.dockerconfigjson
