@@ -31,12 +31,12 @@ control_plans:
 # openshift_version: 4.17.12
 
 stormshift_cluster_features:
-#  - redhat-internal-certificate
-#  - coe-sso
-#  - look-and-feel
+  - redhat-internal-certificate
+  - coe-sso
+  - look-and-feel
   - workload-partitioning
-#  - lvms
-#  - rhoai
+  - lvms
+  - rhoai
 
 
 

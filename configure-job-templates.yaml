@@ -12,6 +12,7 @@
           - lvms
           - rhoai
           - look-and-feel
+          - workload-partitioning
         default_features:
           - manage-with-acm
           - redhat-internal-certificate

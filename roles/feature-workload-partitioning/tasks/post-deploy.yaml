@@ -43,7 +43,9 @@
       status: True
 
 - name: Wait for machineconfig pool to stop Updating
-#  when: performanceProfile is changed
+  when: performanceProfile is changed
+# Need hard retries here, as on SNO, API becomes unavailable during reboot,
+# which makes the k8s_info module fail:
   retries: 60
   delay: 10
   register: result
@@ -58,8 +60,3 @@
     wait_condition:
       type: Updating
       status: False
-
-
-
-# TODO: when changed, this can create a reboot
-# wait for mcp to be ready again

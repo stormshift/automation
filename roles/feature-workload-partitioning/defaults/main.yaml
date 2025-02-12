@@ -1,7 +1,7 @@
 ---
 wrkld:
   cpu:
-     reserved: "0-0"
-     isolated: "2-5"
+     reserved: "0-1"
+     isolated: "2-3"
   kernel:
     realtime: false
