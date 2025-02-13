@@ -35,6 +35,10 @@ hosts:
             next-hop-address: {{ network_default_gw }}
             next-hop-interface: eth0
             table-id: 254
+          - destination: 192.168.70.0/24
+            next-hop-address: 10.32.98.5
+            next-hop-interface: eth0
+            table-id: 254
 {% endfor %}
 {% for host in workers | default([]) %}
   - hostname: {{ inventory_hostname }}-worker-{{ loop.index - 1 }}
@@ -65,6 +69,10 @@ hosts:
         config:
           - destination: 0.0.0.0/0
             next-hop-address: {{ network_default_gw }}
+            next-hop-interface: eth0
+            table-id: 254
+          - destination: 192.168.70.0/24
+            next-hop-address: 10.32.98.5
             next-hop-interface: eth0
             table-id: 254
 {% endfor %}
