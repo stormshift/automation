@@ -25,3 +25,6 @@ upload_host: https://cdi-uploadproxy-openshift-cnv.apps.isar.coe.muc.redhat.com
 target_namespace: "stormshift-{{ inventory_hostname }}-infra"
 
 clusterAlreadyExists: false
+
+# See: https://docs.openshift.com/container-platform/4.17/scalability_and_performance/enabling-workload-partitioning.html#enabling-workload-partitioning_enabling-workload-partitioning
+cluster_cpuPartitioningMode: None
