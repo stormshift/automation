@@ -1,0 +1,18 @@
+---
+- name: Fetch kubeconfig from vault
+  ansible.builtin.include_role:
+    name: internal-fetch-kubeconfig
+  vars:
+    internal_fetch_kubeconfig_ignore_erros: true
+
+- name: Remove Performance profile
+  ignore_errors: true
+  when: cluster_access_kubeconfig is defined and stormshift_cluster_action != "destroy"
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: absent
+    definition:
+      apiVersion: performance.openshift.io/v2
+      kind: PerformanceProfile
+      metadata:
+        name: openshift-node-performance-profile

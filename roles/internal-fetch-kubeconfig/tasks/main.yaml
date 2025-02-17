@@ -1,6 +1,7 @@
 ---
 
 - name: Get child cluster access
+  ignore_errors: "{{ internal_fetch_kubeconfig_ignore_erros  }}"
   community.hashi_vault.vault_kv2_get:
     url: "{{ lookup('ansible.builtin.env', 'RH_VAULT_URL' ) }}"
     auth_method: approle
@@ -13,16 +14,19 @@
   register: cluster_credential
 
 - name: Temp folder
+  when: cluster_credential is not failed
   ansible.builtin.tempfile:
     state: "directory"
   register: temp
   changed_when: False
 
 - name: Set cluster_access_kubeconfig
+  when: cluster_credential is not failed
   ansible.builtin.set_fact:
     cluster_access_kubeconfig: "{{ temp.path }}/kubeconfig"
 
 - name: Write kubeconfig
+  when: cluster_credential is not failed
   ansible.builtin.copy:
     dest: "{{ cluster_access_kubeconfig }}"
     content: "{{ cluster_credential.secret.kubeconfig }}"
