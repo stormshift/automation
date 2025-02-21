@@ -68,6 +68,7 @@
               enabled: true
             - name: multipathd.service
               enabled: true
+
 - name: Create namespace
   kubernetes.core.k8s:
     kubeconfig: "{{ cluster_access_kubeconfig }}"
@@ -124,6 +125,12 @@
       data:
         password: "{{ netapp_password | b64encode }}"
         username: "{{ netapp_username | b64encode }}"
+
+## ToDo Add wait-for
+# kind: CustomResourceDefinition
+# apiVersion: apiextensions.k8s.io/v1
+# metadata:
+  # name: tridentbackendconfigs.trident.netapp.io
 
 - name: Create TridentBackendConfig/coe-netapp-san
   kubernetes.core.k8s:
