@@ -12,7 +12,7 @@
       metadata:
         name: local-cluster-admins
       users:
-      - "{{ tower_user_email }}-admin"
+        - "{{ tower_user_email }}-admin"
 
 - name: Add cluster role
   kubernetes.core.k8s:
@@ -28,9 +28,9 @@
         kind: ClusterRole
         name: cluster-admin
       subjects:
-      - apiGroup: rbac.authorization.k8s.io
-        kind: Group
-        name: local-cluster-admins
-      - apiGroup: rbac.authorization.k8s.io
-        kind: Group
-        name: global-cluster-admins
+        - apiGroup: rbac.authorization.k8s.io
+          kind: Group
+          name: local-cluster-admins
+        - apiGroup: rbac.authorization.k8s.io
+          kind: Group
+          name: global-cluster-admins
