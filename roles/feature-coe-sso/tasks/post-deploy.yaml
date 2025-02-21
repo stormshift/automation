@@ -2,6 +2,16 @@
 - name: Include cluster_type specific tasks
   ansible.builtin.include_tasks: "post-deploy-{{ cluster_type }}.yaml"
 
+- name: Add group local-cluster-reader
+  kubernetes.core.k8s:
+    kubeconfig: "{{ temp.path }}/kubeconfig"
+
+    definition:
+      apiVersion: user.openshift.io/v1
+      kind: Group
+      metadata:
+        name: local-cluster-reader
+
 - name: Add group local-cluster-admins
   kubernetes.core.k8s:
     kubeconfig: "{{ temp.path }}/kubeconfig"
@@ -14,7 +24,7 @@
       users:
         - "{{ tower_user_email }}-admin"
 
-- name: Add cluster role
+- name: Add cluster role coe-cluster-admins
   kubernetes.core.k8s:
     kubeconfig: "{{ temp.path }}/kubeconfig"
 
@@ -34,3 +44,25 @@
         - apiGroup: rbac.authorization.k8s.io
           kind: Group
           name: global-cluster-admins
+
+- name: Add cluster role coe-cluster-readers
+  kubernetes.core.k8s:
+    kubeconfig: "{{ temp.path }}/kubeconfig"
+
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        creationTimestamp: null
+        name: coe-cluster-reader
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: cluster-reader
+      subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: local-cluster-reader
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: global-cluster-reader
