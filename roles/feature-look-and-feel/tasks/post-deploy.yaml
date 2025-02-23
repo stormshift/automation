@@ -14,9 +14,9 @@
         name: "stormshift-{{ inventory_hostname }}"
       spec:
         backgroundColor: "{{ cluster_color }}"
-        color: '#000'
+        color: "{{ cluster_color_fg | default('#000') }}"
         link:
           href: https://source.redhat.com/groups/public/solution-architects/stormshift/stormshift_wiki/current_status_of_stormshift_clusters
           text: Details
         location: BannerTop
-        text: "\U0001F32A StormShift {{ inventory_hostname }} - Managed by {{ stormshift_owner_email |default('Anonymous')}}"
+        text: "\U0001F32A {{ stormshift_owner_usage | capitalize }} StormShift {{ inventory_hostname }} - Managed by {{ stormshift_owner_email |default('Anonymous')}} - {{ stormshift_owner_purpose }}"
