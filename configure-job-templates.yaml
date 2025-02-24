@@ -31,6 +31,13 @@
           - look-and-feel
   tasks:
     # - debug: msg="{{ inventory_hostname }}"
+    - name: Check execution environment
+      awx.awx.execution_environment:
+        state: exists
+        organization: "stormshift"
+        name: "stormshift-automation-execution-environment-202412231546"
+        image: "quay.coe.muc.redhat.com/stormshift/automation-execution-environment:202412231546"
+
     - name: Create coe-lab-stormshift-notifications notification template
       awx.awx.notification_template:
         state: present
@@ -48,7 +55,7 @@
           use_tls: no
           use_ssl: no
 
-    - name: "Create jobs: StormShift Cluster Mgmt - {{ inventory_hostname }}"
+    - name: "Create jobs: StormShift Cluster Mgmt"
       awx.awx.job_template:
         name: "🌪️ StormShift Cluster Mgmt - {{ inventory_hostname }}"
         description: "Do NOT edit, managed by Ansible: https://github.com/stormshift/automation/blob/master/configure-job-templates.yaml"
@@ -58,7 +65,7 @@
         project: "stormshift-automation"
 
         playbook: "stormshift-cluster-mgmt.yaml"
-        execution_environment: "stormshift-automation-execution-environment-202410072305"
+        execution_environment: "stormshift-automation-execution-environment-202412231546"
 
         credentials:
           - "automation-vault"

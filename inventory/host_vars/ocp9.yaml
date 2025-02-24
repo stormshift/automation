@@ -1,0 +1,42 @@
+---
+stormshift_owner_email: "rbohne@redhat.com"
+stormshift_owner_purpose: "OpenShift Virt Services Education Cluster"
+stormshift_owner_usage: "dedicated"
+
+local_cluster_admins:
+  - emeroglu@redhat.com-admin
+  - lbohnsac@redhat.com-admin
+
+# Same color as for the labels: https://github.com/stormshift/support/labels
+cluster_color: "#fbca04"
+cluster_color_fg: "#4a4a4a"
+
+openshift_version: 4.17.15
+
+stormshift_cluster_features:
+  - redhat-internal-certificate
+  - coe-sso
+  - manage-with-acm
+  - look-and-feel
+
+cluster_type: classic
+cluster_api_vip: 10.32.105.115
+cluster_ingress_vip: 10.32.105.116
+
+control_plan_cores: 8
+control_plan_ram_gb: 16
+control_plans:
+  - vm_network_ip_address: 10.32.105.117
+    vm_network_mac_address: 0E:C0:EF:20:69:75
+  - vm_network_ip_address: 10.32.105.118
+    vm_network_mac_address: 0E:C0:EF:20:69:76
+  - vm_network_ip_address: 10.32.105.119
+    vm_network_mac_address: 0E:C0:EF:20:69:77
+
+worker_cores: 16
+worker_ram_gb: 32
+workers:
+  - vm_network_ip_address: 10.32.105.120
+    vm_network_mac_address: 0E:C0:EF:20:69:78
+  - vm_network_ip_address: 10.32.105.121
+    vm_network_mac_address: 0E:C0:EF:20:69:79
