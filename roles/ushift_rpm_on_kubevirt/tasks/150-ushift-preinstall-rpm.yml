@@ -32,6 +32,16 @@
         regexp: '# use_devicesfile = 1'
         replace: 'use_devicesfile = 0'
 
+    - name: Register and Subscribe
+      tags: prep,repos, slow
+      when: rhsm_user is defined
+      community.general.redhat_subscription:
+        state: present
+        username: "{{ rhsm_user }}"
+        password: "{{ rhsm_pswd }}"
+        auto_attach: true
+        force_register: true
+
     - name: Enable Repos
       tags: prep,repos, slow
       when: ushift_repo_list is defined
