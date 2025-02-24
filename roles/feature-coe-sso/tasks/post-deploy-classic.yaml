@@ -236,27 +236,6 @@
       spec:
         identityProviders: "{{ final_identity_providers }}"
 
-- name: Add cluster role
-  kubernetes.core.k8s:
-    kubeconfig: "{{ temp.path }}/kubeconfig"
-
-    definition:
-      apiVersion: rbac.authorization.k8s.io/v1
-      kind: ClusterRoleBinding
-      metadata:
-        name: coe-sso-admin
-      roleRef:
-        apiGroup: rbac.authorization.k8s.io
-        kind: ClusterRole
-        name: cluster-admin
-      subjects:
-      - apiGroup: rbac.authorization.k8s.io
-        kind: Group
-        name: coe-sso-admin
-      - apiGroup: rbac.authorization.k8s.io
-        kind: User
-        name: "{{ tower_user_email }}-admin"
-
 # https://sso.coe.muc.redhat.com/realms/coe-sso/protocol/openid-connect/token
 # https://sso.coe.muc.redhat.com/realms/coe-sso/protocol/openid-connect/token
 
