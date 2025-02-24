@@ -2,7 +2,3 @@
 cluster_hcp_namespace: "clusters"
 cluster_hcp_name: "{{ inventory_hostname }}"
 cluster_hcp_prefix: "stormshift-"
-
-local_cluster_admins:
-  - "{{ stormshift_owner_email | default('jane.doe@redhat.com') + '-admin' }}"
-  - "{{ tower_user_email | default('john.doe@redhat.com') + '-admin'}}"
