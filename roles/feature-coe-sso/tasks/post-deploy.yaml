@@ -21,8 +21,12 @@
       kind: Group
       metadata:
         name: local-cluster-admins
-      users: "{{ local_cluster_admins | default([]) + [ tower_user_email + '-admin', stormshift_owner_email | default('jane.doe@redhat.com')+ '-admin'] }}"
-
+      users: "{{
+        local_cluster_admins | default([])
+        + [
+            tower_user_email | default('xxx') + '-admin',
+            stormshift_owner_email | default('xxx') + '-admin'
+        ] | reject('equalto', 'xxx-admin') }}"
 
 - name: Add cluster role coe-cluster-admins
   kubernetes.core.k8s:
