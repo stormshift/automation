@@ -14,8 +14,9 @@ additional_build_steps:
   prepend_final:
     - ENV PKGMGR_OPTS="--nodocs --setopt=install_weak_deps=0 --setopt=rhocp-4.17-for-rhel-9-x86_64-rpms.enabled=true"
   append_final:
-    - ADD execution-environment/Current-IT-Root-CAs.crt /etc/pki/ca-trust/source/anchors/Current-IT-Root-CAs.crt
-    - RUN update-ca-trust
+    - RUN curl https://certs.corp.redhat.com/certs/Current-IT-Root-CAs.pem \
+          -o /etc/pki/ca-trust/source/anchors/RedHat_Current-IT-Root-CAs.pem && \
+          update-ca-trust
 
 dependencies:
   system:
