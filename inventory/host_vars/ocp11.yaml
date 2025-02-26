@@ -28,15 +28,15 @@ control_plans:
     vm_network_mac_address: 0E:C0:EF:20:6F:80
 
 # Default is in roles/cluster/defaults/main.yaml - Override if needed:
-# openshift_version: 4.17.12
+openshift_version: 4.18.1
 
 stormshift_cluster_features:
   - redhat-internal-certificate
   - coe-sso
   - look-and-feel
-  - workload-partitioning
-  - lvms
-  - rhoai
+#  - workload-partitioning
+#  - lvms
+#  - rhoai
 
 
 
@@ -51,7 +51,7 @@ cluster_capabilities:
 #  - OperatorLifecycleManager
 #  - marketplace
 
-cluster_additionalTrustBundle: ./Current-IT-Root-CAs.crt
+cluster_additionalTrustBundle: /etc/pki/ca-trust/source/anchors/RedHat_Current-IT-Root-CAs.pem
 cluster_imagesource:
   imageDigestSources:
   - source: quay.io/openshift-release-dev/ocp-release
