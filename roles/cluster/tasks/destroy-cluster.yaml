@@ -108,6 +108,7 @@
         namespace: "{{ target_namespace }}"
 
 - name: Delete project
+  when: cluster_custom_namespace is not defined
   ignore_errors: true
   redhat.openshift.k8s:
     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
