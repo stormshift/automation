@@ -37,3 +37,4 @@ dependencies:
       - name: community.vmware
       - name: awx.awx
       - name: community.hashi_vault
+      - name: netapp.ontap
