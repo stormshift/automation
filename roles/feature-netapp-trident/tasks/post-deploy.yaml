@@ -3,137 +3,6 @@
   ansible.builtin.include_role:
     name: internal-fetch-kubeconfig
 
-- name: Create MachineConfig/90-worker-iscsi-multipathing.yaml
-  kubernetes.core.k8s:
-    kubeconfig: "{{ cluster_access_kubeconfig }}"
-    state: present
-    definition:
-      # https://access.redhat.com/articles/7008552
-      # https://docs.netapp.com/us-en/trident/trident-use/worker-node-prep.html#install-the-iscsi-tools
-      apiVersion: machineconfiguration.openshift.io/v1
-      kind: MachineConfig
-      metadata:
-        labels:
-          machineconfiguration.openshift.io/role: worker
-        name: 90-worker-iscsi-multipathing
-      spec:
-        config:
-          ignition:
-            version: 3.4.0
-          storage:
-            files:
-            - contents:
-                source: data:text/plain;charset=utf-8;base64,ZGVmYXVsdHMgewogICB1c2VyX2ZyaWVuZGx5X25hbWVzIG5vCiAgIGZpbmRfbXVsdGlwYXRocyBubwogICBlbmFibGVfZm9yZWlnbiAiXiQiCn0KCmJsYWNrbGlzdF9leGNlcHRpb25zIHsKICAgIHByb3BlcnR5ICIoU0NTSV9JREVOVF98SURfV1dOKSIKfQoKYmxhY2tsaXN0IHsKICAgIGRldm5vZGUgIl4ocmFtfHJhd3xsb29wfGZkfG1kfGRtLXxzcnxzY2R8c3QpWzAtOV0qIgogICAgZGV2bm9kZSAiXih0ZHxoYSlkW2Etel0iCiAgICBkZXZpY2UgewogICAgICAgIHZlbmRvciAgIkhQIgogICAgfQogICAgZGV2aWNlIHsKICAgICAgICB2ZW5kb3IgICJJbnRlbCIKICAgIH0KICAgIGRldmljZSB7CiAgICAgICAgdmVuZG9yICAiSEdTVCIKICAgIH0KICAgIGRldmljZSB7CiAgICAgICAgdmVuZG9yICAiREVMTCIKICAgIH0KICAgIGRldmljZSB7CiAgICAgICAgdmVuZG9yICAiSU5URUwiCiAgICB9CiAgICBkZXZpY2UgewogICAgICAgIHZlbmRvciAgIlFFTVUiCiAgICB9CiAgICBkZXZpY2UgewogICAgICAgIHZlbmRvciAgIk5WTUUiCiAgICB9Cn0K
-              filesystem: root
-              mode: 420
-              path: /etc/multipath.conf
-          systemd:
-            units:
-            - name: iscsid.service
-              enabled: true
-            - name: iscsi.service
-              enabled: true
-            - name: multipathd.service
-              enabled: true
-
-- name: Wait for machineconfig pool to start Updating
-  when: performanceProfile is changed
-  kubernetes.core.k8s_info:
-    kubeconfig: "{{ cluster_access_kubeconfig }}"
-    kind: MachineConfigPool
-    name: worker
-    api_version: machineconfiguration.openshift.io/v1
-    wait: yes
-    wait_timeout: 300
-    wait_condition:
-      type: Updating
-      status: True
-
-- name: Wait for machineconfig pool to stop Updating
-  when: performanceProfile is changed
-# Need hard retries here, as on SNO, API becomes unavailable during reboot,
-# which makes the k8s_info module fail:
-  retries: 60
-  delay: 10
-  register: result
-  until: result is not failed
-  kubernetes.core.k8s_info:
-    kubeconfig: "{{ cluster_access_kubeconfig }}"
-    kind: MachineConfigPool
-    name: worker
-    api_version: machineconfiguration.openshift.io/v1
-    wait: yes
-    wait_timeout: 10
-    wait_condition:
-      type: Updating
-      status: False
-
-- name: Create MachineConfig/90-master-iscsi-multipathing.yaml
-  kubernetes.core.k8s:
-    kubeconfig: "{{ cluster_access_kubeconfig }}"
-    state: present
-    definition:
-      # https://access.redhat.com/articles/7008552
-      # https://docs.netapp.com/us-en/trident/trident-use/worker-node-prep.html#install-the-iscsi-tools
-      apiVersion: machineconfiguration.openshift.io/v1
-      kind: MachineConfig
-      metadata:
-        labels:
-          machineconfiguration.openshift.io/role: master
-        name: 90-master-iscsi-multipathing
-      spec:
-        config:
-          ignition:
-            version: 3.4.0
-          storage:
-            files:
-            - contents:
-                source: data:text/plain;charset=utf-8;base64,ZGVmYXVsdHMgewogICB1c2VyX2ZyaWVuZGx5X25hbWVzIG5vCiAgIGZpbmRfbXVsdGlwYXRocyBubwogICBlbmFibGVfZm9yZWlnbiAiXiQiCn0KCmJsYWNrbGlzdF9leGNlcHRpb25zIHsKICAgIHByb3BlcnR5ICIoU0NTSV9JREVOVF98SURfV1dOKSIKfQoKYmxhY2tsaXN0IHsKICAgIGRldm5vZGUgIl4ocmFtfHJhd3xsb29wfGZkfG1kfGRtLXxzcnxzY2R8c3QpWzAtOV0qIgogICAgZGV2bm9kZSAiXih0ZHxoYSlkW2Etel0iCiAgICBkZXZpY2UgewogICAgICAgIHZlbmRvciAgIkhQIgogICAgfQogICAgZGV2aWNlIHsKICAgICAgICB2ZW5kb3IgICJJbnRlbCIKICAgIH0KICAgIGRldmljZSB7CiAgICAgICAgdmVuZG9yICAiSEdTVCIKICAgIH0KICAgIGRldmljZSB7CiAgICAgICAgdmVuZG9yICAiREVMTCIKICAgIH0KICAgIGRldmljZSB7CiAgICAgICAgdmVuZG9yICAiSU5URUwiCiAgICB9CiAgICBkZXZpY2UgewogICAgICAgIHZlbmRvciAgIlFFTVUiCiAgICB9CiAgICBkZXZpY2UgewogICAgICAgIHZlbmRvciAgIk5WTUUiCiAgICB9Cn0K
-              filesystem: root
-              mode: 420
-              path: /etc/multipath.conf
-          systemd:
-            units:
-            - name: iscsid.service
-              enabled: true
-            - name: iscsi.service
-              enabled: true
-            - name: multipathd.service
-              enabled: true
-
-
-- name: Wait for machineconfig pool to start Updating
-  when: performanceProfile is changed
-  kubernetes.core.k8s_info:
-    kubeconfig: "{{ cluster_access_kubeconfig }}"
-    kind: MachineConfigPool
-    name: master
-    api_version: machineconfiguration.openshift.io/v1
-    wait: yes
-    wait_timeout: 300
-    wait_condition:
-      type: Updating
-      status: True
-
-- name: Wait for machineconfig pool to stop Updating
-  when: performanceProfile is changed
-# Need hard retries here, as on SNO, API becomes unavailable during reboot,
-# which makes the k8s_info module fail:
-  retries: 60
-  delay: 10
-  register: result
-  until: result is not failed
-  kubernetes.core.k8s_info:
-    kubeconfig: "{{ cluster_access_kubeconfig }}"
-    kind: MachineConfigPool
-    name: master
-    api_version: machineconfiguration.openshift.io/v1
-    wait: yes
-    wait_timeout: 10
-    wait_condition:
-      type: Updating
-      status: False
-
 - name: Create namespace
   kubernetes.core.k8s:
     kubeconfig: "{{ cluster_access_kubeconfig }}"
@@ -190,6 +59,142 @@
       data:
         password: "{{ netapp_password | b64encode }}"
         username: "{{ netapp_username | b64encode }}"
+
+# Meanwhile, apply the machineconfigs, and the operator can start and create CRD's
+# Wait till CRD is next step after machineconfig roleout
+
+- name: Create MachineConfig/90-worker-iscsi-multipathing.yaml
+  register: worker_multipathing
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    definition:
+      # https://access.redhat.com/articles/7008552
+      # https://docs.netapp.com/us-en/trident/trident-use/worker-node-prep.html#install-the-iscsi-tools
+      apiVersion: machineconfiguration.openshift.io/v1
+      kind: MachineConfig
+      metadata:
+        labels:
+          machineconfiguration.openshift.io/role: worker
+        name: 90-worker-iscsi-multipathing
+      spec:
+        config:
+          ignition:
+            version: 3.4.0
+          storage:
+            files:
+            - contents:
+                source: data:text/plain;charset=utf-8;base64,ZGVmYXVsdHMgewogICB1c2VyX2ZyaWVuZGx5X25hbWVzIG5vCiAgIGZpbmRfbXVsdGlwYXRocyBubwogICBlbmFibGVfZm9yZWlnbiAiXiQiCn0KCmJsYWNrbGlzdF9leGNlcHRpb25zIHsKICAgIHByb3BlcnR5ICIoU0NTSV9JREVOVF98SURfV1dOKSIKfQoKYmxhY2tsaXN0IHsKICAgIGRldm5vZGUgIl4ocmFtfHJhd3xsb29wfGZkfG1kfGRtLXxzcnxzY2R8c3QpWzAtOV0qIgogICAgZGV2bm9kZSAiXih0ZHxoYSlkW2Etel0iCiAgICBkZXZpY2UgewogICAgICAgIHZlbmRvciAgIkhQIgogICAgfQogICAgZGV2aWNlIHsKICAgICAgICB2ZW5kb3IgICJJbnRlbCIKICAgIH0KICAgIGRldmljZSB7CiAgICAgICAgdmVuZG9yICAiSEdTVCIKICAgIH0KICAgIGRldmljZSB7CiAgICAgICAgdmVuZG9yICAiREVMTCIKICAgIH0KICAgIGRldmljZSB7CiAgICAgICAgdmVuZG9yICAiSU5URUwiCiAgICB9CiAgICBkZXZpY2UgewogICAgICAgIHZlbmRvciAgIlFFTVUiCiAgICB9CiAgICBkZXZpY2UgewogICAgICAgIHZlbmRvciAgIk5WTUUiCiAgICB9Cn0K
+              filesystem: root
+              mode: 420
+              path: /etc/multipath.conf
+          systemd:
+            units:
+            - name: iscsid.service
+              enabled: true
+            - name: iscsi.service
+              enabled: true
+            - name: multipathd.service
+              enabled: true
+
+- name: Wait for MachineConfigPool/worker to start Updating
+  when: worker_multipathing is changed
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    kind: MachineConfigPool
+    name: worker
+    api_version: machineconfiguration.openshift.io/v1
+    wait: yes
+    wait_timeout: 300
+    wait_condition:
+      type: Updating
+      status: True
+
+- name: Wait for MachineConfigPool/worker to stop Updating
+  when: worker_multipathing is changed
+# Need hard retries here, as on SNO, API becomes unavailable during reboot,
+# which makes the k8s_info module fail:
+  retries: 60
+  delay: 10
+  register: result
+  until: result is not failed
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    kind: MachineConfigPool
+    name: worker
+    api_version: machineconfiguration.openshift.io/v1
+    wait: yes
+    wait_timeout: 10
+    wait_condition:
+      type: Updating
+      status: False
+
+- name: Create MachineConfig/90-master-iscsi-multipathing.yaml
+  register: master_multipathing
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    definition:
+      # https://access.redhat.com/articles/7008552
+      # https://docs.netapp.com/us-en/trident/trident-use/worker-node-prep.html#install-the-iscsi-tools
+      apiVersion: machineconfiguration.openshift.io/v1
+      kind: MachineConfig
+      metadata:
+        labels:
+          machineconfiguration.openshift.io/role: master
+        name: 90-master-iscsi-multipathing
+      spec:
+        config:
+          ignition:
+            version: 3.4.0
+          storage:
+            files:
+            - contents:
+                source: data:text/plain;charset=utf-8;base64,ZGVmYXVsdHMgewogICB1c2VyX2ZyaWVuZGx5X25hbWVzIG5vCiAgIGZpbmRfbXVsdGlwYXRocyBubwogICBlbmFibGVfZm9yZWlnbiAiXiQiCn0KCmJsYWNrbGlzdF9leGNlcHRpb25zIHsKICAgIHByb3BlcnR5ICIoU0NTSV9JREVOVF98SURfV1dOKSIKfQoKYmxhY2tsaXN0IHsKICAgIGRldm5vZGUgIl4ocmFtfHJhd3xsb29wfGZkfG1kfGRtLXxzcnxzY2R8c3QpWzAtOV0qIgogICAgZGV2bm9kZSAiXih0ZHxoYSlkW2Etel0iCiAgICBkZXZpY2UgewogICAgICAgIHZlbmRvciAgIkhQIgogICAgfQogICAgZGV2aWNlIHsKICAgICAgICB2ZW5kb3IgICJJbnRlbCIKICAgIH0KICAgIGRldmljZSB7CiAgICAgICAgdmVuZG9yICAiSEdTVCIKICAgIH0KICAgIGRldmljZSB7CiAgICAgICAgdmVuZG9yICAiREVMTCIKICAgIH0KICAgIGRldmljZSB7CiAgICAgICAgdmVuZG9yICAiSU5URUwiCiAgICB9CiAgICBkZXZpY2UgewogICAgICAgIHZlbmRvciAgIlFFTVUiCiAgICB9CiAgICBkZXZpY2UgewogICAgICAgIHZlbmRvciAgIk5WTUUiCiAgICB9Cn0K
+              filesystem: root
+              mode: 420
+              path: /etc/multipath.conf
+          systemd:
+            units:
+            - name: iscsid.service
+              enabled: true
+            - name: iscsi.service
+              enabled: true
+            - name: multipathd.service
+              enabled: true
+
+
+- name: Wait for MachineConfigPool/master to start Updating
+  when: master_multipathing is changed
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    kind: MachineConfigPool
+    name: master
+    api_version: machineconfiguration.openshift.io/v1
+    wait: yes
+    wait_timeout: 300
+    wait_condition:
+      type: Updating
+      status: True
+
+- name: Wait for MachineConfigPool/master to stop Updating
+  when: master_multipathing is changed
+# Need hard retries here, as on SNO, API becomes unavailable during reboot,
+# which makes the k8s_info module fail:
+  retries: 60
+  delay: 10
+  register: result
+  until: result is not failed
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    kind: MachineConfigPool
+    name: master
+    api_version: machineconfiguration.openshift.io/v1
+    wait: yes
+    wait_timeout: 10
+    wait_condition:
+      type: Updating
+      status: False
 
 - name: Wait till CRD tridentbackendconfigs is available
   kubernetes.core.k8s_info:
