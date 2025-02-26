@@ -36,6 +36,38 @@
             - name: multipathd.service
               enabled: true
 
+- name: Wait for machineconfig pool to start Updating
+  when: performanceProfile is changed
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    kind: MachineConfigPool
+    name: worker
+    api_version: machineconfiguration.openshift.io/v1
+    wait: yes
+    wait_timeout: 300
+    wait_condition:
+      type: Updating
+      status: True
+
+- name: Wait for machineconfig pool to stop Updating
+  when: performanceProfile is changed
+# Need hard retries here, as on SNO, API becomes unavailable during reboot,
+# which makes the k8s_info module fail:
+  retries: 60
+  delay: 10
+  register: result
+  until: result is not failed
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    kind: MachineConfigPool
+    name: worker
+    api_version: machineconfiguration.openshift.io/v1
+    wait: yes
+    wait_timeout: 10
+    wait_condition:
+      type: Updating
+      status: False
+
 - name: Create MachineConfig/90-master-iscsi-multipathing.yaml
   kubernetes.core.k8s:
     kubeconfig: "{{ cluster_access_kubeconfig }}"
@@ -68,6 +100,39 @@
               enabled: true
             - name: multipathd.service
               enabled: true
+
+
+- name: Wait for machineconfig pool to start Updating
+  when: performanceProfile is changed
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    kind: MachineConfigPool
+    name: master
+    api_version: machineconfiguration.openshift.io/v1
+    wait: yes
+    wait_timeout: 300
+    wait_condition:
+      type: Updating
+      status: True
+
+- name: Wait for machineconfig pool to stop Updating
+  when: performanceProfile is changed
+# Need hard retries here, as on SNO, API becomes unavailable during reboot,
+# which makes the k8s_info module fail:
+  retries: 60
+  delay: 10
+  register: result
+  until: result is not failed
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    kind: MachineConfigPool
+    name: master
+    api_version: machineconfiguration.openshift.io/v1
+    wait: yes
+    wait_timeout: 10
+    wait_condition:
+      type: Updating
+      status: False
 
 - name: Create namespace
   kubernetes.core.k8s:
