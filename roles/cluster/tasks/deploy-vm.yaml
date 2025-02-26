@@ -65,7 +65,7 @@
       networks:
         - name: coe
           multus:
-            networkName: coe-bridge
+            networkName: "{{ vm_net_attach_def | default('coe-bridge') }}"
       domain:
         cpu:
           cores: "{{ vm_cores | int }}"
