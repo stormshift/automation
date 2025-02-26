@@ -1,0 +1,67 @@
+---
+# START - CUSTOM NOT IN MASTER AVAILABLE
+custom_scm_branch: disco
+custom_job_name: "🪩 Disco(nnected) Cluster"
+vm_net_attach_def: coe-bridge-69
+cluster_custom_namespace: demo-cluster-disco
+# END - CUSTOM NOT IN MASTER AVAILABLE
+
+cluster_base_domain: coe.muc.redhat.com
+network: 192.168.69.0
+network_ip_address_prefix_length: 24
+network_dns_servers:
+  - 192.168.69.6
+network_default_gw: 192.168.69.245
+
+cluster_additionalTrustBundle: /etc/pki/ca-trust/source/anchors/RedHat_Current-IT-Root-CAs.pem
+cluster_imagesource:
+  ImageDigestSources:
+    - mirrors:
+        - mirror-registry.disco.coe.muc.redhat.com:5000/disco/openshift/release
+      source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
+    - mirrors:
+        - mirror-registry.disco.coe.muc.redhat.com:5000/disco/openshift/release-images
+      source: quay.io/openshift-release-dev/ocp-release
+
+image_pull_secret: |
+  {"auths":{"mirror-registry.disco.coe.muc.redhat.com:5000":{"auth":"YWRtaW46MVJlZDJIYXQz"}}}
+
+stormshift_owner_email: "rbohne@redhat.com"
+stormshift_owner_purpose: "Disco nnected Cluster"
+stormshift_owner_usage: "dedicated"
+
+local_cluster_admins:
+  - rguske@redhat.com-admin
+
+# Same color as for the labels: https://github.com/stormshift/support/labels
+cluster_color: "#0052cc"
+cluster_color_fg: "#fff"
+
+openshift_version: 4.17.16
+
+stormshift_cluster_features:
+  - redhat-internal-certificate
+  - coe-sso
+  - look-and-feel
+
+cluster_type: classic
+cluster_api_vip: 192.168.69.251
+cluster_ingress_vip: 192.168.69.252
+
+control_plan_cores: 8
+control_plan_ram_gb: 16
+control_plans:
+  - vm_network_ip_address: 192.168.69.241
+    vm_network_mac_address: 0E:C0:EF:A8:45:F1
+  - vm_network_ip_address: 192.168.69.242
+    vm_network_mac_address: 0E:C0:EF:A8:45:F2
+  - vm_network_ip_address: 192.168.69.243
+    vm_network_mac_address: 0E:C0:EF:A8:45:F3
+
+worker_cores: 16
+worker_ram_gb: 32
+workers:
+  - vm_network_ip_address: 192.168.69.244
+    vm_network_mac_address: 0E:C0:EF:A8:45:F4
+  - vm_network_ip_address: 192.168.69.245
+    vm_network_mac_address: 0E:C0:EF:A8:45:F5

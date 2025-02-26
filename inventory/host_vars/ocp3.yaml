@@ -1,4 +1,16 @@
 ---
+stormshift_owner_email: "sluetzen@redhat.com"
+stormshift_owner_purpose: "General Purpose, Hosted Control Plan Cluster"
+stormshift_owner_usage: "shared"
+
+local_cluster_admins:
+  - sluetzen@redhat.com-admin
+  - rbaumgar@redhat.com-admin
+
+# Same color as for the labels: https://github.com/stormshift/support/labels
+cluster_color: "#c2e0c6"
+cluster_color_fg: "#4a4a4a"
+
 cluster_type: hosted
 openshift_version: 4.16.15
 
