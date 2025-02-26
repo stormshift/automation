@@ -13,6 +13,10 @@ additional_build_steps:
     - ENV PKGMGR_OPTS="--nodocs --setopt=install_weak_deps=0 --setopt=rhocp-4.17-for-rhel-9-x86_64-rpms.enabled=true"
   prepend_final:
     - ENV PKGMGR_OPTS="--nodocs --setopt=install_weak_deps=0 --setopt=rhocp-4.17-for-rhel-9-x86_64-rpms.enabled=true"
+  append_final:
+    - RUN curl https://certs.corp.redhat.com/certs/Current-IT-Root-CAs.pem
+          -o /etc/pki/ca-trust/source/anchors/RedHat_Current-IT-Root-CAs.pem &&
+          update-ca-trust
 
 dependencies:
   system:
@@ -33,3 +37,4 @@ dependencies:
       - name: community.vmware
       - name: awx.awx
       - name: community.hashi_vault
+      - name: netapp.ontap

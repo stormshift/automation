@@ -35,8 +35,8 @@
       awx.awx.execution_environment:
         state: exists
         organization: "stormshift"
-        name: "stormshift-automation-execution-environment-202412231546"
-        image: "quay.coe.muc.redhat.com/stormshift/automation-execution-environment:202412231546"
+        name: "stormshift-automation-execution-environment-202502261102"
+        image: "quay.coe.muc.redhat.com/stormshift/automation-execution-environment:202502261102"
 
     - name: Create coe-lab-stormshift-notifications notification template
       awx.awx.notification_template:
@@ -65,7 +65,7 @@
         project: "stormshift-automation"
 
         playbook: "stormshift-cluster-mgmt.yaml"
-        execution_environment: "stormshift-automation-execution-environment-202412231546"
+        execution_environment: "stormshift-automation-execution-environment-202502261102"
 
         credentials:
           - "automation-vault"

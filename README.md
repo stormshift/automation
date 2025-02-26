@@ -183,13 +183,33 @@ ansible-navigator run dump-inventory.yaml --limit common-pattern*
 
 ```bash
 podman login registry.redhat.io
+podman login quay.coe.muc.redhat.com
 export VERSION=$(date +%Y%m%d%H%M)
+export IMAGE=quay.coe.muc.redhat.com/stormshift/automation-execution-environment:${VERSION}
+```
 
+### Build on Linux/RHEL
+
+```bash
 ansible-builder build \
     --verbosity 3 \
     --container-runtime podman \
-    --tag quay.coe.muc.redhat.com/stormshift/automation-execution-environment:$VERSION
-
-podman login quay.coe.muc.redhat.com
-podman push quay.coe.muc.redhat.com/stormshift/automation-execution-environment:$VERSION
+    --tag ${IMAGE}
+podman push ${IMAGE}
 ```
+
+### Multi-arch build on Mac OS:
+
+Right now it doesn't work, because we don't a entitlement.
+
+```bash
+ansible-builder create \
+    --verbosity 3
+
+podman build --platform linux/amd64,linux/arm64 \
+   --manifest ${IMAGE} context/
+
+podman manifest push ${IMAGE}
+```
+
+
