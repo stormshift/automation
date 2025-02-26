@@ -65,7 +65,7 @@
         project: "stormshift-automation"
 
         playbook: "stormshift-cluster-mgmt.yaml"
-        execution_environment: "stormshift-automation-execution-environment-202412231546"
+        execution_environment: "stormshift-automation-execution-environment-202502261102"
 
         credentials:
           - "automation-vault"
