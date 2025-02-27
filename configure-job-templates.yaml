@@ -9,6 +9,7 @@
           - manage-with-acm
           - redhat-internal-certificate
           - coe-sso
+          - external-secrets
           - lvms
           - rhoai
           - look-and-feel
