@@ -62,7 +62,7 @@
         description: "Do NOT edit, managed by Ansible: https://github.com/stormshift/automation/blob/master/configure-job-templates.yaml"
         job_type: "run"
         organization: "stormshift"
-        inventory: "stormshift-inventory"
+        inventory: "stormshift-inventory-from-git"
         project: "stormshift-automation"
 
         playbook: "stormshift-cluster-mgmt.yaml"
