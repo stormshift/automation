@@ -5,6 +5,12 @@ images:
   base_image:
     name: quay.io/fedora/fedora:latest
 
+additional_build_steps:
+  append_final:
+    - RUN curl https://certs.corp.redhat.com/certs/Current-IT-Root-CAs.pem
+          -o /etc/pki/ca-trust/source/anchors/RedHat_Current-IT-Root-CAs.pem &&
+          update-ca-trust
+
 dependencies:
   ansible_core:
     package_pip: ansible-core
@@ -31,3 +37,4 @@ dependencies:
 
       - name: community.vmware
       - name: awx.awx
+      - name: netapp.ontap

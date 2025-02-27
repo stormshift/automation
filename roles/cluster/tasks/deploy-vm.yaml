@@ -55,6 +55,8 @@
       domain:
         cpu:
           cores: "{{ vm_cores | int }}"
+          sockets: 1
+          threads: 1 # Hyperthreading is disabled at ISAR cluster
         memory:
           guest: "{{ vm_memory_gb }}Gi"
         resources:

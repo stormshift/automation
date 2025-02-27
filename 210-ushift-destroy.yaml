@@ -18,6 +18,14 @@
         acm_spoke_kubeconfig: "{{ ushift_kubeconfig }}"
         acm_spoke_api_endpoint: "https://{{ inventory_hostname }}.{{ sysctx_dns_domain}}:6443"
 
+    - name: Unregister subscription
+      tags: sub,slow
+      when: rhsm_user is defined and ushift_install_type == "rpm"
+      community.general.redhat_subscription:
+        state: absent
+        username: "{{ rhsm_user }}"
+        password: "{{ rhsm_pswd }}"
+
     - name: Destroy MicroShift RPM
       tags: dhcp,dns,vm
       when: ushift_install_type == "rpm"

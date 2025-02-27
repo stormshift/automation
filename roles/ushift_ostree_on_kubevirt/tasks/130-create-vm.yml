@@ -1,11 +1,7 @@
 ---
-  - local_action:
-      module: debug
-      msg: "KEY: {{ lookup('ansible.builtin.env', 'K8S_AUTH_API_KEY' ) }}"
-
   - name: Create MicroShift VM "{{ ushift_virt_namespace }}/{{ inventory_hostname }}"
     tags: vm
-    throttle: 3
+    throttle: 4
     local_action:
       module: kubevirt.core.kubevirt_vm
       api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
@@ -106,7 +102,7 @@
               volumeMode: Block
               resources:
                 requests:
-                  storage: 16Gi
+                  storage: "{{ vm_disk }}"
             source:
               blank: {}
 

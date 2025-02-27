@@ -32,6 +32,26 @@
         regexp: '# use_devicesfile = 1'
         replace: 'use_devicesfile = 0'
 
+    - name: Ensure there is no dangling sub
+      tags: prep,sub,slow
+      when: rhsm_user is defined
+      community.general.redhat_subscription:
+        state: absent
+        username: "{{ rhsm_user }}"
+        password: "{{ rhsm_pswd }}"
+
+    - name: Register and Subscribe
+      tags: prep,sub,slow
+      when: rhsm_user is defined
+      community.general.redhat_subscription:
+        state: present
+        username: "{{ rhsm_user }}"
+        password: "{{ rhsm_pswd }}"
+        auto_attach: true
+        force_register: true
+# TODO: Need to find a better way to determine OS version:
+        release: 9.4
+
     - name: Enable Repos
       tags: prep,repos, slow
       when: ushift_repo_list is defined
