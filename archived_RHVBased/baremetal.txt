@@ -1,5 +1,0 @@
-#
-kernel boot options:
-
-# bootstrap:
-rd.neednet=1 ip=10.32.105.59::10.32.111.254:255.255.240.0:ocp5bootstrap:ens2:none nameserver=10.32.105.45
