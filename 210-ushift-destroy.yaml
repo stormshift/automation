@@ -19,6 +19,7 @@
         acm_spoke_api_endpoint: "https://{{ inventory_hostname }}.{{ sysctx_dns_domain}}:6443"
 
     - name: Unregister subscription
+      ignore_errors: true
       tags: sub,slow
       when: rhsm_user is defined and ushift_install_type == "rpm"
       community.general.redhat_subscription:

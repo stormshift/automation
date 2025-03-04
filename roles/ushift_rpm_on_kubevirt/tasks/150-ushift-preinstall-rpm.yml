@@ -32,25 +32,23 @@
         regexp: '# use_devicesfile = 1'
         replace: 'use_devicesfile = 0'
 
-    - name: Ensure there is no dangling sub
-      tags: prep,sub,slow
-      when: rhsm_user is defined
-      community.general.redhat_subscription:
-        state: absent
-        username: "{{ rhsm_user }}"
-        password: "{{ rhsm_pswd }}"
-
     - name: Register and Subscribe
       tags: prep,sub,slow
-      when: rhsm_user is defined
-      community.general.redhat_subscription:
-        state: present
-        username: "{{ rhsm_user }}"
-        password: "{{ rhsm_pswd }}"
-        auto_attach: true
-        force_register: true
-# TODO: Need to find a better way to determine OS version:
-        release: 9.4
+# redhat_subscription sometimes fails with "already registered, despite force"
+# Hence we brute force it here:
+      command: subscription-manager register --username {{ rhsm_user }} --password {{ rhsm_pswd }} --force --auto-attach --release 9.4
+
+#     - name: Register and Subscribe
+#       tags: prep,sub,slow
+#       when: rhsm_user is defined
+#       community.general.redhat_subscription:
+#         state: present
+#         username: "{{ rhsm_user }}"
+#         password: "{{ rhsm_pswd }}"
+#         auto_attach: true
+#         force_register: true
+# # TODO: Need to find a better way to determine OS version:
+#         release: 9.4
 
     - name: Enable Repos
       tags: prep,repos, slow
@@ -200,7 +198,7 @@
       tags: prep, img_proxy
       when: ushift_use_local_quay_proxy
       copy:
-        src: "Current-IT-Root-CAs.crt"
+        src: "/etc/pki/ca-trust/source/anchors/RedHat_Current-IT-Root-CAs.pem"
         dest: /etc/pki/ca-trust/source/anchors
         mode: 0644
         owner: root
