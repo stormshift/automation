@@ -1,4 +1,0 @@
-cafile=RH-IT-Root-CA.crt
-registry=https://repository.engineering.redhat.com/nexus/repository/registry.npmjs.org
-#registry=http://nexus-oschneid-cluster-nexus.apps.ocp1.stormshift.coe.muc.redhat.com/repository/npm-group/
-audit = false

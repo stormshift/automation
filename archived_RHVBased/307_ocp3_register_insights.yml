@@ -1,9 +1,0 @@
----
-- name: Adding Hosts to insights
-  hosts: "{{layer3_ocp_name}}"
-  vars_files:
-    - cfg/secrets_{{sysctx_instance_name}}.yml
-    - cfg/stormshift.yml
-
-  roles:
-  - { role: redhatinsights.insights-client, when: ansible_os_family == 'RedHat' }

@@ -1,6 +1,0 @@
-oc label node compute-0.ocp4.stormshift.coe.muc.redhat.com "cluster.ocs.openshift.io/openshift-storage=" --overwrite
-oc label node compute-0.ocp4.stormshift.coe.muc.redhat.com "topology.rook.io/rack=rack0" --overwrite
-oc label node compute-1.ocp4.stormshift.coe.muc.redhat.com "cluster.ocs.openshift.io/openshift-storage=" --overwrite
-oc label node compute-1.ocp4.stormshift.coe.muc.redhat.com "topology.rook.io/rack=rack1" --overwrite
-oc label node compute-2.ocp4.stormshift.coe.muc.redhat.com "cluster.ocs.openshift.io/openshift-storage=" --overwrite
-oc label node compute-2.ocp4.stormshift.coe.muc.redhat.com "topology.rook.io/rack=rack2" --overwrite

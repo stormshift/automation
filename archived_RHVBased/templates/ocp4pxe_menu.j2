@@ -1,6 +1,0 @@
-DEFAULT pxeboot
-TIMEOUT 20
-PROMPT 10
-LABEL pxeboot
-    KERNEL http://172.16.10.5:8080/rhcos-{{layer3_rhcos_version}}-x86_64-installer-kernel
-    APPEND ip=dhcp rd.neednet=1 initrd=images/rhcos-{{layer3_rhcos_version}}-x86_64-installer-initramfs.img console=tty0 console=ttyS0 coreos.inst=yes coreos.inst.install_dev=vda coreos.inst.image_url=http://172.16.10.5:8080/rhcos-{{layer3_rhcos_version}}-x86_64-metal-bios.raw.gz coreos.inst.ignition_url=http://172.16.10.5:8080/{{item.ign}}
