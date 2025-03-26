@@ -1,0 +1,42 @@
+---
+stormshift_owner_email: "wmarx@redhat.com"
+stormshift_owner_purpose: "OpenShift Virt"
+stormshift_owner_usage: "dedicated"
+
+local_cluster_admins:
+  - wmarx@redhat.com-admin
+
+# Same color as for the labels: https://github.com/stormshift/support/labels
+cluster_color: "#6452F2"
+cluster_color_fg: "#fefefe"
+openshift_version: 4.18.5
+
+stormshift_cluster_features:
+  - redhat-internal-certificate
+  - coe-sso
+  - manage-with-acm
+  - look-and-feel
+
+cluster_type: classic
+cluster_api_vip: 10.32.105.111
+cluster_ingress_vip: 10.32.105.112
+
+control_plan_cores: 8
+control_plan_ram_gb: 16
+control_plans:
+  - vm_network_ip_address: 10.32.105.113
+    vm_network_mac_address: 0E:C0:EF:20:69:71
+  - vm_network_ip_address: 10.32.105.114
+    vm_network_mac_address: 0E:C0:EF:20:69:72
+  - vm_network_ip_address: 10.32.105.115
+    vm_network_mac_address: 0E:C0:EF:20:69:73
+
+worker_cores: 16
+worker_ram_gb: 32
+workers:
+  - vm_network_ip_address: 10.32.105.116
+    vm_network_mac_address: 0E:C0:EF:20:69:74
+  - vm_network_ip_address: 10.32.105.117
+    vm_network_mac_address: 0E:C0:EF:20:69:75
+  - vm_network_ip_address: 10.32.105.118
+    vm_network_mac_address: 0E:C0:EF:20:69:76
