@@ -26,7 +26,20 @@
                 storage: "{{ vm_rootdisk_size }}"
           source:
             blank: {}
-
+      - metadata:
+          name: "{{ vm_name }}-cdrom"
+        spec:
+          storage:
+            accessModes:
+              - ReadWriteMany
+            storageClassName: "{{ agent_iso_storage_class }}"
+            resources:
+              requests:
+                storage: "2Gi"
+          source:
+            pvc: 
+              name: "{{ inventory_hostname }}-agent-iso"
+              namespace: "{{ target_namespace }}"
     spec:
       affinity:
         podAntiAffinity:
@@ -43,8 +56,8 @@
 
       volumes:
         - name: cdrom
-          persistentVolumeClaim:
-            claimName: "{{ inventory_hostname }}-agent-iso"
+          dataVolume:
+            name: "{{ vm_name }}-cdrom"
         - name: root
           dataVolume:
             name: "{{ vm_name }}-root"

@@ -307,6 +307,7 @@
 #     name: cluster
 #     tasks_from: "pre-deploy-cluster-{{ cluster_type }}.yaml"
 
+
 - name: Deploy control plane VM
   vars:
     vm_name: "{{ inventory_hostname }}-cp-{{ item.0 }}"
