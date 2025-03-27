@@ -3,7 +3,7 @@
 custom_scm_branch: disco
 custom_job_name: "🪩 Disco(nnected) Cluster"
 vm_net_attach_def: coe-bridge-69
-cluster_custom_namespace: demo-cluster-disco
+cluster_custom_namespace: stormshift-disco-infra
 # END - CUSTOM NOT IN MASTER AVAILABLE
 
 cluster_base_domain: coe.muc.redhat.com
