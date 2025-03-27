@@ -18,8 +18,8 @@ stormshift_cluster_features:
   - look-and-feel
 
 cluster_type: classic
-cluster_api_vip: 10.32.105.111
-cluster_ingress_vip: 10.32.105.112
+cluster_api_vip: 10.32.105.140
+cluster_ingress_vip: 10.32.105.141
 
 worker_storage_class: "ocs-storagecluster-ceph-rbd-virtualization"
 control_plan_storage_class: "ocs-storagecluster-ceph-rbd-virtualization"
@@ -28,19 +28,19 @@ agent_iso_storage_class: "ocs-storagecluster-cephfs"
 control_plan_cores: 8
 control_plan_ram_gb: 16
 control_plans:
-  - vm_network_ip_address: 10.32.105.113
-    vm_network_mac_address: 0E:C0:EF:20:69:71
-  - vm_network_ip_address: 10.32.105.114
-    vm_network_mac_address: 0E:C0:EF:20:69:72
-  - vm_network_ip_address: 10.32.105.115
-    vm_network_mac_address: 0E:C0:EF:20:69:73
+  - vm_network_ip_address: 10.32.105.142
+    vm_network_mac_address: 0E:C0:EF:20:6F:8E
+  - vm_network_ip_address: 10.32.105.143
+    vm_network_mac_address: 0E:C0:EF:20:6F:8F
+  - vm_network_ip_address: 10.32.105.144
+    vm_network_mac_address: 0E:C0:EF:20:6F:90
 
 worker_cores: 16
 worker_ram_gb: 32
 workers:
-  - vm_network_ip_address: 10.32.105.116
-    vm_network_mac_address: 0E:C0:EF:20:69:74
-  - vm_network_ip_address: 10.32.105.117
-    vm_network_mac_address: 0E:C0:EF:20:69:75
-  - vm_network_ip_address: 10.32.105.118
-    vm_network_mac_address: 0E:C0:EF:20:69:76
+  - vm_network_ip_address: 10.32.105.145
+    vm_network_mac_address: 0E:C0:EF:20:6F:91
+  - vm_network_ip_address: 10.32.105.146
+    vm_network_mac_address: 0E:C0:EF:20:6F:92
+  - vm_network_ip_address: 10.32.105.147
+    vm_network_mac_address: 0E:C0:EF:20:6F:93
