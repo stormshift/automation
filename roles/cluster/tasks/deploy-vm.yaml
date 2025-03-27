@@ -89,6 +89,7 @@
               bootOrder: 2
               cdrom:
                 bus: sata
+              shareable: true
           interfaces:
             - bridge: {}
               macAddress: "{{ vm_network_mac_address }}"
