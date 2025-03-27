@@ -2,6 +2,8 @@
 - name: Fetch kubeconfig from vault
   ansible.builtin.include_role:
     name: internal-fetch-kubeconfig
+  vars:
+    internal_fetch_kubeconfig_ignore_erros: true
 
 - name: Remove ConsoleNotification
   ignore_errors: true
