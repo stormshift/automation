@@ -28,3 +28,7 @@ clusterAlreadyExists: false
 
 # See: https://docs.openshift.com/container-platform/4.17/scalability_and_performance/enabling-workload-partitioning.html#enabling-workload-partitioning_enabling-workload-partitioning
 cluster_cpuPartitioningMode: None
+
+worker_storage_class: "coe-netapp-san"
+control_plan_storage_class: "coe-netapp-san"
+agent_iso_storage_class: "coe-netapp-nas"

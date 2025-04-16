@@ -262,7 +262,7 @@
         pvc:
           accessModes:
             - ReadWriteMany
-          storageClassName: coe-netapp-nas
+          storageClassName: "{{ agent_iso_storage_class }}"
           resources:
             requests:
               storage: 2Gi
@@ -307,11 +307,12 @@
 #     name: cluster
 #     tasks_from: "pre-deploy-cluster-{{ cluster_type }}.yaml"
 
+
 - name: Deploy control plane VM
   vars:
     vm_name: "{{ inventory_hostname }}-cp-{{ item.0 }}"
     vm_rootdisk_size: "120Gi"
-    vm_rootdisk_storageclass:  coe-netapp-san
+    vm_rootdisk_storageclass:  "{{ control_plan_storage_class }}"
     vm_cores:  "{{ control_plan_cores }}"
     vm_memory_gb: "{{ control_plan_ram_gb }}"
     vm_network_ip_address: "{{ item.1.vm_network_ip_address }}"
@@ -323,7 +324,7 @@
   vars:
     vm_name: "{{ inventory_hostname }}-worker-{{ item.0 }}"
     vm_rootdisk_size: "120Gi"
-    vm_rootdisk_storageclass:  coe-netapp-san
+    vm_rootdisk_storageclass: "{{ worker_storage_class }}"
     vm_cores:  "{{ worker_cores }}"
     vm_memory_gb: "{{ worker_ram_gb }}"
     vm_network_ip_address: "{{ item.1.vm_network_ip_address }}"

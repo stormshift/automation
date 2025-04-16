@@ -1,10 +1,10 @@
 ---
-stormshift_owner_email: "rbohne@redhat.com"
-stormshift_owner_purpose: "Bosch PoC Cluster!"
+stormshift_owner_email: ""
+stormshift_owner_purpose: "Free"
 stormshift_owner_usage: "dedicated"
 
-local_cluster_admins:
-  - rbohne@redhat.com-admin
+# local_cluster_admins:
+#   - ..
 
 # Same color as for the labels: https://github.com/stormshift/support/labels
 cluster_color: "#19122F"
