@@ -3,6 +3,23 @@
   ansible.builtin.include_role:
     name: internal-fetch-kubeconfig
 
+- name: Create subscription
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    definition:
+      apiVersion: operators.coreos.com/v1alpha1
+      kind: Subscription
+      metadata:
+        name: trident-operator
+        namespace: openshift-operators
+      spec:
+        channel: stable
+        installPlanApproval: Automatic
+        name: trident-operator
+        source: certified-operators
+        sourceNamespace: openshift-marketplace
+
 - name: Create namespace
   kubernetes.core.k8s:
     kubeconfig: "{{ cluster_access_kubeconfig }}"

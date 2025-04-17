@@ -6,7 +6,9 @@ spec:
   debug: false
   namespace: netapp-trident
   imagePullPolicy: IfNotPresent
-  tridentImage: quay.coe.muc.redhat.com/netapp/trident:24.10.0
-  autosupportImage: quay.coe.muc.redhat.com/netapp/trident-autosupport:24.10.0
-  windows: false
-  cloudProvider: ""
+  IPv6: false
+  nodePrep: 
+    - iscsi
+  imagePullSecrets: []
+  imageRegistry: ''
+  silenceAutosupport: false
