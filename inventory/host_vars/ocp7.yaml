@@ -1,6 +1,6 @@
 ---
-stormshift_owner_email: ""
-stormshift_owner_purpose: "Free"
+stormshift_owner_email: "rbohne@redhat.com"
+stormshift_owner_purpose: "TechJourney Demo Env."
 stormshift_owner_usage: "dedicated"
 
 # local_cluster_admins:
@@ -9,13 +9,17 @@ stormshift_owner_usage: "dedicated"
 # Same color as for the labels: https://github.com/stormshift/support/labels
 cluster_color: "#19122F"
 cluster_color_fg: "#e8e8e8"
-openshift_version: 4.17.15
+openshift_version: 4.16.38
 
 stormshift_cluster_features:
   - redhat-internal-certificate
   - coe-sso
   - manage-with-acm
   - look-and-feel
+
+worker_storage_class: "ocs-storagecluster-ceph-rbd-virtualization"
+control_plan_storage_class: "ocs-storagecluster-ceph-rbd-virtualization"
+agent_iso_storage_class: "ocs-storagecluster-cephfs"
 
 cluster_type: classic
 cluster_api_vip: 10.32.105.98
