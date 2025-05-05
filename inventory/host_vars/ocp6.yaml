@@ -1,12 +1,12 @@
 ---
 stormshift_owner_email: "rbohne@redhat.com"
-stormshift_owner_purpose: "Let's try 4.18"
+stormshift_owner_purpose: "Multi-Arch playground"
 stormshift_owner_usage: "shared"
 
 # Same color as for the labels: https://github.com/stormshift/support/labels
 cluster_color: "#FEF2C0"
 
-openshift_version: 4.18.0-rc.6
+openshift_version: 4.18.7
 
 stormshift_cluster_features:
   - redhat-internal-certificate
@@ -16,6 +16,10 @@ stormshift_cluster_features:
 cluster_type: classic
 cluster_api_vip: 10.32.105.90
 cluster_ingress_vip: 10.32.105.91
+
+worker_storage_class: "ocs-storagecluster-ceph-rbd-virtualization"
+control_plan_storage_class: "ocs-storagecluster-ceph-rbd-virtualization"
+agent_iso_storage_class: "ocs-storagecluster-cephfs"
 
 control_plan_cores: 8
 control_plan_ram_gb: 16
