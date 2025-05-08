@@ -1,8 +1,8 @@
 # These commands are handy for MicroShift Demos:
-dnf download --resolve microshift
-dnf install microshift
+dnf install --downloadonly microshift
 dnf install microshift-olm
 dnf install microshift-gitops
+dnf install microshift
 systemctl enable --now microshift
 systemctl status microshift
 systemctl restart microshift
