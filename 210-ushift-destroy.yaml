@@ -20,6 +20,7 @@
 
     - name: Unregister subscription
       ignore_errors: true
+      ignore_unreachable: true
       tags: sub,slow
       when: rhsm_user is defined and ushift_install_type == "rpm"
       community.general.redhat_subscription:

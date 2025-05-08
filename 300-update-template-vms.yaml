@@ -9,6 +9,9 @@
       changed_when: false  # starting the VM does not really change its state on disk, at least not in the update OS context
       local_action:
         module: kubevirt.core.kubevirt_vm
+        api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+        host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+        validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
         state: present
         running: true
         wait: true
@@ -22,14 +25,20 @@
         port: 22
         state: started
 
+    - name: Register and Subscribe
+      tags: prep,sub,slow
+# redhat_subscription sometimes fails with "already registered, despite force"
+# Hence we brute force it here:
+      command: subscription-manager register --username {{ rhsm_user }} --password {{ rhsm_pswd }} --force --auto-attach --release {{ rhel_version}}
 
-    # - name: Register with Red Hat Subscription Manager
-    #   tags: rhsm,slow
-    #   redhat_subscription:
-    #     state: present
-    #     username: "{{ sysctx_rhsm_user}}"
-    #     password: "{{ sysctx_rhsm_pswd}}"
-    #     force_register: true
+    - name: Enable EUS Repos
+      tags: upd, slow
+      rhsm_repository:
+        state: enabled
+        name:
+          - rhel-9-for-x86_64-appstream-eus-rpms
+          - rhel-9-for-x86_64-baseos-eus-rpms
+
 
     - name: Update baseos
       tags: upd, slow
@@ -42,6 +51,9 @@
       changed_when: false
       local_action:
         module: kubevirt.core.kubevirt_vm
+        api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+        host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+        validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
         state: present
         running: false
         wait: true

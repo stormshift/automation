@@ -1,15 +1,21 @@
 # These commands are handy for MicroShift Demos:
-dnf download --resolve microshift
-dnf install microshift
+dnf install --downloadonly microshift
 dnf install microshift-olm
 dnf install microshift-gitops
+dnf install microshift
 systemctl enable --now microshift
-oc config set-context --current --namespace=
-cp -pnf /var/lib/microshift/resources/kubeadmin/kubeconfig ~/.kube/config
 systemctl status microshift
 systemctl restart microshift
+systemctl stop microshift crio kubepods.slice
+oc config set-context --current --namespace=
+cp -pnf /var/lib/microshift/resources/kubeadmin/kubeconfig ~/.kube/config
 microshift version
 oc get pods -A
 oc get nodes
 curl {{ inventory_hostname }}.{{ sysctx_dns_domain }}/nginx
 curl -L https://mirror.openshift.com/pub/openshift-v4/clients/helm/latest/helm-linux-amd64  -o helm
+bootc status
+bootc upgrade
+bootc upgrade --check
+bootc upgrade --apply
+bootc switch quay.coe.muc.redhat.com/shared/microshift/microshift-4.17-bootc:update
