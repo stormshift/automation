@@ -9,6 +9,7 @@
     state: present
     running: true # default
     wait: true
+    wait_timeout: 480    
     name: "{{ vm_name }}"
     namespace: "{{ target_namespace }}"
     labels:
@@ -37,7 +38,7 @@
               requests:
                 storage: "2Gi"
           source:
-            pvc: 
+            pvc:
               name: "{{ inventory_hostname }}-agent-iso"
               namespace: "{{ target_namespace }}"
     spec:
