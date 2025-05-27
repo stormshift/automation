@@ -75,6 +75,9 @@
         - name: root
           dataVolume:
             name: "{{ vm_name }}-root"
+        - name: ceph
+          dataVolume:
+            name: "{{ vm_name }}-ceph"
       networks:
         - name: coe
           multus:
