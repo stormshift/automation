@@ -33,7 +33,7 @@
         spec:
           storage:
             accessModes:
-              - ReadWriteMany
+              - ReadWriteOnce
             storageClassName: "lvms-local-ssd"
             resources:
               requests:
