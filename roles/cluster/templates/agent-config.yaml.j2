@@ -7,6 +7,8 @@ hosts:
 {% for host in control_plans %}
   - hostname: {{ inventory_hostname }}-cp-{{ loop.index - 1 }}
     role: master
+    rootDeviceHints:
+      deviceName: "/dev/vda"
     interfaces:
       - name: eth0
         macAddress: {{ host.vm_network_mac_address }}

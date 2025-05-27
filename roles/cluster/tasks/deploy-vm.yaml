@@ -120,6 +120,9 @@
               cdrom:
                 bus: sata
               shareable: true
+            - name: ceph
+              disk:
+                bus: virtio
           interfaces:
             - bridge: {}
               macAddress: "{{ vm_network_mac_address }}"
