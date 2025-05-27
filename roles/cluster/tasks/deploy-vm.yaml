@@ -29,6 +29,18 @@
           source:
             blank: {}
       - metadata:
+          name: "{{ vm_name }}-ceph"
+        spec:
+          storage:
+            accessModes:
+              - ReadWriteMany
+            storageClassName: "lvms-local-ssd"
+            resources:
+              requests:
+                storage: "100Gi"
+          source:
+            blank: {}
+      - metadata:
           name: "{{ vm_name }}-cdrom"
         spec:
           storage:
