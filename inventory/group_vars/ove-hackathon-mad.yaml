@@ -1,0 +1,32 @@
+# START - CUSTOM NOT IN MASTER AVAILABLE
+custom_scm_branch: ove-hackathon-mad
+vm_net_attach_def: coe-bridge
+custom_job_name: "🇪🇸 "
+cluster_custom_namespace: ove-hackathon-mad-metro-dr
+# END - CUSTOM NOT IN MASTER AVAILABLE
+
+stormshift_owner_email: "rbohne@redhat.com"
+stormshift_owner_purpose: "OVE Hackathon Mad."
+stormshift_owner_usage: "dedicated"
+
+local_cluster_admins:
+  - rbohne@redhat.com-admin
+  - ddomingu@redhat.com-admin
+
+# Same color as for the labels: https://github.com/stormshift/support/labels
+cluster_color: "#a60505"
+cluster_color_fg: "#fefefe"
+openshift_version: 4.18.5
+
+stormshift_cluster_features:
+  - redhat-internal-certificate
+  - coe-sso
+  - look-and-feel
+
+cluster_type: classic
+
+control_plan_cores: 24
+control_plan_ram_gb: 48
+
+cluster_base_domain: coe.muc.redhat.com
+

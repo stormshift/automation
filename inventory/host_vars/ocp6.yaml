@@ -17,9 +17,9 @@ cluster_type: classic
 cluster_api_vip: 10.32.105.90
 cluster_ingress_vip: 10.32.105.91
 
-worker_storage_class: "ocs-storagecluster-ceph-rbd-virtualization"
-control_plan_storage_class: "ocs-storagecluster-ceph-rbd-virtualization"
-agent_iso_storage_class: "ocs-storagecluster-cephfs"
+#worker_storage_class: "ocs-storagecluster-ceph-rbd-virtualization"
+#control_plan_storage_class: "ocs-storagecluster-ceph-rbd-virtualization"
+#agent_iso_storage_class: "ocs-storagecluster-cephfs"
 
 control_plan_cores: 8
 control_plan_ram_gb: 16
