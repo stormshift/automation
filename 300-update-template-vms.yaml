@@ -25,19 +25,27 @@
         port: 22
         state: started
 
-    - name: Register and Subscribe
+    - name: Register and Subscribe RHEL9
       tags: prep,sub,slow
+      when: "rhel_version.startswith('9')"
 # redhat_subscription sometimes fails with "already registered, despite force"
 # Hence we brute force it here:
       command: subscription-manager register --username {{ rhsm_user }} --password {{ rhsm_pswd }} --force --auto-attach --release {{ rhel_version}}
+
+    - name: Register and Subscribe RHEL10
+      tags: prep,sub,slow
+      when: "rhel_version.startswith('10')"
+# redhat_subscription sometimes fails with "already registered, despite force"
+# Hence we brute force it here:
+      command: subscription-manager register --username {{ rhsm_user }} --password {{ rhsm_pswd }} --force --release {{ rhel_version}}
 
     - name: Enable EUS Repos
       tags: upd, slow
       rhsm_repository:
         state: enabled
         name:
-          - rhel-9-for-x86_64-appstream-eus-rpms
-          - rhel-9-for-x86_64-baseos-eus-rpms
+          - rhel-{{ rhel_version | split('.') | first }}-for-x86_64-appstream-eus-rpms
+          - rhel-{{ rhel_version | split('.') | first }}-for-x86_64-baseos-eus-rpms
 
 
     - name: Update baseos
