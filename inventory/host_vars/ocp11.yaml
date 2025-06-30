@@ -28,7 +28,8 @@ control_plans:
     vm_network_mac_address: 0E:C0:EF:20:6F:80
 
 # Default is in roles/cluster/defaults/main.yaml - Override if needed:
-openshift_version: 4.18.8
+openshift_version: 4.20.0-ec.2
+openshift_location: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp-dev-preview/latest"
 
 stormshift_cluster_features:
   - redhat-internal-certificate
@@ -51,15 +52,15 @@ cluster_capabilities:
 #  - OperatorLifecycleManager
 #  - marketplace
 
-cluster_additionalTrustBundle: /etc/pki/ca-trust/source/anchors/RedHat_Current-IT-Root-CAs.pem
-cluster_imagesource:
-  imageDigestSources:
-  - source: quay.io/openshift-release-dev/ocp-release
+#cluster_additionalTrustBundle: /etc/pki/ca-trust/source/anchors/RedHat_Current-IT-Root-CAs.pem
+#cluster_imagesource:
+#  imageDigestSources:
+#  - source: quay.io/openshift-release-dev/ocp-release
 #    mirrorSourcePolicy: AllowContactingSource
-    mirrorSourcePolicy: NeverContactSource
-    mirrors:
-      - quay.coe.muc.redhat.com/proxy_quay_openshift_release/ocp-release
-  - source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
-    mirrorSourcePolicy: NeverContactSource
-    mirrors:
-      - quay.coe.muc.redhat.com/proxy_quay_openshift_release/ocp-v4.0-art-dev
+#    mirrorSourcePolicy: NeverContactSource
+#    mirrors:
+#      - quay.coe.muc.redhat.com/proxy_quay_openshift_release/ocp-release
+#  - source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
+#    mirrorSourcePolicy: NeverContactSource
+#    mirrors:
+#      - quay.coe.muc.redhat.com/proxy_quay_openshift_release/ocp-v4.0-art-dev
