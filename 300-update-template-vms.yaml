@@ -28,6 +28,7 @@
     - name: Register and Subscribe RHEL9
       tags: prep,sub,slow
       when: "rhel_version.startswith('9')"
+      changed_when: false
 # redhat_subscription sometimes fails with "already registered, despite force"
 # Hence we brute force it here:
       command: subscription-manager register --username {{ rhsm_user }} --password {{ rhsm_pswd }} --force --auto-attach --release {{ rhel_version}}
@@ -35,12 +36,14 @@
     - name: Register and Subscribe RHEL10
       tags: prep,sub,slow
       when: "rhel_version.startswith('10')"
+      changed_when: false
 # redhat_subscription sometimes fails with "already registered, despite force"
 # Hence we brute force it here:
       command: subscription-manager register --username {{ rhsm_user }} --password {{ rhsm_pswd }} --force --release {{ rhel_version}}
 
     - name: Enable EUS Repos
       tags: upd, slow
+      changed_when: false
       rhsm_repository:
         state: enabled
         name:

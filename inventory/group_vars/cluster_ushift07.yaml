@@ -1,6 +1,6 @@
 stormshift_owner_email: "dfroehli@redhat.com"
 stormshift_owner_purpose: "Playground"
-ushift_version: 4.18
+ushift_version: 4.19
 ushift_preview_version: latest-4.18
 ushift_preview_version_dep_ec: 4.19-el9-beta
 ushift_preview_version_dep_rc: 4.19-el9-beta
@@ -8,17 +8,17 @@ ushift_preview_version_dep_rc: 4.19-el9-beta
 ushift_repo: standard
 ushift_actually_install: true
 ushift_deploy_sample_workload: true
-ushift_use_local_quay_proxy: false
+ushift_use_local_quay_proxy: true
 vm_cores: 4
 vm_memory: "8Gi"
-vm_template: "rhel94"
+vm_template: "rhel96"
+rhel_version: "9.6"
 network_ip_address: 10.32.99.7
 network_mac_address: 0E:C0:EF:20:63:07
 ushift_repo_list:
       - rhel-9-for-x86_64-appstream-eus-rpms
       - rhel-9-for-x86_64-baseos-eus-rpms
-      - rhocp-4.18-for-rhel-9-x86_64-rpms
+      - rhocp-4.19-for-rhel-9-x86_64-rpms
       - fast-datapath-for-rhel-9-x86_64-rpms
-      - gitops-1.12-for-rhel-9-x86_64-rpms
 # install_type - one of: rpm, ostree, imageMode
 ushift_install_type: rpm
