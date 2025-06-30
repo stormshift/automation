@@ -28,7 +28,7 @@ control_plans:
     vm_network_mac_address: 0E:C0:EF:20:6F:80
 
 # Default is in roles/cluster/defaults/main.yaml - Override if needed:
-openshift_version: 4.20.0-ec.4
+openshift_version: 4.20.0-ec.6
 openshift_location: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp-dev-preview/candidate-4.20"
 
 stormshift_cluster_features:
