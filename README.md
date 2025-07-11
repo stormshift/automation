@@ -158,6 +158,12 @@ ansible-navigator run request-cert.yaml \
     -e subject_alt_name='DNS:api.ocp1.stormshift.coe.muc.redhat.com,DNS:*.apps.ocp1.stormshift.coe.muc.redhat.com' \
     -e tower_user_email=rbohne@redhat.com \
     -e tower_user_name='Robert Bohne'
+
+# Download all kubeconfigs
+source development-example.env-private
+ansible-navigator run scrible/download-kubeconfigs-from-vault.yaml \
+    --vault-password-file=.vault_pass \
+    -e kubeswitch=true
 ```
 
 ## Ansible inventory structure (folder: `inventory/`)
