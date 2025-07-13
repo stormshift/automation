@@ -43,6 +43,11 @@ capabilities:
 {{ cluster_capabilities | to_nice_yaml(indent=2, sort_keys=false) | indent(2,true) }}
 {% endif %}
 
+{% if cluster_proxy is defined %}
+proxy:
+{{ cluster_proxy | to_nice_yaml(indent=2, sort_keys=false) | indent(2,true) }}
+{% endif %}
+
 pullSecret:
   '{{ image_pull_secret }}'
 sshKey: |
