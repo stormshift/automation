@@ -23,6 +23,7 @@ network_ip_address_prefix_length: 24
 network_dns_servers:
   - 192.168.102.3
 network_default_gw: 192.168.201.1
+vm_net_attach_def: coe-bridge-2001
 
 cluster_additionalTrustBundle: /etc/pki/ca-trust/source/anchors/RedHat_Current-IT-Root-CAs.pem
 
