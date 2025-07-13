@@ -4,6 +4,8 @@ stormshift_owner_purpose: "HCP Proxy Test env"
 stormshift_owner_usage: "dedicated"
 
 custom_scm_branch: add-proxy-support
+# Added just to prevent project deletion
+cluster_custom_namespace: stormshift-ocp7-infra 
 
 # local_cluster_admins:
 #   - ..
