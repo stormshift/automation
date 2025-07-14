@@ -65,6 +65,12 @@
   ansible.builtin.include_tasks: "destroy-vm.yaml"
   with_indexed_items: "{{ control_plans }}"
 
+- name: Destroy arbiter VM
+  vars:
+    vm_name: "{{ inventory_hostname }}-arbiter-{{ item.0 }}"
+  ansible.builtin.include_tasks: "destroy-vm.yaml"
+  with_indexed_items: "{{ arbiters | default([]) }}"
+
 - name: Destroy worker VM
   vars:
     vm_name: "{{ inventory_hostname }}-worker-{{ item.0 }}"

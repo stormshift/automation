@@ -73,6 +73,19 @@
       type: Progressing
       status: True
 
+- name: Wait for API to  start Progressing
+  when: apply_cert is changed
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    kind: ClusterOperator
+    name: kube-apiserver
+    namespace: openshift-ingress-operator
+    wait: yes
+    wait_timeout: 480
+    wait_condition:
+      type: Progressing
+      status: true
+
 - name: Wait for IngressController to be stable again
   kubernetes.core.k8s_info:
     kubeconfig: "{{ cluster_access_kubeconfig }}"

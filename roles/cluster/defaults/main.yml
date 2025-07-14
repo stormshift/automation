@@ -26,6 +26,11 @@ target_namespace: "{{ cluster_custom_namespace | default('stormshift-' + invento
 
 clusterAlreadyExists: false
 
+arbiter_cores: 2
+arbiter_ram_gb: 8
+arbiters: []
+
+
 # See: https://docs.openshift.com/container-platform/4.17/scalability_and_performance/enabling-workload-partitioning.html#enabling-workload-partitioning_enabling-workload-partitioning
 cluster_cpuPartitioningMode: None
 

@@ -1,5 +1,5 @@
 ---
-- name: Create empty disk data volume
+- name: Create empty disk data volume {{ vm_name }}
   kubernetes.core.k8s:
     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
     host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
@@ -27,7 +27,7 @@
           storageClassName: "{{ disk_storageclass }}"
   register: dataVolume
 
-- name: Hotplug virtual disk to VM
+- name: Hotplug virtual disk to VM {{ vm_name }}
   when: dataVolume is changed
   kubernetes.core.k8s:
     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
@@ -71,7 +71,7 @@
                 name: "{{ disk_name }}"
   register: diskAdded
 
-- name: Stop VM (hotplug did not work via ansible)
+- name: Stop VM {{ vm_name }} (hotplug did not work via ansible)
   when: diskAdded is defined and diskAdded is changed
   kubevirt.core.kubevirt_vm:
     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
@@ -85,7 +85,7 @@
     wait: yes
   register: vmStopped
 
-- name: Start VM (hotplug did not work via ansible)
+- name: Start VM {{ vm_name }} (hotplug did not work via ansible)
   when: vmStopped is defined and vmStopped is changed
   kubevirt.core.kubevirt_vm:
     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"

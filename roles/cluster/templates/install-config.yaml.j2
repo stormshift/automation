@@ -6,7 +6,17 @@ compute:
     hyperthreading: Enabled
     name: worker
     platform: {}
-    replicas: {{ workers| default([]) | length  }}
+    replicas: {{ workers | default([]) | length  }}
+arbiter:
+  architecture: amd64
+  hyperthreading: Enabled
+  name: arbiter
+  replicas: {{ arbiters | default([]) | length }}
+
+{% if openshift_featureSet is defined %}
+featureSet: {{ openshift_featureSet }}
+{% endif %}
+
 controlPlane:
   architecture: amd64
   hyperthreading: Enabled
@@ -32,6 +42,23 @@ platform:
       - "{{ cluster_api_vip }}"
     ingressVIPs:
       - "{{ cluster_ingress_vip }}"
+
+    hosts:
+{% for node in control_plans %}
+      - name: {{ inventory_hostname }}-cp-{{ loop.index0}}
+        role: master
+{% endfor %}
+
+{% for node in arbiters %}
+      - name: {{ inventory_hostname }}-arbiter-{{ loop.index0}}
+        role: arbiter
+{% endfor %}
+{% for node in workers %}
+      - name: {{ inventory_hostname }}-worker-{{ loop.index0}}
+        role: worker
+{% endfor %}
+
+
 {% else %}
 platform:
   none: {}

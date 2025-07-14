@@ -1,0 +1,29 @@
+{
+    "default": [
+        {
+            "type": "insecureAcceptAnything"
+        }
+    ],
+    "transports": {
+      "docker": {
+           "quay.io/openshift-release-dev": [
+             {
+               "type": "sigstoreSigned",
+               "keyPath": "/etc/containers/RedHat_ReleaseKey3.pub",
+               "signedIdentity": {
+                 "type": "matchRepoDigestOrExact"
+               }
+             }
+           ],
+           "registry.redhat.io": [
+             {
+               "type": "sigstoreSigned",
+               "keyPath": "/etc/containers/RedHat_ReleaseKey3.pub",
+               "signedIdentity": {
+                 "type": "matchRepoDigestOrExact"
+               }
+             }
+           ]
+         }
+    }
+}
