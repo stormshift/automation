@@ -1,7 +1,11 @@
 ---
 stormshift_owner_email: "rbohne@redhat.com"
-stormshift_owner_purpose: "TechJourney Demo Env."
+stormshift_owner_purpose: "HCP Proxy Test env"
 stormshift_owner_usage: "dedicated"
+
+custom_scm_branch: add-proxy-support
+# Added just to prevent project deletion
+cluster_custom_namespace: stormshift-ocp7-infra 
 
 # local_cluster_admins:
 #   - ..
@@ -9,38 +13,64 @@ stormshift_owner_usage: "dedicated"
 # Same color as for the labels: https://github.com/stormshift/support/labels
 cluster_color: "#19122F"
 cluster_color_fg: "#e8e8e8"
-openshift_version: 4.16.38
+openshift_version: 4.18.19
 
 stormshift_cluster_features:
   - redhat-internal-certificate
   - coe-sso
-  - manage-with-acm
   - look-and-feel
 
-worker_storage_class: "ocs-storagecluster-ceph-rbd-virtualization"
-control_plan_storage_class: "ocs-storagecluster-ceph-rbd-virtualization"
-agent_iso_storage_class: "ocs-storagecluster-cephfs"
+network: 192.168.201.0
+network_ip_address_prefix_length: 24
+network_dns_servers:
+  - 192.168.102.3
+network_default_gw: 192.168.201.1
+vm_net_attach_def: coe-bridge-2001
+
+cluster_additionalTrustBundle: /etc/pki/ca-trust/source/anchors/RedHat_Current-IT-Root-CAs.pem
+
+cluster_proxy:
+  httpProxy: http://192.168.201.2:3128
+  httpsProxy: http://192.168.201.2:3128
+  noProxy: ""
+
+# worker_storage_class: "ocs-storagecluster-ceph-rbd-virtualization"
+# control_plan_storage_class: "ocs-storagecluster-ceph-rbd-virtualization"
+# agent_iso_storage_class: "ocs-storagecluster-cephfs"
 
 cluster_type: classic
-cluster_api_vip: 10.32.105.98
-cluster_ingress_vip: 10.32.105.99
+# cluster_api_vip: 10.32.105.98
+# cluster_ingress_vip: 10.32.105.99
+cluster_api_vip: 192.168.201.10
+cluster_ingress_vip: 192.168.201.11
 
 control_plan_cores: 8
 control_plan_ram_gb: 16
 control_plans:
-  - vm_network_ip_address: 10.32.105.100
-    vm_network_mac_address: 0E:C0:EF:20:69:64
-  - vm_network_ip_address: 10.32.105.101
-    vm_network_mac_address: 0E:C0:EF:20:69:65
-  - vm_network_ip_address: 10.32.105.102
-    vm_network_mac_address: 0E:C0:EF:20:69:66
-
-worker_cores: 8
-worker_ram_gb: 16
+  # - vm_network_ip_address: 10.32.105.100
+  #   vm_network_mac_address: 0E:C0:EF:20:69:64
+  # - vm_network_ip_address: 10.32.105.101
+  #   vm_network_mac_address: 0E:C0:EF:20:69:65
+  # - vm_network_ip_address: 10.32.105.102
+  #   vm_network_mac_address: 0E:C0:EF:20:69:66
+  - vm_network_ip_address:  192.168.201.12
+    vm_network_mac_address: 0E:C0:EF:A8:C9:0C
+  - vm_network_ip_address:  192.168.201.13
+    vm_network_mac_address: 0E:C0:EF:A8:C9:0D
+  - vm_network_ip_address:  192.168.201.14
+    vm_network_mac_address: 0E:C0:EF:A8:C9:0E
+worker_cores: 16
+worker_ram_gb: 32
 workers:
-  - vm_network_ip_address: 10.32.105.103
-    vm_network_mac_address: 0E:C0:EF:20:69:67
-  - vm_network_ip_address: 10.32.105.104
-    vm_network_mac_address: 0E:C0:EF:20:69:68
-  - vm_network_ip_address: 10.32.105.105
-    vm_network_mac_address: 0E:C0:EF:20:69:69
+  # - vm_network_ip_address: 10.32.105.103
+  #   vm_network_mac_address: 0E:C0:EF:20:69:67
+  # - vm_network_ip_address: 10.32.105.104
+  #   vm_network_mac_address: 0E:C0:EF:20:69:68
+  # - vm_network_ip_address: 10.32.105.105
+  #   vm_network_mac_address: 0E:C0:EF:20:69:69
+  - vm_network_ip_address:  192.168.201.15
+    vm_network_mac_address: 0E:C0:EF:A8:C9:0F
+  - vm_network_ip_address:  192.168.201.16
+    vm_network_mac_address: 0E:C0:EF:A8:C9:10
+  - vm_network_ip_address:  192.168.201.17
+    vm_network_mac_address: 0E:C0:EF:A8:C9:11
