@@ -36,6 +36,40 @@ hosts:
             next-hop-interface: eth0
             table-id: 254
 {% endfor %}
+
+{% for host in arbiters | default([]) %}
+  - hostname: {{ inventory_hostname }}-arbiter-{{ loop.index - 1 }}
+    role: arbiter
+    interfaces:
+      - name: eth0
+        macAddress: {{ host.vm_network_mac_address }}
+    networkConfig:
+      interfaces:
+        - name: eth0
+          type: ethernet
+          state: up
+          mtu: 1450
+          mac-address: {{ host.vm_network_mac_address }}
+          ipv4:
+            enabled: true
+            address:
+              - ip: {{ host.vm_network_ip_address }}
+                prefix-length: {{ network_ip_address_prefix_length }}
+            dhcp: false
+      dns-resolver:
+        config:
+          server:
+{% for dns in network_dns_servers %}
+            - {{ dns }}
+{% endfor %}
+      routes:
+        config:
+          - destination: 0.0.0.0/0
+            next-hop-address: {{ network_default_gw }}
+            next-hop-interface: eth0
+            table-id: 254
+{% endfor %}
+
 {% for host in workers | default([]) %}
   - hostname: {{ inventory_hostname }}-worker-{{ loop.index - 1 }}
     role: worker

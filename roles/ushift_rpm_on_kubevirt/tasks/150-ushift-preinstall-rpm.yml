@@ -208,3 +208,19 @@
       tags: prep, img_proxy
       when: ushift_use_local_quay_proxy and ca_trust is changed
       shell: update-ca-trust
+
+    - name: Download the public image signing key from Red
+      tags: prep, img_proxy, policy
+      when: ushift_use_local_quay_proxy
+      ansible.builtin.get_url:
+        url: https://access.redhat.com/security/data/63405576.txt
+        dest: /etc/containers/RedHat_ReleaseKey3.pub
+        mode: '0444'
+
+    - name: Configure image registry proxy
+      tags: prep, img_proxy, policy
+      when: ushift_use_local_quay_proxy
+      template:
+        trim_blocks: false
+        src: templates/containers_policy.json.j2
+        dest: /etc/containers/policy.json

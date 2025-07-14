@@ -23,6 +23,12 @@ cluster_capabilities:
 #  additionalEnabledCapabilities:
 #  - baremetal
 #  - Ingress
+
+# Default is in roles/cluster/defaults/main.yaml - Override if needed:
+openshift_version: 4.20.0-ec.4
+openshift_location: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp-dev-preview/latest"
+openshift_featureSet: TechPreviewNoUpgrade
+
 control_plan_cores: 6
 control_plan_ram_gb: 32
 
@@ -31,8 +37,15 @@ control_plans:
     vm_network_mac_address: 0E:C0:EF:20:69:50
   - vm_network_ip_address: 10.32.105.81
     vm_network_mac_address: 0E:C0:EF:20:69:51
+#  - vm_network_ip_address: 10.32.105.82
+#    vm_network_mac_address: 0E:C0:EF:20:69:52
+
+arbiter_cores: 2
+arbiter_ram_gb: 8
+arbiters:
   - vm_network_ip_address: 10.32.105.82
     vm_network_mac_address: 0E:C0:EF:20:69:52
+
 
 worker_cores: 8
 worker_ram_gb: 16
