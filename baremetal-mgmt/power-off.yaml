@@ -1,0 +1,18 @@
+---
+- name: BaerMetal Server
+  hosts: "baremetal-bmc"
+  connection: local
+  gather_facts: false
+  vars:
+    command: PowerForceOff
+  tasks:
+    - name: {{ command }}
+      community.general.redfish_command:
+        password: "{{ mgmt_password }}"
+        username: "{{ mgmt_user }}"
+        baseuri: "{{ ansible_host }}"
+        category: Systems
+        command: "{{ command }}"
+        resource_id: "{{ redfish_system_id }}"
+
+    

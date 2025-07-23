@@ -1,0 +1,29 @@
+---
+- name: BaerMetal Server
+  hosts: "baremetal-bmc"
+  connection: local
+  gather_facts: false
+
+  tasks:
+  
+    - name: Check PowerState
+      ansible.builtin.command:
+        cmd: "curl -k -u {{ mgmt_user }}:{{ mgmt_password }} https://{{ ansible_host }}/redfish/v1/Systems/System.Embedded.1"
+      register: systems_output
+
+    - name: Transform JSON to YAML
+      ansible.builtin.set_fact:
+        redfish_system_info: "{{ systems_output.stdout |  from_json }}"
+
+    # - name: Debug systems output
+    #   ansible.builtin.daebug:
+    #     var: redfish_system_info
+
+    - name: PowerState
+      ansible.builtin.debug:
+        msg: "PowerState of {{ ansible_host }} is {{ redfish_system_info.PowerState }}"
+
+    - name: Check PowerState
+      ansible.builtin.fail:
+        msg: "PowerState is not Off"
+      when: redfish_system_info.PowerState != "Off"
