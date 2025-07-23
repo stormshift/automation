@@ -1,0 +1,31 @@
+---
+- name: BaerMetal Server
+  hosts: "baremetal-bmc"
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Check systems via CURL
+      ansible.builtin.command:
+        cmd: "curl -k -u {{ mgmt_user }}:{{ mgmt_password }} https://{{ ansible_host }}/redfish/v1/Systems"
+      register: systems_output
+
+    - name: Print stdout
+      ansible.builtin.debug:
+        var: "{{ systems_output.stdout }}"
+
+    - name: Check systems via CURL
+      ansible.builtin.command:
+        cmd: "curl -k -u {{ mgmt_user }}:{{ mgmt_password }} https://{{ ansible_host }}/redfish/v1/Systems/{{ redfish_system_id }}"
+      register: systems_output
+      when: redfish_system_id is defined
+
+    - name: Transform JSON to YAML
+      ansible.builtin.set_fact:
+        redfish_system_info: "{{ systems_output.stdout |  from_json }}"
+      when: redfish_system_id is defined
+
+    - name: Debug systems output
+      ansible.builtin.debug:
+        var: redfish_system_info
+      when: redfish_system_id is defined
