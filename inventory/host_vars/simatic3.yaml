@@ -1,0 +1,2 @@
+---
+ansible_host: "{{ inventory_hostname }}.{{ sysctx_dns_domain }}"
