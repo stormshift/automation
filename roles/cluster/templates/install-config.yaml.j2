@@ -7,11 +7,14 @@ compute:
     name: worker
     platform: {}
     replicas: {{ workers | default([]) | length  }}
+
+{% if arbiters | default([]) | length > 0 %}
 arbiter:
   architecture: amd64
   hyperthreading: Enabled
   name: arbiter
   replicas: {{ arbiters | default([]) | length }}
+{% endif %}
 
 {% if openshift_featureSet is defined %}
 featureSet: {{ openshift_featureSet }}
@@ -43,6 +46,7 @@ platform:
     ingressVIPs:
       - "{{ cluster_ingress_vip }}"
 
+{% if arbiters | default([]) | length > 0 %}
     hosts:
 {% for node in control_plans %}
       - name: {{ inventory_hostname }}-cp-{{ loop.index0}}
@@ -57,6 +61,7 @@ platform:
       - name: {{ inventory_hostname }}-worker-{{ loop.index0}}
         role: worker
 {% endfor %}
+{% endif %}
 
 
 {% else %}
