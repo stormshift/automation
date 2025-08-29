@@ -26,7 +26,7 @@
 #While awaiting a fix this can be bypassed by setting use_devicesfile=0 inside of /etc/lvm/lvm.conf
 
     - name: Workaround Devices files not found by changing LVM Configure
-      tags: prep,lvmcfg
+      tags: prep,lvms
       replace:
         path: /etc/lvm/lvm.conf
         regexp: '# use_devicesfile = 1'
@@ -122,7 +122,7 @@
         group: root
 
     - name: Create LVM thin pool
-      tags: prep,cfg
+      tags: prep,cfg,lvms
       lvol:
         vg: rhel
         lv: thin
@@ -136,7 +136,7 @@
         dest: /etc/microshift/config.yaml
 
     - name: Provide lvmd config file
-      tags: prep,cfg
+      tags: prep,cfg,lvms
       template:
         src: templates/microshift-lvmd.yaml.j2
         dest: /etc/microshift/lvmd.yaml

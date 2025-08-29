@@ -42,7 +42,7 @@
         flat: true
 
     - name: Deploy VolumeSnapshotClass
-      tags: post,vsc
+      tags: post,vsc,lvms
       when: false
       local_action:
         module: kubernetes.core.k8s
@@ -52,7 +52,7 @@
         definition: "{{ lookup('template', 'templates/microshift-volumeSnapShotClass.yaml') }}"
 
     - name: Prepare VolumeSnapshotClass
-      tags: post,vsc
+      tags: post,vsc,lvms
       template:
         src: templates/microshift-volumeSnapShotClass.yaml
         dest: /root/volumeSnapshotClass.yaml
