@@ -55,18 +55,19 @@
                     name: cdrom
                     cdrom:
                       bus: sata
-                  - disk:
+                  - bootOrder: 99
+                    disk:
                       bus: scsi
                     name: "{{ disk_name }}"
             volumes:
               - name: cdrom
-                persistentVolumeClaim:
-                  claimName: "{{ inventory_hostname }}-agent-iso"
+                dataVolume:
+                  name: "{{ vm_name }}-cdrom"
               - name: root
                 dataVolume:
                   name: "{{ vm_name }}-root"
               - dataVolume:
-#                  hotpluggable: true
+                  hotpluggable: true
                   name: "{{ vm_name }}-{{ disk_name }}"
                 name: "{{ disk_name }}"
   register: diskAdded
