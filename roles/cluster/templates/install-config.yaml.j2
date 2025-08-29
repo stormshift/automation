@@ -7,20 +7,14 @@ compute:
     name: worker
     platform: {}
     replicas: {{ workers | default([]) | length  }}
-<<<<<<< HEAD
 
 {% if arbiters | default([]) | length > 0 %}
-=======
->>>>>>> bc1c251 (First cut on TNA (#122))
 arbiter:
   architecture: amd64
   hyperthreading: Enabled
   name: arbiter
   replicas: {{ arbiters | default([]) | length }}
-<<<<<<< HEAD
 {% endif %}
-=======
->>>>>>> bc1c251 (First cut on TNA (#122))
 
 {% if openshift_featureSet is defined %}
 featureSet: {{ openshift_featureSet }}
