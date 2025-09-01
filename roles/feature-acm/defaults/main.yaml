@@ -1,0 +1,9 @@
+---
+# defaults file
+acm_operator_channel: release-2.14
+
+acm_edge_manager_preview: true
+acm_multicluster_observability: false
+acm_insights: false
+acm_submariner_addon: false
+acm_volsync: false

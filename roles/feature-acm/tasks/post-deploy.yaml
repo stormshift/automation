@@ -1,0 +1,131 @@
+# This deploys RH ACM Operator to a cluster
+# Based on:
+# https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.14/html/install/installing#installing-from-the-cli
+
+# TODO: Do we need to create Object Storage on ISAR ODF???
+- name: Ensure cluster is online
+  wait_for:
+    host: "api.{{ inventory_hostname }}.{{ cluster_base_domain }}"
+    port: 6443
+    sleep: 1
+    timeout: 10
+
+- name: Fetch kubeconfig from vault
+  ansible.builtin.include_role:
+    name: internal-fetch-kubeconfig
+
+# --------------------------------------------
+# ----- ACM Operator
+# --------------------------------------------
+# See: https://docs.redhat.com/en/documentation/red_hat_openshift_serverless/1.33/html/installing_openshift_serverless/install-serverless-operator#serverless-install-cli_install-serverless-operator
+- name: Install ACM operator
+  register: acm_operator
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    definition:
+      - apiVersion: v1
+        kind: Namespace
+        metadata:
+          name: open-cluster-management
+      - apiVersion: operators.coreos.com/v1
+        kind: OperatorGroup
+        metadata:
+          name: acm-operators
+          namespace: open-cluster-management
+        spec:
+          targetNamespaces:
+          - open-cluster-management
+      - apiVersion: operators.coreos.com/v1alpha1
+        kind: Subscription
+        metadata:
+          name: acm-operator-subscription
+          namespace: open-cluster-management
+        spec:
+          channel: "{{ acm_operator_channel }}"
+          name: advanced-cluster-management
+          source: redhat-operators
+          sourceNamespace: openshift-marketplace
+          installPlanApproval: Automatic
+
+- name: Wait for operator pod to be ready
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    kind: Pod
+    namespace: open-cluster-management
+    label_selectors:
+      - "name = multiclusterhub-operator"
+    wait: yes
+    wait_timeout: 300
+    wait_condition:
+      type: Ready
+      status: True
+
+- name: Install MultiClusterHub (Coffee Time!)
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    wait: yes
+    wait_timeout: 1200
+    wait_condition:
+      type: Complete
+      status: True
+    definition:
+    - apiVersion: operator.open-cluster-management.io/v1
+      kind: MultiClusterHub
+      metadata:
+        name: multiclusterhub
+        namespace: open-cluster-management
+      spec:
+        availabilityConfig: Basic
+        enableClusterBackup: false
+        ingress: {}
+        localClusterName: local-cluster
+        overrides:
+          components:
+            - configOverrides: {}
+              enabled: true
+              name: app-lifecycle
+            - configOverrides: {}
+              enabled: true
+              name: cluster-lifecycle
+            - configOverrides: {}
+              enabled: true
+              name: cluster-permission
+            - configOverrides: {}
+              enabled: true
+              name: console
+            - configOverrides: {}
+              enabled: true
+              name: grc
+            - configOverrides: {}
+              enabled: "{{ acm_insights }}"
+              name: insights
+            - configOverrides: {}
+              enabled: true
+              name: multicluster-engine
+            - configOverrides: {}
+              enabled: "{{ acm_multicluster_observability }}"
+              name: multicluster-observability
+            - configOverrides: {}
+              enabled: true
+              name: search
+            - configOverrides: {}
+              enabled: "{{ acm_submariner_addon }}"
+              name: submariner-addon
+            - configOverrides: {}
+              enabled: "{{ acm_volsync }}"
+              name: volsync
+            - configOverrides: {}
+              enabled: false
+              name: cluster-backup
+            - configOverrides: {}
+              enabled: "{{ acm_edge_manager_preview }}"
+              name: edge-manager-preview
+            - configOverrides: {}
+              enabled: false
+              name: fine-grained-rbac-preview
+            - configOverrides: {}
+              enabled: false
+              name: siteconfig
+        separateCertificateManagement: false
