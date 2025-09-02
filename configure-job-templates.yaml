@@ -15,6 +15,7 @@
           - rhoai
           - look-and-feel
           - workload-partitioning
+          - acm
         default_features:
           - manage-with-acm
           - redhat-internal-certificate
@@ -26,6 +27,7 @@
           - coe-sso
           # - lvms - not tested
           # - rhoai - not tested
+          # - acm - not tested
           - look-and-feel
         default_features:
           - redhat-internal-certificate
