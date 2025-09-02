@@ -2,7 +2,6 @@
 # Based on:
 # https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.14/html/install/installing#installing-from-the-cli
 
-# TODO: Do we need to create Object Storage on ISAR ODF???
 - name: Ensure cluster is online
   wait_for:
     host: "api.{{ inventory_hostname }}.{{ cluster_base_domain }}"
@@ -17,7 +16,6 @@
 # --------------------------------------------
 # ----- ACM Operator
 # --------------------------------------------
-# See: https://docs.redhat.com/en/documentation/red_hat_openshift_serverless/1.33/html/installing_openshift_serverless/install-serverless-operator#serverless-install-cli_install-serverless-operator
 - name: Install ACM operator
   register: acm_operator
   kubernetes.core.k8s:
