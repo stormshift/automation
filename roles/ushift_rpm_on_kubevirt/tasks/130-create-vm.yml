@@ -12,6 +12,8 @@
       wait: true
       name: "{{ inventory_hostname }}"
       namespace: "{{ ushift_virt_namespace }}"
+      annotations:
+        descheduler.alpha.kubernetes.io/evict: "{{ descheduler_evict }}"
       spec:
         domain:
           cpu:

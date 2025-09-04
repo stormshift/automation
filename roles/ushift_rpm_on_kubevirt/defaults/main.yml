@@ -2,3 +2,4 @@
 # defaults file for sno_on_kubevirt
 
 artifacts_dir: "{{ playbook_dir }}"
+descheduler_evict: "true"
