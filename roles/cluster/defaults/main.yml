@@ -37,3 +37,5 @@ cluster_cpuPartitioningMode: None
 worker_storage_class: "coe-netapp-san"
 control_plan_storage_class: "coe-netapp-san"
 agent_iso_storage_class: "coe-netapp-nas"
+
+descheduler_evict: "true"
