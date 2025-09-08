@@ -58,7 +58,7 @@
 
 - name: Retrieve Certificate
   ansible.builtin.uri:
-    url: "{{crt_req.json.entries[0].certURL}}"
+    url: "{{ ca_url }}/ca/rest/certs/{{crt_req.json.entries[0].certId}}"
     method: GET
     body_format: json
     validate_certs: false
