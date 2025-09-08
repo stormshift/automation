@@ -164,6 +164,7 @@ source development-example.env-private
 ansible-navigator run scrible/download-kubeconfigs-from-vault.yaml \
     --vault-password-file=.vault_pass \
     -e kubeswitch=true
+    -l ocp1
 ```
 
 ## Ansible inventory structure (folder: `inventory/`)
