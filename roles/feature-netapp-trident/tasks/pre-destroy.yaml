@@ -1,14 +1,73 @@
 ---
-- name: Fetch kubeconfig from vault
-  ansible.builtin.include_role:
-    name: internal-fetch-kubeconfig
+# coe-netapp-nas
+- name: Fetch volumes from netapp
+  netapp.ontap.na_ontap_rest_info:
+    hostname: "{{ netapp_managementLIF }}"
+    username: "{{ netapp_username }}"
+    password: "{{ netapp_password }}"
+    validate_certs: false
+    gather_subset:
+      - storage/volumes
+    parameters:
+      name: "stormshift_{{ inventory_hostname }}_*"
+      # name: "stormshift_{{ inventory_hostname }}_pvc_ee8dd549*"
+  register: ontap_info_vol
 
-# - name: Apply ConsoleNotification
-#   kubernetes.core.k8s:
-#     kubeconfig: "{{ cluster_access_kubeconfig }}"
-#     state: absent
-#     definition:
-#       apiVersion: console.openshift.io/v1
-#       kind: ConsoleNotification
-#       metadata:
-#         name: "stormshift-{{ inventory_hostname }}"
+
+- name: Print volumes to delete
+  debug:
+    msg: "{{ ontap_info_vol.ontap_info['storage/volumes'] }}"
+
+# "error_message": "not authorized for that command",
+# https://redhat-external.slack.com/archives/C070X9MQ2UE/p1757447082317829
+# - name:  Delete volumes
+#   netapp.ontap.na_ontap_restit:
+#     hostname: "{{ netapp_managementLIF }}"
+#     username: "{{ netapp_username }}"
+#     password: "{{ netapp_password }}"
+#     https: true
+#     validate_certs: false
+
+#     api: "{{ item._links.self.href }}"
+#     method: DELETE
+#   with_items: "{{ ontap_info_vol.ontap_info['storage/volumes'].records }}"    
+
+# coe-netapp-san
+- name: Fetch LUNs from netapp
+  netapp.ontap.na_ontap_rest_info:
+    hostname: "{{ netapp_managementLIF }}"
+    username: "{{ netapp_username }}"
+    password: "{{ netapp_password }}"
+    validate_certs: false
+    gather_subset:
+      - storage/luns
+    parameters:
+      name: "*/stormshift_{{ inventory_hostname }}_*"
+      # name: "*/stormshift_{{ inventory_hostname }}_pvc_0fd108*"
+      
+  register: ontap_info_lun
+
+- name: Print LUNs to delete
+  debug:
+    msg: "{{ ontap_info_lun.ontap_info['storage/luns'] }}"
+
+# "error_message": "not authorized for that command",
+#. https://redhat-external.slack.com/archives/C070X9MQ2UE/p1757447082317829
+# - name:  Delete luns
+#   netapp.ontap.na_ontap_restit:
+#     hostname: "{{ netapp_managementLIF }}"
+#     username: "{{ netapp_username }}"
+#     password: "{{ netapp_password }}"
+#     https: true
+#     validate_certs: false
+
+#     api: "{{ item._links.self.href }}"
+#     method: DELETE
+#   with_items: "{{ ontap_info_lun.ontap_info['storage/luns'].records }}"    
+
+- name: Check if volumes or LUN's are available
+  fail:
+    msg: Please delete Volumes/LUN's/PVCs first
+  when: ( ontap_info_lun.ontap_info['storage/luns'].records | length > 0 ) or  ( ontap_info_vol.ontap_info['storage/volumes'].records | length > 0 ) 
+
+
