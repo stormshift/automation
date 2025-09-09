@@ -15,11 +15,13 @@
           - rhoai
           - look-and-feel
           - workload-partitioning
+          - netapp-trident
         default_features:
           - manage-with-acm
           - redhat-internal-certificate
           - coe-sso
           - look-and-feel
+          - netapp-trident
       hosted:
         all_available_features:
           - redhat-internal-certificate
