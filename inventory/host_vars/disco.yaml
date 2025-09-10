@@ -65,3 +65,5 @@ workers:
     vm_network_mac_address: 0E:C0:EF:A8:45:F4
   - vm_network_ip_address: 192.168.69.245
     vm_network_mac_address: 0E:C0:EF:A8:45:F5
+  - vm_network_ip_address: 192.168.69.246
+    vm_network_mac_address: 0E:C0:EF:A8:45:F6

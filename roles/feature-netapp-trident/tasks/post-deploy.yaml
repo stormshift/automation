@@ -1,0 +1,191 @@
+---
+- name: Fetch kubeconfig from vault
+  ansible.builtin.include_role:
+    name: internal-fetch-kubeconfig
+
+- name: Install NetApp Trident operator
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    definition:
+      apiVersion: operators.coreos.com/v1alpha1
+      kind: Subscription
+      metadata:
+        name: trident-operator
+        namespace: openshift-operators
+      spec:
+        channel: stable
+        installPlanApproval: Automatic
+        name: trident-operator
+        source: certified-operators
+        sourceNamespace: openshift-marketplace
+
+- name: Wait for Operator Deployment to be complete
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    kind: CustomResourceDefinition
+    name: tridentorchestrators.trident.netapp.io
+    wait: yes
+    wait_timeout: 300
+    wait_condition:
+      type: Established
+      status: True
+
+- name: Wait for operator pod to be ready
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    kind: Pod
+    namespace: openshift-operators
+    label_selectors:
+      - "app=operator.trident.netapp.io"
+      - "name=trident-operator"
+    wait: yes
+    wait_timeout: 300
+    wait_condition:
+      type: Ready
+      status: True
+
+- name: Create namespace
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        labels:
+          pod-security.kubernetes.io/enforce: privileged
+        name: netapp-trident
+
+
+- name: Apply TridentOrchestrator
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    definition:
+      apiVersion: trident.netapp.io/v1
+      kind: TridentOrchestrator
+      metadata:
+        name: trident
+      spec:
+        debug: false
+        namespace: netapp-trident
+        imagePullPolicy: IfNotPresent
+        IPv6: false
+        nodePrep: 
+          - iscsi
+        imagePullSecrets: []
+        imageRegistry: ''
+        silenceAutosupport: false
+
+- name: Apply SnapShotClass
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    definition:
+      apiVersion: snapshot.storage.k8s.io/v1
+      kind: VolumeSnapshotClass
+      metadata:
+        name: coe-netapp
+      driver: csi.trident.netapp.io
+      deletionPolicy: Delete
+
+- name: Create secret with NetApp credentials
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: coe-netapp-svm-trident
+        namespace: netapp-trident
+      type: Opaque    
+      data:
+        password: "{{ netapp_password | b64encode }}"
+        username: "{{ netapp_username | b64encode }}"
+
+- name: Wait till CRD tridentbackendconfigs is available
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+
+    api_version: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    name: tridentbackendconfigs.trident.netapp.io
+    wait: yes
+    wait_sleep: 10
+    wait_timeout: 360
+
+- name: Create TridentBackendConfig/coe-netapp-san
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    definition:
+      apiVersion: trident.netapp.io/v1
+      kind: TridentBackendConfig
+      metadata:
+        name: coe-netapp-san
+        namespace: netapp-trident
+      spec:
+        version: 1
+        storageDriverName: ontap-san-economy
+        managementLIF: "{{ netapp_managementLIF }}"
+        backendName: coe-netapp-san
+        storagePrefix: "stormshift_{{ inventory_hostname }}_"
+        credentials:
+          name: coe-netapp-svm-trident
+
+- name: Create TridentBackendConfig/coe-netapp-nas
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    definition:
+      apiVersion: trident.netapp.io/v1
+      kind: TridentBackendConfig
+      metadata:
+        name: coe-netapp-nas
+        namespace: netapp-trident
+      spec:
+        version: 1
+        storageDriverName: ontap-nas
+        managementLIF: "{{ netapp_managementLIF }}"
+        backendName: coe-netapp-nas
+        storagePrefix: "stormshift_{{ inventory_hostname }}_"
+        credentials:
+          name: coe-netapp-svm-trident
+
+- name: Create StorageClass/coe-netapp-san
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    definition:
+      apiVersion: storage.k8s.io/v1
+      kind: StorageClass
+      metadata:
+        annotations:
+          storageclass.kubevirt.io/is-default-virt-class: "true"
+        name: coe-netapp-san
+      provisioner: csi.trident.netapp.io
+      parameters:
+        backendType: "ontap-san-economy"
+        fsType: "ext4"
+      mountOptions:
+        - discard
+      allowVolumeExpansion: true
+
+- name: Create StorageClass/coe-netapp-nas
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    definition:
+      apiVersion: storage.k8s.io/v1
+      kind: StorageClass
+      metadata:
+        annotations:
+          storageclass.kubernetes.io/is-default-class: "true"
+        name: coe-netapp-nas
+      provisioner: csi.trident.netapp.io
+      parameters:
+        backendType: "ontap-nas"
+        provisioningType: "thin"
+        snapshots: "true"

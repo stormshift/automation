@@ -1,0 +1,4 @@
+------
+- name: Not supported
+  ansible.builtin.fail: 
+    msg: Not supported!
