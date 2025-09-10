@@ -9,11 +9,13 @@
     state: present
     running: true # default
     wait: true
-    wait_timeout: 480    
+    wait_timeout: 480
     name: "{{ vm_name }}"
     namespace: "{{ target_namespace }}"
     labels:
       vm_group: "{{ target_namespace }}"
+    annotations:
+      descheduler.alpha.kubernetes.io/evict: "{{ descheduler_evict }}"
     data_volume_templates:
       - metadata:
           name: "{{ vm_name }}-root"

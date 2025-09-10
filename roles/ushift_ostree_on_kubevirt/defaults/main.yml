@@ -3,3 +3,4 @@ artifacts_dir: "{{ playbook_dir }}"
 vm_cores: 2
 vm_memory: "4Gi"
 vm_disk: "32Gi"
+descheduler_evict: "true"
