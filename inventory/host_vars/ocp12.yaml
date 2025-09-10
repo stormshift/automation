@@ -5,10 +5,13 @@
 # cluster_excluded_actions:
 #   - destroy
 #   - create
-stormshift_owner_email: "available"
-stormshift_owner_purpose: "SNO"
+stormshift_owner_email: "splatas@redhat.com"
+stormshift_owner_purpose: "Consulting prep"
 stormshift_owner_usage: "exclusive"
 cluster_type: classic
+openshift_version: 4.18.23
+
+
 # This is also the zone in IPA!
 cluster_base_domain: stormshift.coe.muc.redhat.com
 cluster_name: ocp12
