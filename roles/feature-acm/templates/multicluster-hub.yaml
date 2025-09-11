@@ -1,0 +1,40 @@
+apiVersion: operator.open-cluster-management.io/v1
+kind: MultiClusterHub
+metadata:
+  name: multiclusterhub
+  namespace: open-cluster-management
+spec:
+  availabilityConfig: Basic
+  enableClusterBackup: false
+  ingress: {}
+  localClusterName: local-cluster
+  overrides:
+# Lets go with default as much as possible,
+# as these can change over ACM versions:
+    components:
+{% if acm_insights is defined %}
+      - configOverrides: {}
+        enabled: {{ acm_insights }}
+        name: insights
+{% endif %}
+{% if acm_multicluster_observability is defined %}
+      - configOverrides: {}
+        enabled: {{ acm_multicluster_observability }}
+        name: multicluster-observability
+{% endif %}
+{% if  acm_submariner_addon is defined %}
+      - configOverrides: {}
+        enabled: {{ acm_submariner_addon }}
+        name: submariner-addon
+{% endif %}
+{% if  acm_volsync is defined %}
+      - configOverrides: {}
+        enabled: {{ acm_volsync }}
+        name: volsync
+{% endif %}
+{% if  acm_edge_manager_preview is defined %}
+      - configOverrides: {}
+        enabled: {{ acm_edge_manager_preview }}
+        name: edge-manager-preview
+{% endif %}
+  separateCertificateManagement: false
