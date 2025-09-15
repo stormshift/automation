@@ -15,6 +15,7 @@
           - rhoai
           - look-and-feel
           - workload-partitioning
+          - acm
           - netapp-trident
         default_features:
           - manage-with-acm
@@ -27,6 +28,7 @@
           - coe-sso
           # - lvms - not tested
           # - rhoai - not tested
+          # - acm - not tested
           - look-and-feel
         default_features:
           - redhat-internal-certificate
