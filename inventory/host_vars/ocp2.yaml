@@ -32,6 +32,10 @@ openshift_featureSet: TechPreviewNoUpgrade
 control_plan_cores: 8
 control_plan_ram_gb: 64
 
+local_cluster_admins:
+  - dfroehli@redhat.com-admin
+  - arolivei@redhat.com-admin
+
 
 control_plans:
   - vm_network_ip_address: 10.32.105.80
