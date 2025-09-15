@@ -18,6 +18,7 @@
           - acm
           - netapp-trident
         default_features:
+          - manage-with-acm
           - redhat-internal-certificate
           - coe-sso
           - look-and-feel
