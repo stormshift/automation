@@ -1,0 +1,125 @@
+---
+- name: Get VM info {{ vm_name }}
+  kubernetes.core.k8s_info:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+    api_version: kubevirt.io/v1
+    kind: VirtualMachine
+    name: "{{ vm_name }}"
+    namespace: "{{ vm_namespace }}"
+  register: vm_info
+
+- name: Remove disk {{ disk_name_to_remove }} from {{ vm_name }}
+  when:
+    - vm_info is defined
+    - vm_info.resources[0].spec.template.spec.domain.devices.disks is defined
+    - vm_info.resources[0].spec.template.spec.domain.devices.disks | selectattr('name', 'equalto', disk_name_to_remove) | length > 0
+  kubernetes.core.k8s:
+    merge_type: merge
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+    api_version: kubevirt.io/v1
+    kind: VirtualMachine
+    name: "{{ vm_name }}"
+    namespace: "{{ vm_namespace }}"
+    definition:
+      spec:
+        dataVolumeTemplates: "{{ vm_info.resources[0].spec.dataVolumeTemplates | rejectattr('metadata.name', 'equalto', vm_name+'-'+disk_name_to_remove) | list }}"
+        template:
+          spec:
+            domain:
+              devices:
+                disks: "{{ vm_info.resources[0].spec.template.spec.domain.devices.disks | rejectattr('name', 'equalto', disk_name_to_remove) | list }}"
+            volumes: "{{ vm_info.resources[0].spec.template.spec.volumes | rejectattr('name', 'equalto', disk_name_to_remove) | list }}"
+    state: present
+  register: diskRemoved
+
+- name: Remove DataVolume
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+    api_version: cdi.kubevirt.io/v1beta1
+    kind: DataVolume
+    name: "{{ vm_name }}-{{ disk_name_to_remove }}"
+    namespace: "{{ vm_namespace }}"
+    state: absent
+
+# Okay, so far so easy, this disk is gone.
+# Now it gets a bit tricky: if the VM is running,
+# we need to restart it. But that could cause:
+# - loss of API server (SNO clusters)
+# - loss of Quorum (Control Plane nodes, if too quick)
+# Hence we stop/start it only when it was running,
+# and when we stopped it, we wait for it to become ready again.
+# That makes this pretty slow, but rather less intrusive
+- name: Stop VM {{ vm_name }}
+  when:
+    - diskRemoved is defined and diskRemoved is changed
+    - vm_info.resources[0].spec.running is true
+  kubevirt.core.kubevirt_vm:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    name: "{{ vm_name }}"
+    namespace: "{{ vm_namespace }}"
+    running: false
+    wait: yes
+  register: vmStopped
+
+- name: Start VM {{ vm_name }}
+  when: vmStopped is defined and vmStopped is changed
+  kubevirt.core.kubevirt_vm:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+
+    state: present
+    name: "{{ vm_name }}"
+    namespace: "{{ vm_namespace }}"
+    running: true
+    wait: yes
+  register: vmStarted
+
+- name: Fetch kubeconfig from vault
+  when: vmStarted is defined and vmStarted is changed
+  ansible.builtin.include_role:
+    name: internal-fetch-kubeconfig
+
+- name: Ensure API is available (can take long time in case of SNO)
+  when: vmStarted is defined and vmStarted is changed
+  wait_for:
+    host: "api.{{ inventory_hostname }}.{{ cluster_base_domain }}"
+    port: 6443
+    sleep: 1
+    timeout: 1200
+
+- name: Wait for node "{{ vm_name }}" to be NOT Ready
+  when:
+    - control_plans | length > 1
+    - vmStarted is defined and vmStarted is changed
+  k8s_info:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    kind: node
+    name: "{{ vm_name }}"
+    wait: yes
+    wait_timeout: 1200
+    wait_condition:
+      type: Ready
+      status: False
+
+- name: Wait for node "{{ vm_name }}" to be Ready again
+  when: vmStarted is defined and vmStarted is changed
+  k8s_info:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    kind: node
+    name: "{{ vm_name }}"
+    wait: yes
+    wait_timeout: 1200
+    wait_condition:
+      type: Ready
+      status: True
