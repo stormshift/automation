@@ -26,7 +26,7 @@
         + [
             tower_user_email | default('xxx') + '-admin',
             stormshift_owner_email | default('xxx') + '-admin'
-        ] | reject('equalto', 'xxx-admin') }}"
+        ] | reject('equalto', 'xxx-admin') | unique }}"
 
 - name: Add cluster role coe-cluster-admins
   kubernetes.core.k8s:
