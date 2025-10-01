@@ -12,7 +12,7 @@
           - " - cluster_type: {{ cluster_type }}"
           - " - stormshift_cluster_action: {{ stormshift_cluster_action }}"
           - " - stormshift_cluster_name: {{ stormshift_cluster_name }}"
-          - " - stormshift_cluster_features: {{ stormshift_cluster_features | join(',') }}"
+          - " - stormshift_cluster_features: {{ stormshift_cluster_features | default([]) | join(',') }}"
 
     - name: Check if action is supported/allowed
       fail:
