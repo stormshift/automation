@@ -7,7 +7,7 @@
     api_version: kubevirt.io/v1
     kind: VirtualMachine
     name: "{{ vm_name }}"
-    namespace: "{{ vm_namespace }}"
+    namespace: "{{ target_namespace }}"
   register: vm_info
 
 - name: Remove disk {{ disk_name_to_remove }} from {{ vm_name }}
@@ -23,7 +23,7 @@
     api_version: kubevirt.io/v1
     kind: VirtualMachine
     name: "{{ vm_name }}"
-    namespace: "{{ vm_namespace }}"
+    namespace: "{{ target_namespace }}"
     definition:
       spec:
         dataVolumeTemplates: "{{ vm_info.resources[0].spec.dataVolumeTemplates | rejectattr('metadata.name', 'equalto', vm_name+'-'+disk_name_to_remove) | list }}"
@@ -44,7 +44,7 @@
     api_version: cdi.kubevirt.io/v1beta1
     kind: DataVolume
     name: "{{ vm_name }}-{{ disk_name_to_remove }}"
-    namespace: "{{ vm_namespace }}"
+    namespace: "{{ target_namespace }}"
     state: absent
 
 # Okay, so far so easy, this disk is gone.
@@ -55,10 +55,33 @@
 # Hence we stop/start it only when it was running,
 # and when we stopped it, we wait for it to become ready again.
 # That makes this pretty slow, but rather less intrusive
+
+
+- name: Switch from running (deprecated) to run_strategy
+  when:
+    - restart_vm
+    - diskRemoved is defined and diskRemoved is changed
+    - "'Running' in vm_info.resources[0].status.printableStatus"
+    - vm_info.resources[0].spec.running is defined
+  kubernetes.core.k8s:
+    merge_type: merge
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+    api_version: kubevirt.io/v1
+    kind: VirtualMachine
+    name: "{{ vm_name }}"
+    namespace: "{{ target_namespace }}"
+    definition:
+      spec:
+        running: null
+        runStrategy: "{{ ocpVirt_target_runStrategy }}"
+
 - name: Stop VM {{ vm_name }}
   when:
+    - restart_vm
     - diskRemoved is defined and diskRemoved is changed
-    - vm_info.resources[0].spec.running is true
+    - "'Running' in vm_info.resources[0].status.printableStatus"
   kubevirt.core.kubevirt_vm:
     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
     host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
@@ -66,8 +89,8 @@
 
     state: present
     name: "{{ vm_name }}"
-    namespace: "{{ vm_namespace }}"
-    running: false
+    namespace: "{{ target_namespace }}"
+    run_strategy: "Halted"
     wait: yes
   register: vmStopped
 
@@ -80,8 +103,8 @@
 
     state: present
     name: "{{ vm_name }}"
-    namespace: "{{ vm_namespace }}"
-    running: true
+    namespace: "{{ target_namespace }}"
+    run_strategy: "{% if vm_info.resources[0].spec.runStrategy is defined and vm_info.resources[0].spec.runStrategy != '' %}{{ vm_info.resources[0].spec.runStrategy }}{% else %}{{ ocpVirt_target_runStrategy }}{% endif %}"
     wait: yes
   register: vmStarted
 

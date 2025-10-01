@@ -33,5 +33,5 @@
     api_version: cdi.kubevirt.io/v1beta1
     kind: DataVolume
     name: "{{ inventory_hostname }}-agent-iso"
-    namespace: "{{ vm_namespace }}"
+    namespace: "{{ target_namespace }}"
     state: absent

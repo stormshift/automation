@@ -26,6 +26,8 @@ IPA_HOST: "{{sysctx_network_dns}}"
 # Template VMs related common vars:
 stormshift_template_vms_namespace: stormshift-vm-templates
 
+#
+ocpVirt_target_runStrategy: RerunOnFailure
 
 # ---------------------------
 # Microshift related common vars:
