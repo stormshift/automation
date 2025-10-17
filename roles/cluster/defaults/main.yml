@@ -4,7 +4,7 @@ cluster_name: "{{ inventory_hostname }}"
 
 artifacts_dir: "{{ playbook_dir }}"
 openshift_install_dir: "{{ artifacts_dir }}/{{ inventory_hostname }}"
-openshift_version: 4.17.12
+openshift_version: 4.19.12
 openshift_install_dest: "{{ artifacts_dir }}/{{ openshift_version }}"
 
 openshift_mirror: "https://mirror.openshift.com"
@@ -39,3 +39,4 @@ control_plan_storage_class: "coe-netapp-san"
 agent_iso_storage_class: "coe-netapp-nas"
 
 descheduler_evict: "true"
+remove_cdrom_after_install: true

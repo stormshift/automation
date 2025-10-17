@@ -344,14 +344,6 @@
   ansible.builtin.include_tasks: "deploy-vm.yaml"
   with_indexed_items: "{{ workers | default([])}}"
 
-- name: Remove cdrom disk from VMs
-  vars:
-    restart_vm: false
-    disk_name_to_remove: "cdrom"
-  ansible.builtin.include_role:
-    name: "feature-remove-disk"
-    tasks_from: post-deploy.yaml
-
 - name: Waiting installation to complete
   when: not clusterAlreadyExists
   ansible.builtin.shell: |
@@ -364,6 +356,14 @@
 
 - name: Include post-configuration
   ansible.builtin.include_tasks: "post-configuration.yaml"
+
+- name: Remove cdrom disk from VMs
+  when: remove_cdrom_after_install
+  vars:
+    disk_name_to_remove: "cdrom"
+  ansible.builtin.include_role:
+    name: "feature-remove-disk"
+    tasks_from: post-deploy.yaml
 
 - name: Include post-deploy-features
   ansible.builtin.include_role:

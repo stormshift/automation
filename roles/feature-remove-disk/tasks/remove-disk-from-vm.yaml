@@ -59,7 +59,7 @@
 
 - name: Switch from running (deprecated) to run_strategy
   when:
-    - restart_vm
+    - restart_vm_after_disk_removal
     - diskRemoved is defined and diskRemoved is changed
     - "'Running' in vm_info.resources[0].status.printableStatus"
     - vm_info.resources[0].spec.running is defined
@@ -79,7 +79,7 @@
 
 - name: Stop VM {{ vm_name }}
   when:
-    - restart_vm
+    - restart_vm_after_disk_removal
     - diskRemoved is defined and diskRemoved is changed
     - "'Running' in vm_info.resources[0].status.printableStatus"
   kubevirt.core.kubevirt_vm:
