@@ -1,0 +1,37 @@
+- name: Remove disks from control plane VMs
+  vars:
+    vm_name: "{{ inventory_hostname }}-cp-{{ master.0 }}"
+  ansible.builtin.include_tasks: "remove-disk-from-vm.yaml"
+  with_indexed_items: "{{ control_plans }}"
+  loop_control:
+    loop_var: master
+  when: control_plans is defined and control_plans|length > 0
+
+- name: Remove disks from worker VMs
+  vars:
+    vm_name: "{{ inventory_hostname }}-worker-{{ worker.0 }}"
+  ansible.builtin.include_tasks: "remove-disk-from-vm.yaml"
+  with_indexed_items: "{{ workers }}"
+  loop_control:
+    loop_var: worker
+  when: workers is defined and workers|length > 0
+
+- name: Remove disks from arbiters VMs
+  vars:
+    vm_name: "{{ inventory_hostname }}-arbiter-{{ arbiter.0 }}"
+  ansible.builtin.include_tasks: "remove-disk-from-vm.yaml"
+  with_indexed_items: "{{ arbiters }}"
+  loop_control:
+    loop_var: arbiter
+  when: arbiters is defined and arbiters|length > 0
+
+- name: Remove agent iso DataVolume
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+    api_version: cdi.kubevirt.io/v1beta1
+    kind: DataVolume
+    name: "{{ inventory_hostname }}-agent-iso"
+    namespace: "{{ target_namespace }}"
+    state: absent

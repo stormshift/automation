@@ -357,6 +357,14 @@
 - name: Include post-configuration
   ansible.builtin.include_tasks: "post-configuration.yaml"
 
+- name: Remove cdrom disk from VMs
+  when: remove_cdrom_after_install
+  vars:
+    disk_name_to_remove: "cdrom"
+  ansible.builtin.include_role:
+    name: "feature-remove-disk"
+    tasks_from: post-deploy.yaml
+
 - name: Include post-deploy-features
   ansible.builtin.include_role:
     name: "feature-{{ item }}"

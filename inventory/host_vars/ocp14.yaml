@@ -5,7 +5,7 @@
 # cluster_excluded_actions:
 #   - destroy
 #   - create
-stormshift_owner_email: "mdargatz@redhat.com"
+stormshift_owner_email: "arolivei@redhat.com"
 stormshift_owner_purpose: "SNO"
 stormshift_owner_usage: "exclusive"
 cluster_type: classic

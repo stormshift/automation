@@ -1,0 +1,5 @@
+---
+# defaults file
+disk_name_to_remove: "cdrom"
+target_namespace: "{{ cluster_custom_namespace | default('stormshift-' + inventory_hostname + '-infra') }}"
+restart_vm_after_disk_removal: true
