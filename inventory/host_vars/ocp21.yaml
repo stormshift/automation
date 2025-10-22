@@ -27,7 +27,7 @@ openshift_version: 4.20.0
 #openshift_featureSet: TechPreviewNoUpgrade
 
 control_plan_cores: 8
-control_plan_ram_gb: 64
+control_plan_ram_gb: 48
 
 local_cluster_admins:
   - dfroehli@redhat.com-admin

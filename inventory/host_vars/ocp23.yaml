@@ -25,7 +25,7 @@ openshift_version: 4.20.0-rc.2
 #openshift_featureSet: TechPreviewNoUpgrade
 
 control_plan_cores: 8
-control_plan_ram_gb: 64
+control_plan_ram_gb: 48
 
 control_plans:
   - vm_network_ip_address: 10.32.105.201
