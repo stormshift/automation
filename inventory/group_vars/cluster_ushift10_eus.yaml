@@ -1,5 +1,5 @@
 stormshift_owner_email: "dfroehli@redhat.com"
-stormshift_owner_purpose: "Current EUS version"
+stormshift_owner_purpose: "Oldest EUS version"
 ushift_version: 4.14
 ushift_preview_version: latest-4.15
 ushift_preview_version_dep_ec: 4.14-el9-beta
@@ -11,12 +11,15 @@ ushift_deploy_sample_workload: true
 vm_cores: 3
 vm_memory: "8Gi"
 vm_template: "rhel92"
+rhel_version: "9.2"
 network_ip_address: 10.32.99.10
 network_mac_address: 0E:C0:EF:20:63:0A
 ushift_repo_list:
+      - rhel-9-for-x86_64-appstream-eus-rpms
+      - rhel-9-for-x86_64-baseos-eus-rpms
       - rhocp-4.14-for-rhel-9-x86_64-rpms
       - fast-datapath-for-rhel-9-x86_64-rpms
-      - gitops-1.12-for-rhel-9-x86_64-rpms
+#      - gitops-1.12-for-rhel-9-x86_64-rpms
 # install_type - one of: rpm, ostree, imageMode
 ushift_install_type: rpm
 ushift_additional_features:
