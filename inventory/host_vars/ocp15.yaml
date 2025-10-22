@@ -1,0 +1,31 @@
+---
+stormshift_owner_email: "{{ tower_user_email }}"
+stormshift_owner_purpose: "SNO"
+stormshift_owner_usage: "exclusive"
+cluster_type: classic
+# This is also the zone in IPA!
+cluster_base_domain: stormshift.coe.muc.redhat.com
+cluster_name: ocp15
+
+control_plan_cores: 8
+control_plan_ram_gb: 32
+control_plans:
+  - vm_network_ip_address: 10.32.105.132
+    vm_network_mac_address: 0E:C0:EF:20:6F:84
+
+# Default is in roles/cluster/defaults/main.yaml - Override if needed:
+#openshift_version: 4.17.2
+
+# See https://docs.openshift.com/container-platform/4.17/installing/overview/cluster-capabilities.html
+#cluster_capabilities:
+#  baselineCapabilitySet: None
+#  additionalEnabledCapabilities:
+#  - Storage
+#  - Console
+#  - Ingress
+#  - OperatorLifecycleManager
+#  - marketplace
+
+#agent_iso_storage_class: "ocs-storagecluster-cephfs"
+#control_plan_storage_class: "odf-replica-two"
+#worker_storage_class: "odf-replica-two"
