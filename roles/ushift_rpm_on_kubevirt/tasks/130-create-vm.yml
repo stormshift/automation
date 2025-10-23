@@ -8,7 +8,7 @@
       host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
       validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
       state: present
-      running: true # default
+      runStrategy: "{{ ocpVirt_runStrategy_running }}" # default
       wait: true
       name: "{{ inventory_hostname }}"
       namespace: "{{ ushift_virt_namespace }}"

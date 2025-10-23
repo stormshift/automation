@@ -82,7 +82,7 @@
     state: present
     name: "{{ vm_name }}"
     namespace: "{{ target_namespace }}"
-    running: false
+    runStrategy: "{{ ocpVirt_runStrategy_stopped }}"
     wait: yes
   register: vmStopped
 
@@ -96,5 +96,5 @@
     state: present
     name: "{{ vm_name }}"
     namespace: "{{ target_namespace }}"
-    running: true
+    runStrategy: "{{ ocpVirt_runStrategy_running }}"
     wait: yes
