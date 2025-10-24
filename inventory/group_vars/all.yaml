@@ -28,7 +28,7 @@ stormshift_template_vms_namespace: stormshift-vm-templates
 
 #
 ocpVirt_runStrategy_running: RerunOnFailure
-ocpVirt_runStrategy_stopped: "Halted"
+ocpVirt_runStrategy_stopped: Halted
 
 # ---------------------------
 # Microshift related common vars:
