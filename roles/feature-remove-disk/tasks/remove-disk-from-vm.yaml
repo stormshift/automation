@@ -75,7 +75,7 @@
     definition:
       spec:
         running: null
-        runStrategy: "{{ ocpVirt_target_runStrategy }}"
+        runStrategy: "{{ ocpVirt_runStrategy_running }}"
 
 - name: Stop VM {{ vm_name }}
   when:
@@ -104,7 +104,7 @@
     state: present
     name: "{{ vm_name }}"
     namespace: "{{ target_namespace }}"
-    run_strategy: "{% if vm_info.resources[0].spec.runStrategy is defined and vm_info.resources[0].spec.runStrategy != '' %}{{ vm_info.resources[0].spec.runStrategy }}{% else %}{{ ocpVirt_target_runStrategy }}{% endif %}"
+    run_strategy: "{% if vm_info.resources[0].spec.runStrategy is defined and vm_info.resources[0].spec.runStrategy != '' %}{{ vm_info.resources[0].spec.runStrategy }}{% else %}{{ ocpVirt_runStrategy_running }}{% endif %}"
     wait: yes
   register: vmStarted
 

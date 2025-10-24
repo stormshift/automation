@@ -13,7 +13,7 @@
         host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
         validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
         state: present
-        running: true
+        run_strategy: "{{ ocpVirt_runStrategy_running }}"
         wait: true
         name: "{{ vm_cr_name }}"
         namespace: "{{ stormshift_template_vms_namespace }}"
@@ -66,7 +66,7 @@
         host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
         validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
         state: present
-        running: false
+        run_strategy: "{{ ocpVirt_runStrategy_stopped }}"
         wait: true
         name: "{{ vm_cr_name }}"
         namespace: "{{ stormshift_template_vms_namespace }}"

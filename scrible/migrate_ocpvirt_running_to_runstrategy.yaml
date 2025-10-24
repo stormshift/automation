@@ -1,0 +1,35 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    vm_name: "ushift-imgbld"
+    target_namespace: "stormshift-microshift"
+  tasks:
+  - name: Get VMs
+    kubernetes.core.k8s_info:
+      api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+      host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+      validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+      api_version: kubevirt.io/v1
+      kind: VirtualMachine
+#      name: "{{ vm_name }}"
+      namespace: "{{ target_namespace }}"
+    register: vm_info
+
+  - name: Migrate VMs to runStrategy
+    loop: "{{ vm_info.resources }}"
+    kubernetes.core.k8s:
+      merge_type: merge
+      api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+      host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+      validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+      api_version: kubevirt.io/v1
+      kind: VirtualMachine
+      name: "{{ item.metadata.name }}"
+      namespace: "{{ item.metadata.namespace }}"
+      definition:
+        spec:
+          running: null
+          runStrategy: "{% if 'Running' in item.status.printableStatus %}{{ ocpVirt_runStrategy_running }}{% else %}{{ ocpVirt_runStrategy_stopped }}{% endif %}"
+    when: item.spec.running is defined
