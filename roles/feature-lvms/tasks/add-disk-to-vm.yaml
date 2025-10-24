@@ -34,7 +34,7 @@
     host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
     validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
     state: patched
-    apply: true
+    merge_type: merge
     definition:
       kind: VirtualMachine
       apiVersion: kubevirt.io/v1
@@ -51,18 +51,11 @@
                     name: root
                     disk:
                       bus: virtio
-                  - bootOrder: 2
-                    name: cdrom
-                    cdrom:
-                      bus: sata
                   - bootOrder: 99
                     disk:
                       bus: scsi
                     name: "{{ disk_name }}"
             volumes:
-              - name: cdrom
-                dataVolume:
-                  name: "{{ vm_name }}-cdrom"
               - name: root
                 dataVolume:
                   name: "{{ vm_name }}-root"
