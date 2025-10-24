@@ -1,0 +1,54 @@
+---
+stormshift_owner_email: ""
+stormshift_owner_purpose: ""
+stormshift_owner_usage: ""
+cluster_type: classic
+cluster_api_vip: 10.32.105.199
+cluster_ingress_vip: 10.32.105.200
+
+cluster_color: "#FFF"
+
+# Default is in roles/cluster/defaults/main.yaml - Override if needed:
+#openshift_version: 4.17.12
+
+# See https://docs.openshift.com/container-platform/4.17/installing/overview/cluster-capabilities.html
+cluster_capabilities:
+  baselineCapabilitySet: vCurrent
+#  baselineCapabilitySet: None
+#  additionalEnabledCapabilities:
+#  - baremetal
+#  - Ingress
+
+# Default is in roles/cluster/defaults/main.yaml - Override if needed:
+openshift_version: 4.20.0-rc.2
+#openshift_location: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp-dev-preview/{{ openshift_version }}"
+#openshift_featureSet: TechPreviewNoUpgrade
+
+control_plan_cores: 8
+control_plan_ram_gb: 48
+
+control_plans:
+  - vm_network_ip_address: 10.32.105.201
+    vm_network_mac_address: 0E:C0:EF:20:6F:C9
+  - vm_network_ip_address: 10.32.105.202
+    vm_network_mac_address: 0E:C0:EF:20:6F:CA
+
+arbiter_cores: 2
+arbiter_ram_gb: 8
+arbiters:
+  - vm_network_ip_address: 10.32.105.203
+    vm_network_mac_address: 0E:C0:EF:20:6F:CB
+
+worker_cores: 8
+worker_ram_gb: 16
+
+# Compact 3 nodes only Cluster:
+workers: []
+# Regular 3+3 Cluster:
+# workers:
+  # - vm_network_ip_address: 10.32.105.83
+  #   vm_network_mac_address: 0E:C0:EF:20:69:53
+  # - vm_network_ip_address: 10.32.105.84
+  #   vm_network_mac_address: 0E:C0:EF:20:69:54
+  # - vm_network_ip_address: 10.32.105.85
+  #   vm_network_mac_address: 0E:C0:EF:20:69:55
