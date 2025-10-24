@@ -1,5 +1,5 @@
 ---
-openshift_version: 4.19.9
+openshift_version: 4.20.0
 stormshift_owner_email: "rbohne@redhat.com"
 stormshift_owner_purpose: "SSA playground"
 stormshift_owner_usage: "exclusive"
