@@ -1,3 +1,11 @@
+- name: Remove cdrom disk from VMs
+  vars:
+    disk_name_to_remove: "cdrom"
+    restart_vm_after_disk_removal: false
+  ansible.builtin.include_role:
+    name: "feature-remove-disk"
+    tasks_from: post-deploy.yaml
+
 - name: Add disks to control plane VMs
   vars:
     vm_name: "{{ inventory_hostname }}-cp-{{ item.0 }}"
@@ -22,6 +30,25 @@
 - name: Fetch kubeconfig from vault
   ansible.builtin.include_role:
     name: internal-fetch-kubeconfig
+
+- name: Define lvms_channel
+  when: lvms_channel is undefined
+  block:
+  - name: Retrieve ClusterVersion
+    kubernetes.core.k8s_info:
+      kubeconfig: "{{ cluster_access_kubeconfig }}"
+      api_version: config.openshift.io/v1
+      kind: ClusterVersion
+    register: cluster_version
+  - name: Define ocp version
+    set_fact:
+      ocp_version: "{{ cluster_version.resources[0].status.desired.version }}"
+  - name:
+    debug:
+      msg: "detected OpenShift version:{{ ocp_version }}"
+  - name: Define lvms_channel
+    set_fact:
+      lvms_channel: "stable-{{ ocp_version.split('.').0 }}.{{ ocp_version.split('.').1 }}"
 
 - name: Install LVMS operator
   kubernetes.core.k8s:
