@@ -92,3 +92,42 @@
       spec:
         trustedCA:
           name: redhat-current-it-root-cas
+
+
+
+# Configure Alertmanager (esp. the default receiver).
+# See defaults/main.yml
+# See https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/monitoring/configuring-core-platform-monitoring#configuring-alert-routing-default-platform-alerts_configuring-alerts-and-notifications
+- name: Get alertmanager-main Secret
+  when: alertmanager_configure
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Secret
+    name: "alertmanager-main"
+    namespace: "openshift-monitoring"
+  register: current_secret
+
+- name: Decode secret
+  # Secrets data is base64 encoded, so we decode it.
+  set_fact:
+    decoded_yaml_config: "{{ current_secret.resources[0].data['alertmanager.yaml'] | b64decode | from_yaml }}"
+  when:
+    - current_secret.resources is defined
+    - current_secret.resources | length > 0
+
+- name: Patch secret with additional config
+  set_fact:
+    patched_yaml_config: "{{ decoded_yaml_config | combine(alertmanager_additional_config, recursive=True, list_merge='append_rp') }}"
+  when: decoded_yaml_config is defined
+
+- name: Patch Alertmanager Secret
+  kubernetes.core.k8s:
+    state: patched
+    api_version: v1
+    kind: Secret
+    name: "alertmanager-main"
+    namespace: "openshift-monitoring"
+    definition:
+      data:
+        alertmanager.yaml: "{{ patched_yaml_config | to_nice_yaml | b64encode }}"
+  when: patched_yaml_config is defined
