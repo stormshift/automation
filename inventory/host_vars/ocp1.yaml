@@ -8,8 +8,14 @@ cluster_type: classic
 cluster_api_vip: 10.32.105.64
 cluster_ingress_vip: 10.32.105.65
 
+stormshift_cluster_features:
+  - redhat-internal-certificate
+  - coe-sso
+  - look-and-feel
+  - netapp-trident
+
 control_plan_cores: 8
-control_plan_ram_gb: 16
+control_plan_ram_gb: 32
 control_plans:
   - vm_network_ip_address: 10.32.105.66
     vm_network_mac_address: 0E:C0:EF:20:69:42
