@@ -46,7 +46,7 @@ alertmanager_additional_config:
   global:
     smtp_from: noreply@redhat.com
     smtp_smarthost: 'smtp.corp.redhat.com:25'
-    smtp_hello: isar.coe.muc.redhat.com
+    smtp_hello: "{{ inventory_hostname }}.stormshift.coe.muc.redhat.com"
     smtp_require_tls: false
   route:
       group_wait: 5m
