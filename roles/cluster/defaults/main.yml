@@ -40,3 +40,21 @@ agent_iso_storage_class: "coe-netapp-nas"
 
 descheduler_evict: "true"
 remove_cdrom_after_install: true
+
+alertmanager_configure: true
+alertmanager_additional_config:
+  global:
+    smtp_from: noreply@redhat.com
+    smtp_smarthost: 'smtp.corp.redhat.com:25'
+    smtp_hello: "{{ inventory_hostname }}.stormshift.coe.muc.redhat.com"
+    smtp_require_tls: false
+  route:
+      group_wait: 5m
+      group_interval: 60m
+      repeat_interval: 48h
+      receiver: Default
+
+  receivers:
+    - name: Default
+      email_configs:
+      - to: "{{ (stormshift_owner_email | split('@'))[0] }}+stormshift-{{ inventory_hostname }}@{{ (stormshift_owner_email | split('@'))[1]}}"
