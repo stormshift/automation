@@ -15,6 +15,7 @@ stormshift_cluster_features:
   - coe-sso
   - look-and-feel
   - lvms
+  - acm
 
 # See https://docs.openshift.com/container-platform/4.17/installing/overview/cluster-capabilities.html
 cluster_capabilities:

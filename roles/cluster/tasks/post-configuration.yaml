@@ -101,6 +101,7 @@
 - name: Get alertmanager-main Secret
   when: alertmanager_configure
   kubernetes.core.k8s_info:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
     api_version: v1
     kind: Secret
     name: "alertmanager-main"
@@ -122,6 +123,7 @@
 
 - name: Patch Alertmanager Secret
   kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
     state: patched
     api_version: v1
     kind: Secret
