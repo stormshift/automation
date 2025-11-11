@@ -372,5 +372,8 @@
     tasks_from: post-deploy.yaml
 
 - name: Cluster informations
+  when:
+    - install_status is defined
+    - install_status.stderr_lines is defined
   ansible.builtin.debug:
     msg: "{{ install_status.stderr_lines | map('regex_replace', 'level=info msg=\"(.*)\"', '\\1') | list }}"
