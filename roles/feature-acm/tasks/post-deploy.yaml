@@ -69,3 +69,17 @@
       type: Complete
       status: True
     definition: "{{ lookup('template', 'templates/multicluster-hub.yaml') | from_yaml }}"
+
+- name: Activate Edge Manager Console Plugin
+  when: acm_edge_manager_preview
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: patched
+    definition:
+      apiVersion: operator.openshift.io/v1
+      kind: Console
+      metadata:
+        name: cluster
+      spec:
+        plugins:
+          - flightctl-plugin
