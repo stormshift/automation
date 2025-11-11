@@ -118,7 +118,7 @@
 
 - name: Patch secret with additional config
   set_fact:
-    patched_yaml_config: "{{ decoded_yaml_config | combine(alertmanager_additional_config, recursive=True, list_merge='append_rp') }}"
+    patched_yaml_config: "{{ decoded_yaml_config | combine({'receivers': omit}) | combine(alertmanager_additional_config, recursive=True, list_merge='append_rp') }}"
   when: decoded_yaml_config is defined
 
 - name: Patch Alertmanager Secret
