@@ -53,8 +53,11 @@ alertmanager_additional_config:
       group_interval: 60m
       repeat_interval: 48h
       receiver: Default
-
   receivers:
+    - name: Critical
+      email_configs:
+      - to: "{{ (stormshift_owner_email | split('@'))[0] }}+stormshift-{{ inventory_hostname }}@{{ (stormshift_owner_email | split('@'))[1]}}"
     - name: Default
       email_configs:
       - to: "{{ (stormshift_owner_email | split('@'))[0] }}+stormshift-{{ inventory_hostname }}@{{ (stormshift_owner_email | split('@'))[1]}}"
+    - name: Watchdog
