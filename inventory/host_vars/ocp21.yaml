@@ -8,18 +8,18 @@ cluster_ingress_vip: 10.32.105.123
 
 cluster_color: "#FF0"
 
-# Default is in roles/cluster/defaults/main.yaml - Override if needed:
-#openshift_version: 4.17.12
-
 # See https://docs.openshift.com/container-platform/4.17/installing/overview/cluster-capabilities.html
 cluster_capabilities:
-#  baselineCapabilitySet: vCurrent
-  baselineCapabilitySet: None
-  additionalEnabledCapabilities:
-  - baremetal
-  - Ingress
-  - Console
-  - Storage
+  baselineCapabilitySet: vCurrent
+#  baselineCapabilitySet: None
+#  additionalEnabledCapabilities:
+#  - baremetal
+#  - Ingress
+#  - Console
+#  - Storage
+#  - OperatorLifecycleManager
+#  - marketplace
+#  - Insights
 
 # Default is in roles/cluster/defaults/main.yaml - Override if needed:
 openshift_version: 4.20.0
