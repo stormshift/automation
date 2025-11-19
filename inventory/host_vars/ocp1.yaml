@@ -1,5 +1,5 @@
 ---
-openshift_version: 4.20.1
+openshift_version: 4.20.4
 stormshift_owner_email: "rbohne@redhat.com"
 stormshift_owner_purpose: "SSA playground"
 stormshift_owner_usage: "exclusive"
@@ -15,7 +15,7 @@ stormshift_cluster_features:
   - netapp-trident
 
 control_plan_cores: 8
-control_plan_ram_gb: 32
+control_plan_ram_gb: 24
 control_plans:
   - vm_network_ip_address: 10.32.105.66
     vm_network_mac_address: 0E:C0:EF:20:69:42
