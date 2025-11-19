@@ -130,10 +130,11 @@ source development-example.env-private
 ```bash
 
 ansible-navigator run stormshift-cluster-mgmt.yaml \
-    -e stormshift_cluster_action=destroy \
-    -e stormshift_cluster_name=ocp3 \
+    -e stormshift_cluster_action=deploy \
+    -e stormshift_cluster_name=ocp1 \
     --vault-password-file=.vault_pass \
-    -e @development-example.vars-private
+    -e @development-example.vars-private \
+    -e '{ "stormshift_cluster_features": ["redhat-internal-certificate","coe-sso","look-and-feel"]}'
 
 ansible-navigator run stormshift-cluster-mgmt.yaml \
     -e stormshift_cluster_action=add-features \
