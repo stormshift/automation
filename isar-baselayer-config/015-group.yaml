@@ -4,5 +4,8 @@ kind: Group
 metadata:
   name: stormshift-admins
 users:
-  - rbohne@redhat.com
-  - b64:system:serviceaccount:stormshift:automation 
+  - b64:system:serviceaccount:stormshift:automation
+  - rbohne@redhat.com-admin
+  - dfroehli@redhat.com-admin
+  - mdargatz@redhat.com-admin
+  - fcharett@redhat.com-admin
