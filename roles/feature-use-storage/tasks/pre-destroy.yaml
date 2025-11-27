@@ -1,0 +1,51 @@
+---
+- name: Fetch kubeconfig from vault
+  ansible.builtin.include_role:
+    name: internal-fetch-kubeconfig
+
+- name: Deconfigure registry
+  ignore_errors: true
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    definition:
+      kind: Config
+      apiVersion: imageregistry.operator.openshift.io/v1
+      metadata:
+        name: cluster
+      spec:
+        managementState: Removed
+
+
+- name: Remove pvc for registry
+  ignore_errors: true
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: absent
+    definition:
+      kind: PersistentVolumeClaim
+      apiVersion: v1
+      metadata:
+        name: registry-storage
+        namespace: openshift-image-registry
+
+- name: Remove cluster monitoring config
+  ignore_errors: true
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: absent
+    definition:
+      kind: ConfigMap
+      apiVersion: v1
+      metadata:
+        name: cluster-monitoring-config
+        namespace: openshift-monitoring
+
+- name: Remove monitoring storage PVCs
+  ignore_errors: true
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: PersistentVolumeClaim
+    namespace: openshift-monitoring
+    state: absent
+    label_selectors: ""

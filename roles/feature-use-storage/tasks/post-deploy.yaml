@@ -1,0 +1,115 @@
+---
+- name: Fetch kubeconfig from vault
+  ansible.builtin.include_role:
+    name: internal-fetch-kubeconfig
+
+- name: Get all StorageClasses
+  when: storageclass_name is undefined
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    api_version: storage.k8s.io/v1
+    kind: StorageClass
+  register: sc_info
+
+- name: Determine default StorageClass
+  when: sc_info.resources is defined and sc_info.resources | length > 0
+  ansible.builtin.set_fact:
+    storageclass_name: "{{ sc_info.resources | json_query(query) | first }}"
+  vars:
+    query: "[?metadata.annotations.['storageclass.kubernetes.io/is-default-class'=='true']].metadata.name"
+
+- name: Using StorageClass
+  when: storageclass_name is defined
+  debug:
+    var: storageclass_name
+
+- name: Configure cluster monitoring to use storage
+  when: storageclass_name is defined and monitoring.configure
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    definition:
+      kind: ConfigMap
+      apiVersion: v1
+      metadata:
+        name: cluster-monitoring-config
+        namespace: openshift-monitoring
+      data:
+        config.yaml: |
+          alertmanagerMain:
+            volumeClaimTemplate:
+              metadata: {}
+              spec:
+                resources:
+                  requests:
+                    storage: {{ monitoring.alertmanager.storage_request }}
+                storageClassName: {{ storageclass_name }}
+          prometheusK8s:
+            retention: {{ monitoring.prometheus.retention }}
+            retentionSize: {{ monitoring.prometheus.retentionSize }}
+            collectionProfile: {{ monitoring.prometheus.collectionProfile }}
+            resources:
+                requests:
+                  cpu: 70m
+                  memory: "1024Mi"
+                limits:
+                  memory: {{ monitoring.prometheus.memory_limit }}
+            volumeClaimTemplate:
+              metadata: {}
+              spec:
+                resources:
+                  requests:
+                    storage: {{ monitoring.prometheus.storage_request }}
+                storageClassName: {{ storageclass_name }}
+
+- name: Check if registry capability is available
+  when: storageclass_name is defined
+  k8s_info:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    kind: Config
+    api_version: imageregistry.operator.openshift.io/v1
+    name: cluster
+  register: registry_config
+
+- name: Create pvc for registry
+  when:
+    - storageclass_name is defined
+    - registry.configure
+    - registry_config.resources | length > 0
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    definition:
+      kind: PersistentVolumeClaim
+      apiVersion: v1
+      metadata:
+        name: registry-storage
+        namespace: openshift-image-registry
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        storageClassName: "{{ storageclass_name }}"
+        resources:
+          requests:
+            storage: "{{ registry.storage_request }}"
+
+- name: Configure registry
+  when:
+    - storageclass_name is defined 
+    - registry.configure
+    - registry_config.resources | length > 0
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    definition:
+      kind: Config
+      apiVersion: imageregistry.operator.openshift.io/v1
+      metadata:
+        name: cluster
+      spec:
+        managementState: Managed
+        rolloutStrategy: Recreate
+        storage:
+          managementState: Unmanaged
+          pvc:
+            claim: registry-storage

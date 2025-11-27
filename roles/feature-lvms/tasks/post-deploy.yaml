@@ -135,3 +135,8 @@
                 name: thin-pool-1
                 overprovisionRatio: 10
                 sizePercent: 90
+                
+- name: Make use of the new storage
+  ansible.builtin.include_role:
+    name: "feature-use-storage"
+    tasks_from: post-deploy.yaml

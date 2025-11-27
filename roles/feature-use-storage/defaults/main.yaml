@@ -1,0 +1,21 @@
+---
+# defaults file
+# Leave undefined to use default storage class
+#storageclass_name:
+
+monitoring:
+  configure: true
+  prometheus:
+    storage_request: "20Gi"
+    memory_limit: "2048Mi"
+    retention: "7d"
+    retentionSize: "19GB"
+    collectionProfile: "full"
+#    collectionProfile: "minimal"
+
+  alertmanager:
+    storage_request: "300Mi"
+
+registry:
+    configure: true
+    storage_request: "20Gi"

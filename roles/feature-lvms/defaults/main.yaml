@@ -1,7 +1,7 @@
 ---
 # defaults file
 disk_name: "lvms-disk1"
-disk_size: "25Gi"
+disk_size: "100Gi"
 disk_storageclass:  "coe-netapp-san"
 
 target_namespace: "{{ cluster_custom_namespace | default('stormshift-' + inventory_hostname + '-infra') }}"
