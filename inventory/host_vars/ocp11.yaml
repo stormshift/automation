@@ -15,7 +15,9 @@ cluster_name: ocp11
 cluster_color: "#F0F"
 
 # See: https://docs.openshift.com/container-platform/4.17/scalability_and_performance/enabling-workload-partitioning.html#enabling-workload-partitioning_enabling-workload-partitioning
-cluster_cpuPartitioningMode: AllNodes
+#cluster_cpuPartitioningMode: AllNodes
+cluster_cpuPartitioningMode: None
+remove_cdrom_after_install: false
 
 # Not needed for SNO, it will use the ip of the node.
 # cluster_api_vip:
@@ -46,12 +48,12 @@ stormshift_cluster_features:
 
 # See https://docs.openshift.com/container-platform/4.17/installing/overview/cluster-capabilities.html
 cluster_capabilities:
-  baselineCapabilitySet: vCurrent
-#  baselineCapabilitySet: None
-#  additionalEnabledCapabilities:
-#  - Storage
-#  - Console
-#  - Ingress
+#  baselineCapabilitySet: vCurrent
+  baselineCapabilitySet: None
+  additionalEnabledCapabilities:
+  - Storage
+  - Console
+  - Ingress
 #  - OperatorLifecycleManager
 #  - marketplace
 

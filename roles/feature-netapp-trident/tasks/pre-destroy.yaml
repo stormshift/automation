@@ -1,4 +1,95 @@
 ---
+- name: Fetch kubeconfig from vault
+  ansible.builtin.include_role:
+    name: internal-fetch-kubeconfig
+
+- name: Remove TridentBackendConfigs
+  ignore_errors: true
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: absent
+    kind: TridentBackendConfig
+    api_version: trident.netapp.io/v1
+    namespace: netapp-trident
+    label_selectors: ""
+
+- name: Remove TridentNodes
+  ignore_errors: true
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: absent
+    kind: TridentNode
+    api_version: trident.netapp.io/v1
+    namespace: netapp-trident
+    label_selectors: ""
+
+- name: Remove TridentVersions
+  ignore_errors: true
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: absent
+    kind: TridentVersion
+    api_version: trident.netapp.io/v1
+    namespace: netapp-trident
+    label_selectors: ""
+
+- name: Remove NetApp Trident operator
+  ignore_errors: true
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: absent
+    definition:
+      apiVersion: operators.coreos.com/v1alpha1
+      kind: Subscription
+      metadata:
+        name: trident-operator
+        namespace: openshift-operators
+
+- name: Remove namespace
+  ignore_errors: true
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: absent
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: netapp-trident
+
+- name: Remove SnapShotClass
+  ignore_errors: true
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: absent
+    definition:
+      apiVersion: snapshot.storage.k8s.io/v1
+      kind: VolumeSnapshotClass
+      metadata:
+        name: coe-netapp
+
+- name: Remove StorageClass/coe-netapp-san
+  ignore_errors: true
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: absent
+    definition:
+      apiVersion: storage.k8s.io/v1
+      kind: StorageClass
+      metadata:
+        name: coe-netapp-san
+
+- name: Remove StorageClass/coe-netapp-nas
+  ignore_errors: true
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: absent
+    definition:
+      apiVersion: storage.k8s.io/v1
+      kind: StorageClass
+      metadata:
+        name: coe-netapp-nas
+
+
 # coe-netapp-nas
 - name: Fetch volumes from netapp
   netapp.ontap.na_ontap_rest_info:
