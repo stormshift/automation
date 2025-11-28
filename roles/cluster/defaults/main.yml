@@ -57,7 +57,11 @@ alertmanager_additional_config:
     - name: Critical
       email_configs:
       - to: "{{ (stormshift_owner_email | split('@'))[0] }}+stormshift-{{ inventory_hostname }}@{{ (stormshift_owner_email | split('@'))[1]}}"
+        headers:
+          subject: '🚨{{ inventory_hostname }}: {{ template "email.default.subject" . }}'
     - name: Default
       email_configs:
       - to: "{{ (stormshift_owner_email | split('@'))[0] }}+stormshift-{{ inventory_hostname }}@{{ (stormshift_owner_email | split('@'))[1]}}"
+        headers:
+          subject: '{{ inventory_hostname }}: {{ template "email.default.subject" . }}'
     - name: Watchdog
