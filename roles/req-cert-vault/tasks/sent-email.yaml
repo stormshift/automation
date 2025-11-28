@@ -29,6 +29,10 @@
     content: "{{ certificate.secret[item.key] }}"
     dest: "{{ email_temp.path  }}/{{ item.filename }}"
 
+- name: Debug receipient
+  debug:
+    msg: "{{ tower_user_name  }} <{{ tower_user_email }}>"
+
 - name: Sent E-Mail to requester
   community.general.mail:
     host: smtp.corp.redhat.com
