@@ -58,10 +58,10 @@ alertmanager_additional_config:
       email_configs:
       - to: "{{ (stormshift_owner_email | split('@'))[0] }}+stormshift-{{ inventory_hostname }}@{{ (stormshift_owner_email | split('@'))[1]}}"
         headers:
-          subject: '🚨{{ inventory_hostname }}: {{ template "email.default.subject" . }}'
+          subject: '🚨{{ inventory_hostname }}: {% raw %}{{ template "email.default.subject" . }}{% endraw %}'
     - name: Default
       email_configs:
       - to: "{{ (stormshift_owner_email | split('@'))[0] }}+stormshift-{{ inventory_hostname }}@{{ (stormshift_owner_email | split('@'))[1]}}"
         headers:
-          subject: '{{ inventory_hostname }}: {{ template "email.default.subject" . }}'
+          subject: '{{ inventory_hostname }}: {% raw %}{{ template "email.default.subject" . }}{% endraw %}'
     - name: Watchdog
