@@ -105,7 +105,7 @@
     name: kube-apiserver
     namespace: openshift-ingress-operator
     wait: yes
-    wait_timeout: 480
+    wait_timeout: 900
     wait_condition:
       type: Progressing
       status: False
