@@ -63,15 +63,15 @@ cluster_capabilities:
   - OperatorLifecycleManager
   - marketplace
 
-#cluster_additionalTrustBundle: /etc/pki/ca-trust/source/anchors/RedHat_Current-IT-Root-CAs.pem
-#cluster_imagesource:
-#  imageDigestSources:
-#  - source: quay.io/openshift-release-dev/ocp-release
-#    mirrorSourcePolicy: AllowContactingSource
-#    mirrorSourcePolicy: NeverContactSource
-#    mirrors:
-#      - quay.coe.muc.redhat.com/proxy_quay_openshift_release/ocp-release
-#  - source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
-#    mirrorSourcePolicy: NeverContactSource
-#    mirrors:
-#      - quay.coe.muc.redhat.com/proxy_quay_openshift_release/ocp-v4.0-art-dev
+cluster_additionalTrustBundle: /etc/pki/ca-trust/source/anchors/RedHat_Current-IT-Root-CAs.pem
+cluster_imagesource:
+ imageDigestSources:
+ - source: quay.io/openshift-release-dev/ocp-release
+   mirrorSourcePolicy: AllowContactingSource
+   mirrorSourcePolicy: NeverContactSource
+   mirrors:
+     - quay.coe.muc.redhat.com/proxy_quay_openshift_release/ocp-release
+ - source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
+   mirrorSourcePolicy: NeverContactSource
+   mirrors:
+     - quay.coe.muc.redhat.com/proxy_quay_openshift_release/ocp-v4.0-art-dev
