@@ -54,14 +54,14 @@ stormshift_cluster_features:
 
 # See https://docs.openshift.com/container-platform/4.17/installing/overview/cluster-capabilities.html
 cluster_capabilities:
-  baselineCapabilitySet: vCurrent
-#  baselineCapabilitySet: None
-#  additionalEnabledCapabilities:
-#  - Storage
-#  - Console
-#  - Ingress
-#  - OperatorLifecycleManager
-#  - marketplace
+#  baselineCapabilitySet: vCurrent
+  baselineCapabilitySet: None
+  additionalEnabledCapabilities:
+  - Storage
+  - Console
+  - Ingress
+  - OperatorLifecycleManager
+  - marketplace
 
 #cluster_additionalTrustBundle: /etc/pki/ca-trust/source/anchors/RedHat_Current-IT-Root-CAs.pem
 #cluster_imagesource:
