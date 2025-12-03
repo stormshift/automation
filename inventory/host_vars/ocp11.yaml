@@ -45,7 +45,7 @@ stormshift_cluster_features:
   - redhat-internal-certificate
   - coe-sso
   - look-and-feel
-  - lvms
+#  - lvms
 #  - workload-partitioning
 #  - lvms
 #  - rhoai
@@ -60,8 +60,8 @@ cluster_capabilities:
   - Storage
   - Console
   - Ingress
-  - OperatorLifecycleManager
-  - marketplace
+#  - OperatorLifecycleManager
+#  - marketplace
 
 cluster_additionalTrustBundle: /etc/pki/ca-trust/source/anchors/RedHat_Current-IT-Root-CAs.pem
 cluster_imagesource:
