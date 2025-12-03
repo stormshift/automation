@@ -63,6 +63,8 @@ cluster_capabilities:
 #  - OperatorLifecycleManager
 #  - marketplace
 
+
+# Use local quay as registry for faster installation:
 cluster_additionalTrustBundle: /etc/pki/ca-trust/source/anchors/RedHat_Current-IT-Root-CAs.pem
 cluster_imagesource:
  imageDigestSources:
