@@ -13,7 +13,7 @@ stormshift_owner_usage: "dedicated"
 # Same color as for the labels: https://github.com/stormshift/support/labels
 cluster_color: "#19122F"
 cluster_color_fg: "#e8e8e8"
-openshift_version: 4.20.4
+openshift_version: 4.19.21
 
 stormshift_cluster_features:
   - redhat-internal-certificate
