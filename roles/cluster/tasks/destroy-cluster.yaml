@@ -145,3 +145,10 @@
 #     organization: stormshift
 #     state: absent
 #     credential_type: "OpenShift Cluster v1"
+
+- name: Include post-destroy-features
+  ignore_errors: true
+  ansible.builtin.include_role:
+    name: "feature-{{ item }}"
+    tasks_from: post-destroy.yaml
+  with_items: "{{ stormshift_cluster_features | default([]) }}"
