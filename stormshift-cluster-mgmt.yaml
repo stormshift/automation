@@ -34,9 +34,16 @@
       with_items: "{{ stormshift_cluster_features | default([]) }}"
       when: stormshift_cluster_action == 'add-features'
 
-    - name: Remove features from cluster
+    - name: Remove features from cluster (pre-destroy)
       ansible.builtin.include_role:
         name: "feature-{{ item }}"
         tasks_from: pre-destroy.yaml
+      with_items: "{{ stormshift_cluster_features | default([]) }}"
+      when: stormshift_cluster_action == 'remove-features'
+
+    - name: Remove features from cluster (post-destroy)
+      ansible.builtin.include_role:
+        name: "feature-{{ item }}"
+        tasks_from: post-destroy.yaml
       with_items: "{{ stormshift_cluster_features | default([]) }}"
       when: stormshift_cluster_action == 'remove-features'
