@@ -20,7 +20,7 @@
 
 - name: Delete all Volumes
   ansible.builtin.uri:
-    url: "https://{{ netapp_managementLIF }}{{ item._links.self.href }}"
+    url: "https://{{ netapp_managementLIF }}{{ item._links.self.href }}?allow_delete_while_mapped=true"
     user: "{{ netapp_username }}"
     password: "{{ netapp_password }}"
     validate_certs: false
@@ -48,10 +48,33 @@
 
 - name: Delete all LUN's
   ansible.builtin.uri:
-    url: "https://{{ netapp_managementLIF }}{{ item._links.self.href }}"
+    url: "https://{{ netapp_managementLIF }}{{ item._links.self.href }}?allow_delete_while_mapped=true"
     user: "{{ netapp_username }}"
     password: "{{ netapp_password }}"
     validate_certs: false
     method: DELETE
     force_basic_auth: true
   with_items: "{{ ontap_info_lun.ontap_info['storage/luns'].records }}"
+
+
+- name: Fetch igroups from netapp
+  netapp.ontap.na_ontap_rest_info:
+    hostname: "{{ netapp_managementLIF }}"
+    username: "{{ netapp_username }}"
+    password: "{{ netapp_password }}"
+    validate_certs: false
+    gather_subset:
+      - protocols/san/igroups
+    parameters:
+      name: "{{ inventory_hostname }}-worker-*"
+  register: ontap_info_igroups
+
+- name: Delete all igroups related to the cluster
+  ansible.builtin.uri:
+    url: "https://{{ netapp_managementLIF }}{{ item._links.self.href }}?allow_delete_while_mapped=true"
+    user: "{{ netapp_username }}"
+    password: "{{ netapp_password }}"
+    validate_certs: false
+    method: DELETE
+    force_basic_auth: true
+  with_items: "{{ ontap_info_igroups.ontap_info['protocols/san/igroups'].records }}"
