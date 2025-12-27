@@ -79,7 +79,7 @@
           model: "{{ vm_cpu_model }}"
           features:
             - name: vmx 
-              policy: required
+              policy: require
         memory:
           guest: "{{ vm_memory_gb }}Gi"
         resources:
