@@ -64,7 +64,7 @@
             source:
               pvc:
                 namespace: stormshift-vm-templates
-                name: "stormshift-template-{{vm_template}}-root"
+                name: "stormshift-template-{{ushift_vm_template}}-root-mig-mjfm"
 
   - name: Wait for VM to be online
     local_action:

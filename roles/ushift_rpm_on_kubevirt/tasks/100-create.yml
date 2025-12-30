@@ -1,5 +1,8 @@
 ---
 
+- debug:
+    var: ushift_vm_template
+
 - name: Configure DHCP
   ansible.builtin.include_tasks: 110-create-dhcp.yml
   tags: dhcp

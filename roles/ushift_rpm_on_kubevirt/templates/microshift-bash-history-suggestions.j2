@@ -19,3 +19,6 @@ bootc upgrade
 bootc upgrade --check
 bootc upgrade --apply
 bootc switch quay.coe.muc.redhat.com/shared/microshift/microshift-4.17-bootc:update
+firewall-cmd --permanent --add-service=cockpit
+rm /etc/cockpit/disallowed-users
+lvextend --resizefs rhel/root /dev/vda2

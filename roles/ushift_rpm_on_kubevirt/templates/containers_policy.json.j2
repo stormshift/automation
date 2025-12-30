@@ -15,7 +15,25 @@
                }
              }
            ],
+           "quay.coe.muc.redhat.com/proxy_quay_openshift_release/": [
+             {
+               "type": "sigstoreSigned",
+               "keyPath": "/etc/containers/RedHat_ReleaseKey3.pub",
+               "signedIdentity": {
+                 "type": "matchRepoDigestOrExact"
+               }
+             }
+           ],
            "registry.redhat.io": [
+             {
+               "type": "sigstoreSigned",
+               "keyPath": "/etc/containers/RedHat_ReleaseKey3.pub",
+               "signedIdentity": {
+                 "type": "matchRepoDigestOrExact"
+               }
+             }
+           ],
+           "quay.coe.muc.redhat.com/proxy_redhat_io/": [
              {
                "type": "sigstoreSigned",
                "keyPath": "/etc/containers/RedHat_ReleaseKey3.pub",

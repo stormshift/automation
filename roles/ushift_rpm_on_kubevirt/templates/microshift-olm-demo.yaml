@@ -1,7 +1,7 @@
 kind: Namespace
 apiVersion: v1
 metadata:
-  name: demo-app
+  name: demo-appq
 ---
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
@@ -11,7 +11,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   sourceType: grpc
-  image: registry.redhat.io/redhat/redhat-operator-index:v4.14
+  image: registry.redhat.io/redhat/redhat-operator-index:v{{ ushift_version }}
   displayName: Red Hat Operators
   publisher: Red Hat
   grpcPodConfig:
