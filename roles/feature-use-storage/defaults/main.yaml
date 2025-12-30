@@ -9,7 +9,7 @@ monitoring:
     storage_request: "20Gi"
     memory_limit: "2048Mi"
     retention: "7d"
-    retentionSize: "19GB"
+    retentionSize: "18GB"
     collectionProfile: "full"
 #    collectionProfile: "minimal"
 
