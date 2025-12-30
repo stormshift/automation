@@ -8,3 +8,4 @@ ansible-navigator.log
 scrible/kubeadmin-*
 scrible/kubeconfig-*
 .dockerconfigjson
+.DS_Store
