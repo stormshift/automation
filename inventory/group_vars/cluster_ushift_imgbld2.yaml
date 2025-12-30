@@ -11,7 +11,7 @@ ushift_deploy_sample_workload: false
 ushift_use_local_quay_proxy: false
 vm_cores: 4
 vm_memory: "8Gi"
-vm_template: "rhel94"
+ushift_vm_template: "rhel94"
 network_ip_address: 10.32.105.41
 network_mac_address: 0E:C0:EF:20:69:29
 ushift_repo_list:

@@ -10,7 +10,7 @@ ushift_actually_install: true
 ushift_deploy_sample_workload: false
 vm_cores: 2
 vm_memory: "4Gi"
-vm_template: "rhel94"
+ushift_vm_template: "rhel94"
 network_ip_address: 10.32.99.1
 network_mac_address: 0E:C0:EF:20:63:01
 ushift_repo_list:
