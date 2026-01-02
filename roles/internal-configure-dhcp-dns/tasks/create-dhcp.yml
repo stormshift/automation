@@ -1,0 +1,31 @@
+---
+  - name: Create dhcp4 config snippet from template
+    delegate_to: "localhost"
+    changed_when: false
+    template:
+      src: dhcp4_kea_entry.json.j2
+      dest: "/tmp/dhcp4_config_{{inventory_hostname}}.json"
+
+  - name: Configure DHCP4
+    tags: dhcp
+    delegate_to: "{{ sysctx_network_dhcp }}"
+    throttle: 1
+    blockinfile:
+      path: "{{ kea_config_file_v4 }}"
+      marker: "# {mark} ANSIBLE MANAGED {{inventory_hostname}}"
+      insertbefore: "ANSIBLE AUTOMATED ENTRIES ABOVE HERE PLEASE"
+#      append_newline: true
+#      prepend_newline: true
+      block:  "{{ lookup('file', '/tmp/dhcp4_config_{{inventory_hostname}}.json')  }}"
+      backup: yes
+    register: dhcp4
+
+  - name: restart DHCP
+    run_once: true
+    tags: dhcp
+    delegate_to: "{{ sysctx_network_dhcp }}"
+    service:
+      name: kea-dhcp4
+      enabled: yes
+      state: restarted
+    when: dhcp4 is changed

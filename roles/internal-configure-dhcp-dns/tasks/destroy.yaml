@@ -1,0 +1,8 @@
+---
+- name: Destroy DNS
+  ansible.builtin.include_tasks: destroy-dns.yml
+  tags: dns
+
+- name: Destroy DHCP
+  ansible.builtin.include_tasks: destroy-dhcp.yml
+  tags: dhcp

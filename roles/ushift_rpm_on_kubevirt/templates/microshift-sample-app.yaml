@@ -38,7 +38,7 @@ spec:
             claimName: sample-pvc
       containers:
         - name: nginx
-          image: nginxinc/nginx-unprivileged
+          image: quay.io/nginx/nginx-unprivileged
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false

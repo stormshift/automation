@@ -4,10 +4,7 @@
   ansible.builtin.include_tasks: 210-destroy-vm.yml
   tags: vm
 
-- name: Remove DNS records
-  ansible.builtin.include_tasks: 220-destroy-dns.yml
-  tags: dns
-
-- name: Remove DHCP records
-  ansible.builtin.include_tasks: 230-destroy-dhcp.yml
-  tags: dhcp
+- name: Remove DHCP and DNS
+  ansible.builtin.include_role:
+    name: "internal-configure-dhcp-dns"
+    tasks_from: "destroy.yaml"

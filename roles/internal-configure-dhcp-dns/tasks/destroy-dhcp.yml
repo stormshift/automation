@@ -1,0 +1,20 @@
+---
+  - name: Remove DHCP4 entries
+    tags: dhcp
+    delegate_to: "{{ sysctx_network_dhcp }}"
+    throttle: 1
+    blockinfile:
+      path: "{{ kea_config_file_v4 }}"
+      marker: "# {mark} ANSIBLE MANAGED {{inventory_hostname}}"
+      state: absent
+    register: dhcp4
+
+  - name: Restart DHCP
+    run_once: true
+    tags: dhcp
+    delegate_to: "{{ sysctx_network_dhcp }}"
+    service:
+      name: kea-dhcp4
+      enabled: yes
+      state: restarted
+    when: dhcp4 is changed

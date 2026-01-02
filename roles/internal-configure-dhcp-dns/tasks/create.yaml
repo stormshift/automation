@@ -1,0 +1,8 @@
+---
+- name: Configure DHCP
+  ansible.builtin.include_tasks: create-dhcp.yml
+  tags: dhcp
+
+- name: Configure DNS
+  ansible.builtin.include_tasks: create-dns.yml
+  tags: dns
