@@ -15,7 +15,7 @@ ushift_rhel_version: "9.6"
 network_ip_address: 10.32.99.12
 network_mac_address: 0E:C0:EF:20:63:0C
 ushift_repo_list:
-      - rhocp-4.21-for-rhel-9-x86_64-rpms
+      - rhocp-4.20-for-rhel-9-x86_64-rpms
       - fast-datapath-for-rhel-9-x86_64-rpms
 # install_type - one of: rpm, ostree, imageMode
 ushift_install_type: rpm

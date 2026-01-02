@@ -3,13 +3,10 @@
 - debug:
     var: ushift_vm_template
 
-- name: Configure DHCP
-  ansible.builtin.include_tasks: 110-create-dhcp.yml
-  tags: dhcp
-
-- name: Configure DNS
-  ansible.builtin.include_tasks: 120-create-dns.yml
-  tags: dns
+- name: Configure DHCP and DNS
+  ansible.builtin.include_role:
+    name: "internal-configure-dhcp-dns"
+    tasks_from: "create.yaml"
 
 - name: Create VM
   ansible.builtin.include_tasks: 130-create-vm.yml
