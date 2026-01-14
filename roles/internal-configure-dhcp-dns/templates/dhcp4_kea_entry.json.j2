@@ -1,0 +1,30 @@
+  {
+    "hostname": "{{ inventory_hostname }}",
+    "hw-address": "{{ network_mac_address }}",
+    "ip-address": "{{ network_ip_address }}",
+    "option-data": [
+      {
+        "space": "dhcp4",
+        "name": "host-name",
+        "code": 12,
+        "data": "{{ inventory_hostname }}"
+      },
+{% if uefi_http_boot_file is defined %}
+      {
+        "space": "dhcp4",
+        "name": "vendor-class-identifier",
+        "code": 60,
+        "data": "HTTPClient"
+      },
+{% endif %}
+      {
+        "space": "dhcp4",
+        "name": "domain-name",
+        "code": 15,
+        "data": "{{ sysctx_dns_domain }}"
+      }
+    ]
+{% if uefi_http_boot_file is defined %}
+    , "boot-file-name": "{{ uefi_http_boot_file }}"
+{% endif %}
+  },

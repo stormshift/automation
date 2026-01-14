@@ -7,8 +7,8 @@
 sysctx_dns_domain: "stormshift.coe.muc.redhat.com"
 sysctx_dns_domain_reverse: "32.10.in-addr.arpa"
 
-sysctx_network_dhcp: "inf1.coe.muc.redhat.com"
-sysctx_network_dns: "inf1.coe.muc.redhat.com"
+sysctx_network_dhcp: "sf1.coe.muc.redhat.com"
+sysctx_network_dns: "sf1.coe.muc.redhat.com"
 sysctx_network_gateway: "10.32.111.254"
 sysctx_network: "10.32.96.0"
 sysctx_network_cidr: "20"
