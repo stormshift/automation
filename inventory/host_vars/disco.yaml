@@ -28,10 +28,11 @@ image_pull_secret: |
 
 stormshift_owner_email: "rbohne@redhat.com"
 stormshift_owner_purpose: "Disco nnected Cluster"
-stormshift_owner_usage: "dedicated"
+stormshift_owner_usage: "shared"
 
 local_cluster_admins:
   - rguske@redhat.com-admin
+  - sreber@redhat.com-admin
 
 # Same color as for the labels: https://github.com/stormshift/support/labels
 cluster_color: "#0052cc"
