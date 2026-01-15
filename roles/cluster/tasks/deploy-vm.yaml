@@ -76,9 +76,7 @@
           # Default to IvyBridge for now, to avoid issues with newer CPUs
           # IvyBridg, to not support RHEL 10. If you need RHEL 10 support please use Haswell.
           # See https://github.com/stormshift/support/issues/312#issuecomment-3589708045
-          {% if vm_cpu_model is iterable and vm_cpu_model | length > 0 %}
-          model: "{{ vm_cpu_model }}"
-          {% endif %}
+          model: "{{ vm_cpu_model if (vm_cpu_model is iterable and vm_cpu_model | length > 0) else '' }}"
           features:
             - name: vmx 
               policy: require
