@@ -26,7 +26,12 @@ target_namespace: "{{ cluster_custom_namespace | default('stormshift-' + invento
 
 clusterAlreadyExists: false
 
+control_plan_cpu_model: ""
+
+worker_cpu_model: ""
+
 arbiter_cores: 2
+arbiter_cpu_model: ""
 arbiter_ram_gb: 8
 arbiters: []
 
