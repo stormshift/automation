@@ -1,10 +1,11 @@
 ---
 - name: Check if cluster already exists
   ignore_errors: True
-  wait_for:
-    host: "api.{{ inventory_hostname }}.{{ cluster_base_domain }}"
-    port: 443
-    timeout: 1
+  ansible.builtin.uri:
+    url: "https://api.{{ inventory_hostname }}.{{ cluster_base_domain }}:6443"
+    method: HEAD
+    validate_certs: false  # Set to true if you want to verify SSL
+    status_code: 403
   register: checkExists_results
 
 - name: Set flag
