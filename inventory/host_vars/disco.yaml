@@ -3,7 +3,7 @@
 custom_scm_branch: disco
 custom_job_name: "🪩 Disco(nnected) Cluster"
 vm_net_attach_def: coe-bridge-69
-cluster_custom_namespace: demo-cluster-disco
+cluster_custom_namespace: stormshift-disco-infra
 # END - CUSTOM NOT IN MASTER AVAILABLE
 
 cluster_base_domain: coe.muc.redhat.com
@@ -28,16 +28,17 @@ image_pull_secret: |
 
 stormshift_owner_email: "rbohne@redhat.com"
 stormshift_owner_purpose: "Disco nnected Cluster"
-stormshift_owner_usage: "dedicated"
+stormshift_owner_usage: "shared"
 
 local_cluster_admins:
   - rguske@redhat.com-admin
+  - sreber@redhat.com-admin
 
 # Same color as for the labels: https://github.com/stormshift/support/labels
 cluster_color: "#0052cc"
 cluster_color_fg: "#fff"
 
-openshift_version: 4.17.16
+openshift_version: 4.20.8
 
 stormshift_cluster_features:
   - redhat-internal-certificate
@@ -47,6 +48,9 @@ stormshift_cluster_features:
 cluster_type: classic
 cluster_api_vip: 192.168.69.251
 cluster_ingress_vip: 192.168.69.252
+
+worker_storage_class: "odf-replica-two-block"
+control_plan_storage_class: "odf-replica-two-block"
 
 control_plan_cores: 8
 control_plan_ram_gb: 16
