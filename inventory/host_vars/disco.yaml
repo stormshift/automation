@@ -38,7 +38,7 @@ local_cluster_admins:
 cluster_color: "#0052cc"
 cluster_color_fg: "#fff"
 
-openshift_version: 4.17.16
+openshift_version: 4.20.8
 
 stormshift_cluster_features:
   - redhat-internal-certificate
@@ -48,6 +48,9 @@ stormshift_cluster_features:
 cluster_type: classic
 cluster_api_vip: 192.168.69.251
 cluster_ingress_vip: 192.168.69.252
+
+worker_storage_class: "odf-replica-two-block"
+control_plan_storage_class: "odf-replica-two-block"
 
 control_plan_cores: 8
 control_plan_ram_gb: 16
