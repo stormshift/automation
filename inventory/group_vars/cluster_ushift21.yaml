@@ -1,6 +1,6 @@
 stormshift_owner_email: "jgeorg@redhat.com"
 stormshift_owner_purpose: "MicroShift QE LongTerm Testing"
-ushift_version: 4.15
+ushift_version: "4.15"
 ushift_preview_version: latest-4.16
 ushift_preview_version_dep_ec: 4.15-el9-beta
 ushift_preview_version_dep_rc: 4.16-el9-beta

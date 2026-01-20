@@ -1,6 +1,6 @@
 stormshift_owner_email: "dfroehli@redhat.com"
 stormshift_owner_purpose: "playground"
-ushift_version: 4.14
+ushift_version: "4.14"
 ushift_preview_version: latest-4.15
 ushift_preview_version_dep_ec: 4.14-el9-beta
 ushift_preview_version_dep_rc: 4.15-el9-beta

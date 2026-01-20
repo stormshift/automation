@@ -37,7 +37,6 @@ ushift_repo: standard
 ushift_repo_ec: "https://mirror.openshift.com/pub/openshift-v4/x86_64/microshift/ocp-dev-preview"
 ushift_repo_rc: "https://mirror.openshift.com/pub/openshift-v4/x86_64/microshift/ocp"
 ushift_vm_storageclass: "odf-replica-two-block"
-ushift_install_type: rpm
 ushift_additional_features: {}
 ushift_use_local_quay_proxy: false
 ushift_version: "4.20"
@@ -49,7 +48,7 @@ ushift_preview_version_dep_rc: 4.21-el9-beta
 ushift_repo_list:
       - rhel-9-for-x86_64-appstream-eus-rpms
       - rhel-9-for-x86_64-baseos-eus-rpms
-      - rhocp-{{ ushift_version}}-for-rhel-9-x86_64-rpms
+      - rhocp-{{ ushift_version }}-for-rhel-9-x86_64-rpms
       - fast-datapath-for-rhel-9-x86_64-rpms
 
 # echo -n SECRET | ansible-vault encrypt_string --vault-password-file .vault_pass

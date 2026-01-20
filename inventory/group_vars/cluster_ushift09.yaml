@@ -1,7 +1,7 @@
 stormshift_owner_email: "dfroehli@redhat.com"
 stormshift_owner_purpose: "Playground"
 # Default is current GA version - see all.yaml
-#ushift_version: 4.20
+#ushift_version: "4.20"
 ushift_actually_install: true
 ushift_deploy_sample_workload: false
 ushift_use_local_quay_proxy: false

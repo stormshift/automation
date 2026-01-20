@@ -35,7 +35,7 @@ agent_iso_storage_class: "odf-replica-two-file"
 
 
 # Default is in roles/cluster/defaults/main.yaml - Override if needed:
-openshift_version: 4.20.0
+openshift_version: 4.21.0-rc.1
 #openshift_location: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp-dev-preview/candidate-4.20"
 
 #openshift_version: 4.19.9
@@ -45,7 +45,7 @@ stormshift_cluster_features:
   - redhat-internal-certificate
   - coe-sso
   - look-and-feel
-#  - lvms
+  - lvms
 #  - workload-partitioning
 #  - lvms
 #  - rhoai
@@ -54,12 +54,12 @@ stormshift_cluster_features:
 
 # See https://docs.openshift.com/container-platform/4.17/installing/overview/cluster-capabilities.html
 cluster_capabilities:
-#  baselineCapabilitySet: vCurrent
-  baselineCapabilitySet: None
-  additionalEnabledCapabilities:
-  - Storage
-  - Console
-  - Ingress
+  baselineCapabilitySet: vCurrent
+#  baselineCapabilitySet: None
+#  additionalEnabledCapabilities:
+#  - Storage
+#  - Console
+#  - Ingress
 #  - OperatorLifecycleManager
 #  - marketplace
 

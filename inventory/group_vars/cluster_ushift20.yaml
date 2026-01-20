@@ -1,6 +1,6 @@
 stormshift_owner_email: "bweidenb@redhat.com"
 stormshift_owner_purpose: "ACM Demo Environment"
-ushift_version: 4.16
+ushift_version: "4.16"
 ushift_preview_version: latest-4.17
 ushift_preview_version_dep_ec: 4.17-el9-beta
 ushift_preview_version_dep_rc: 4.17-el9-beta

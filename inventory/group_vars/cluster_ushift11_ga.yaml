@@ -1,6 +1,6 @@
 stormshift_owner_email: "dfroehli@redhat.com"
 stormshift_owner_purpose: "Current GA Version"
-ushift_version: 4.20
+ushift_version: "4.20"
 ushift_preview_version: latest-4.20
 ushift_preview_version_dep_ec: 4.21-el9-beta
 ushift_preview_version_dep_rc: 4.21-el9-beta
