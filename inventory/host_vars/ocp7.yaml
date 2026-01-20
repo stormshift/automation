@@ -1,7 +1,7 @@
 ---
 stormshift_owner_email: "rbohne@redhat.com"
-stormshift_owner_purpose: "Cluster to cluster live migration"
-stormshift_owner_usage: "dedicated"
+stormshift_owner_purpose: "Cross cluster live migration"
+stormshift_owner_usage: "shared"
 
 # custom_scm_branch: add-proxy-support
 # Added just to prevent project deletion
@@ -60,8 +60,11 @@ control_plans:
   #  vm_network_mac_address: 0E:C0:EF:A8:C9:0D
   #- vm_network_ip_address:  192.168.201.14
   #  vm_network_mac_address: 0E:C0:EF:A8:C9:0E
-worker_cores: 16
-worker_ram_gb: 32
+
+# worker_cpu_model: 'Haswell'
+
+worker_cores: 8
+worker_ram_gb: 16
 workers:
   - vm_network_ip_address: 10.32.105.103
     vm_network_mac_address: 0E:C0:EF:20:69:67

@@ -1,8 +1,8 @@
 ---
 openshift_version: 4.20.8
 stormshift_owner_email: "rbohne@redhat.com"
-stormshift_owner_purpose: "SSA playground"
-stormshift_owner_usage: "exclusive"
+stormshift_owner_purpose: "Cross cluster live migration (ACM)"
+stormshift_owner_usage: "shared"
 
 cluster_type: classic
 cluster_api_vip: 10.32.105.64
@@ -18,6 +18,7 @@ stormshift_cluster_features:
   - look-and-feel
   - netapp-trident
 
+
 control_plan_cores: 8
 control_plan_ram_gb: 24
 control_plans:
@@ -27,6 +28,9 @@ control_plans:
     vm_network_mac_address: 0E:C0:EF:20:69:43
   - vm_network_ip_address: 10.32.105.68
     vm_network_mac_address: 0E:C0:EF:20:69:44
+
+worker_cpu_model: 'Haswell'
+
 worker_cores: 8
 worker_ram_gb: 16
 workers:
