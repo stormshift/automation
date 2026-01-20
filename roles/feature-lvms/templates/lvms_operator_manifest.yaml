@@ -1,0 +1,30 @@
+- kind: Namespace
+  apiVersion: v1
+  metadata:
+    labels:
+      openshift.io/cluster-monitoring: "true"
+      pod-security.kubernetes.io/enforce: privileged
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/warn: privileged
+    annotations:
+      workload.openshift.io/allowed: management
+    name: "{{ lvms_namespace }}"
+- kind: OperatorGroup
+  apiVersion: operators.coreos.com/v1
+  metadata:
+    name: openshift-lvms-operatorgroup
+    namespace: "{{ lvms_namespace }}"
+  spec:
+    targetNamespaces:
+    - "{{ lvms_namespace }}"
+- kind: Subscription
+  apiVersion: operators.coreos.com/v1alpha1
+  metadata:
+    name: lvms-operator
+    namespace: "{{ lvms_namespace }}"
+  spec:
+    installPlanApproval: Automatic
+    channel: "{{ lvms_channel }}"
+    name: lvms-operator
+    source: "{% if early_access is defined %}lvms-earlyaccess-catalog{% else %}redhat-operators{% endif %}"
+    sourceNamespace: openshift-marketplace

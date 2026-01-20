@@ -34,57 +34,50 @@
 - name: Define lvms_channel
   when: lvms_channel is undefined
   block:
-  - name: Retrieve ClusterVersion
-    kubernetes.core.k8s_info:
-      kubeconfig: "{{ cluster_access_kubeconfig }}"
-      api_version: config.openshift.io/v1
-      kind: ClusterVersion
-    register: cluster_version
-  - name: Define ocp version
-    set_fact:
-      ocp_version: "{{ cluster_version.resources[0].status.desired.version }}"
-  - name:
-    debug:
-      msg: "detected OpenShift version:{{ ocp_version }}"
-  - name: Define lvms_channel
-    set_fact:
-      lvms_channel: "stable-{{ ocp_version.split('.').0 }}.{{ ocp_version.split('.').1 }}"
+    - name: Retrieve ClusterVersion
+      kubernetes.core.k8s_info:
+        kubeconfig: "{{ cluster_access_kubeconfig }}"
+        api_version: config.openshift.io/v1
+        kind: ClusterVersion
+      register: cluster_version
+    - name: Define ocp version
+      set_fact:
+        ocp_version: "{{ cluster_version.resources[0].status.desired.version }}"
+    - name:
+      debug:
+        msg: "detected OpenShift version:{{ ocp_version }}"
+    - name: Define lvms_channel
+      set_fact:
+        lvms_channel: "stable-{{ ocp_version.split('.').0 }}.{{ ocp_version.split('.').1 }}"
+
+- name: Install Early Access Catalog for EC or RC builds
+  when: "'rc' in ocp_version or 'ec' in ocp_version"
+  block:
+    - name: "Apply LVMS early access manifest (catalog source etc) for EC or RC builds"
+      register: early_access
+      kubernetes.core.k8s:
+        kubeconfig: "{{ cluster_access_kubeconfig }}"
+        state: present
+        definition: "{{ lookup('template', 'lvms_earlyaccess_manifest.yaml') | from_yaml }}"
+
+    - name: Wait for catalogsource pod to be ready
+      kubernetes.core.k8s_info:
+        kubeconfig: "{{ cluster_access_kubeconfig }}"
+        kind: Pod
+        namespace: "openshift-marketplace"
+        label_selectors:
+          - "olm.catalogSource = lvms-earlyaccess-catalog"
+        wait: yes
+        wait_timeout: 300
+        wait_condition:
+          type: Ready
+          status: True
 
 - name: Install LVMS operator
   kubernetes.core.k8s:
     kubeconfig: "{{ cluster_access_kubeconfig }}"
     state: present
-    definition:
-      - kind: Namespace
-        apiVersion: v1
-        metadata:
-          labels:
-            openshift.io/cluster-monitoring: "true"
-            pod-security.kubernetes.io/enforce: privileged
-            pod-security.kubernetes.io/audit: privileged
-            pod-security.kubernetes.io/warn: privileged
-          annotations:
-            workload.openshift.io/allowed: management
-          name: openshift-storage
-      - kind: OperatorGroup
-        apiVersion: operators.coreos.com/v1
-        metadata:
-          name: openshift-storage-operatorgroup
-          namespace: openshift-storage
-        spec:
-          targetNamespaces:
-          - openshift-storage
-      - kind: Subscription
-        apiVersion: operators.coreos.com/v1alpha1
-        metadata:
-          name: lvms-operator
-          namespace: openshift-storage
-        spec:
-          installPlanApproval: Automatic
-          channel: "{{ lvms_channel }}"
-          name: lvms-operator
-          source: redhat-operators
-          sourceNamespace: openshift-marketplace
+    definition: "{{ lookup('template', 'lvms_operator_manifest.yaml') | from_yaml }}"
 
 - name: Wait for Operator Deployment to be complete
   kubernetes.core.k8s_info:
@@ -101,7 +94,7 @@
   kubernetes.core.k8s_info:
     kubeconfig: "{{ cluster_access_kubeconfig }}"
     kind: Pod
-    namespace: openshift-storage
+    namespace: "{{ lvms_namespace }}"
     label_selectors:
       - "app.kubernetes.io/name = lvms-operator"
     wait: yes
@@ -110,7 +103,7 @@
       type: Ready
       status: True
 
-- name: Deploy LVMS
+- name: Deploy LVMS Cluster
   kubernetes.core.k8s:
     kubeconfig: "{{ cluster_access_kubeconfig }}"
     state: present
@@ -118,25 +111,10 @@
     wait_condition:
       type: VolumeGroupsReady
       status: True
-    definition:
-      kind: LVMCluster
-      apiVersion: lvm.topolvm.io/v1alpha1
-      metadata:
-        name: lvmcluster
-        namespace: openshift-storage
-      spec:
-        storage:
-          deviceClasses:
-            - name: vg1
-              default: true
-              fstype: xfs
-              thinPoolConfig:
-                chunkSizeCalculationPolicy: Static
-                name: thin-pool-1
-                overprovisionRatio: 10
-                sizePercent: 90
-                
+    definition: "{{ lookup('template', 'lvms_cluster_manifest.yaml') | from_yaml }}"
+
 - name: Make use of the new storage
+  when: lvms_make_use_of_storage
   ansible.builtin.include_role:
     name: "feature-use-storage"
     tasks_from: post-deploy.yaml

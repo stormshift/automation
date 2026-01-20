@@ -1,0 +1,21 @@
+kind: LVMCluster
+apiVersion: lvm.topolvm.io/v1alpha1
+metadata:
+  name: lvmcluster
+  namespace: "{{ lvms_namespace }}"
+spec:
+  storage:
+    deviceClasses:
+      - name: vg1
+        default: {{ lvms_default_storageclass }}
+        fstype: xfs
+{% if lvms_device_paths is defined %}
+        deviceSelector:
+          optionalPaths: {{ lvms_device_paths }}
+          forceWipeDevicesAndDestroyAllData: {{ lvms_force_wipe }}
+{% endif %}
+        thinPoolConfig:
+          chunkSizeCalculationPolicy: Static
+          name: thin-pool-1
+          overprovisionRatio: 1
+          sizePercent: 90

@@ -14,7 +14,7 @@ all:
           vars:
             stormshift_owner_email: "brad.weidenbrenner@redhat.com"
             stormshift_owner_purpose: "dedicated long term ACM Demo"
-            ushift_version: 4.14
+            ushift_version: "4.14"
             ushift_use_EC: false
             ushift_use_RC: false
             ushift_actually_install: true
