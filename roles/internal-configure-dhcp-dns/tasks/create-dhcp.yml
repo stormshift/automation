@@ -1,4 +1,12 @@
 ---
+  - name: Check the DHCP Config is valid before touching it
+    delegate_to: "{{ sysctx_network_dhcp }}"
+    run_once: true
+    ansible.builtin.shell: "/usr/sbin/kea-dhcp4 -t /etc/kea/kea-dhcp4.conf"
+    register: precheck
+    failed_when: "precheck.rc != 0"
+    changed_when: false
+
   - name: Create dhcp4 config snippet from template
     delegate_to: "localhost"
     changed_when: false
@@ -19,6 +27,15 @@
       block:  "{{ lookup('file', '/tmp/dhcp4_config_{{inventory_hostname}}.json')  }}"
       backup: yes
     register: dhcp4
+
+  - name: Check the DHCP Config is valid after touching it
+    when: dhcp4 is changed
+    run_once: true
+    delegate_to: "{{ sysctx_network_dhcp }}"
+    ansible.builtin.shell: "/usr/sbin/kea-dhcp4 -t /etc/kea/kea-dhcp4.conf"
+    register: postcheck
+    failed_when: "postcheck.rc != 0"
+    changed_when: false
 
   - name: restart DHCP
     run_once: true
