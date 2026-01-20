@@ -1,0 +1,19 @@
+---
+# This cluster was manually deployed back in 2021 on RHV
+# and was migrated. Hence type and deployment is a bit unusual
+# This inventory entry is only to allow/enable additional features and roles
+# to be used, e.g. for certificate management:
+stormshift_owner_email: "mdargatz@redhat.com"
+stormshift_owner_purpose: "General Purpose, Long Term Stable"
+stormshift_owner_usage: "shared"
+
+local_cluster_admins:
+  - mdargatz@redhat.com-admin
+  - fcharett@redhat.com-admin
+
+# Same color as for the labels: https://github.com/stormshift/support/labels
+cluster_color: "#c2e0c6"
+cluster_color_fg: "#4a4a4a"
+
+
+cluster_type: MANUAL

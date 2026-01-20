@@ -1,0 +1,37 @@
+---
+  - name: Check the DHCP Config is valid before touching it
+    delegate_to: "{{ sysctx_network_dhcp }}"
+    run_once: true
+    ansible.builtin.shell: "/usr/sbin/kea-dhcp4 -t /etc/kea/kea-dhcp4.conf"
+    register: precheck
+    failed_when: "precheck.rc != 0"
+    changed_when: false
+
+  - name: Remove DHCP4 entries
+    tags: dhcp
+    delegate_to: "{{ sysctx_network_dhcp }}"
+    throttle: 1
+    blockinfile:
+      path: "{{ kea_config_file_v4 }}"
+      marker: "# {mark} ANSIBLE MANAGED {{inventory_hostname}}"
+      state: absent
+    register: dhcp4
+
+  - name: Check the DHCP Config is valid after touching it
+    when: dhcp4 is changed
+    run_once: true
+    delegate_to: "{{ sysctx_network_dhcp }}"
+    ansible.builtin.shell: "/usr/sbin/kea-dhcp4 -t /etc/kea/kea-dhcp4.conf"
+    register: postcheck
+    failed_when: "postcheck.rc != 0"
+    changed_when: false
+
+  - name: Restart DHCP
+    run_once: true
+    tags: dhcp
+    delegate_to: "{{ sysctx_network_dhcp }}"
+    service:
+      name: kea-dhcp4
+      enabled: yes
+      state: restarted
+    when: dhcp4 is changed
