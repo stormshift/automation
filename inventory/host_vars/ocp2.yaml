@@ -1,6 +1,6 @@
 ---
 stormshift_owner_email: "dfroehli@redhat.com"
-stormshift_owner_purpose: "Edge compact"
+stormshift_owner_purpose: "Edge TNA"
 stormshift_owner_usage: "exclusive"
 cluster_type: classic
 cluster_api_vip: 10.32.105.42
@@ -14,8 +14,8 @@ stormshift_cluster_features:
   - redhat-internal-certificate
   - coe-sso
   - look-and-feel
-  - lvms
-  - acm
+  - netapp-trident
+#  - acm
 
 # See https://docs.openshift.com/container-platform/4.17/installing/overview/cluster-capabilities.html
 cluster_capabilities:
@@ -26,7 +26,7 @@ cluster_capabilities:
 #  - Ingress
 
 # Default is in roles/cluster/defaults/main.yaml - Override if needed:
-openshift_version: 4.20.0
+openshift_version: 4.20.6
 #openshift_location: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp-dev-preview/{{ openshift_version }}"
 #openshift_featureSet: TechPreviewNoUpgrade
 
