@@ -20,7 +20,7 @@ stormshift_cluster_features:
 
 
 control_plan_cores: 8
-control_plan_ram_gb: 24
+control_plan_ram_gb: 16
 control_plans:
   - vm_network_ip_address: 10.32.105.66
     vm_network_mac_address: 0E:C0:EF:20:69:42
@@ -29,10 +29,10 @@ control_plans:
   - vm_network_ip_address: 10.32.105.68
     vm_network_mac_address: 0E:C0:EF:20:69:44
 
-worker_cpu_model: 'Haswell'
+# worker_cpu_model: 'Haswell'
 
-worker_cores: 8
-worker_ram_gb: 16
+worker_cores: 16
+worker_ram_gb: 32
 workers:
   - vm_network_ip_address: 10.32.105.69
     vm_network_mac_address: 0E:C0:EF:20:69:45
