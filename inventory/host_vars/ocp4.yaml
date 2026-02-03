@@ -16,4 +16,4 @@ cluster_color: "#c2e0c6"
 cluster_color_fg: "#4a4a4a"
 
 
-cluster_type: MANUAL
+cluster_type: manual

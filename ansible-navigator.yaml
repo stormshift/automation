@@ -24,7 +24,8 @@ ansible-navigator:
         - CONTROLLER_PASSWORD
         - CONTROLLER_USERNAME
         - CONTROLLER_VERIFY_SSL
-    image: quay.coe.muc.redhat.com/stormshift/automation-execution-environment:202502261102
+#    image: quay.coe.muc.redhat.com/stormshift/automation-execution-environment:202502261102
+    image: quay.coe.muc.redhat.com/stormshift/automation-execution-environment:202602021722
     pull:
       arguments:
         - "--tls-verify=false"

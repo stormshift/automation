@@ -4,6 +4,7 @@
   gather_facts: false
   vars:
     default_awx_project: "stormshift-automation"
+    exec_env_img_tag: "202602021722"
     features_by_cluster_type:
       classic:
         all_available_features:
@@ -34,14 +35,33 @@
           - redhat-internal-certificate
           - coe-sso
           - look-and-feel
+    features_by_cluster_type:
+      manual:
+        all_available_features:
+          - manage-with-acm
+          - redhat-internal-certificate
+          - coe-sso
+          - external-secrets
+          - lvms
+          - rhoai
+          - look-and-feel
+          - workload-partitioning
+          - acm
+          - netapp-trident
+        default_features:
+          - manage-with-acm
+          - redhat-internal-certificate
+          - coe-sso
+          - look-and-feel
+
   tasks:
     # - debug: msg="{{ inventory_hostname }}"
     - name: Check execution environment
       awx.awx.execution_environment:
         state: exists
         organization: "stormshift"
-        name: "stormshift-automation-execution-environment-202502261102"
-        image: "quay.coe.muc.redhat.com/stormshift/automation-execution-environment:202502261102"
+        name: "stormshift-automation-execution-environment-{{ exec_env_img_tag }}"
+        image: "quay.coe.muc.redhat.com/stormshift/automation-execution-environment:{{ exec_env_img_tag }}"
 
     - name: Create coe-lab-stormshift-notifications notification template
       awx.awx.notification_template:
@@ -80,6 +100,11 @@
           ansible.builtin.set_fact:
             default_awx_project: "stormshift-{{ inventory_hostname }}-{{ custom_scm_branch }}"
 
+    - name: "Create label: StormShift Cluster Mgmt"
+      awx.awx.label:
+        name: "stormshift-cluster-mgmt"
+        organization: "stormshift"
+
     - name: "Create jobs: StormShift Cluster Mgmt"
       awx.awx.job_template:
         name: "{{ custom_job_name | default('🌪️ StormShift Cluster Mgmt')}} - {{ inventory_hostname }}"
@@ -89,7 +114,9 @@
         inventory: "stormshift-inventory-from-git"
         project: "{{ default_awx_project }}"
         playbook: "stormshift-cluster-mgmt.yaml"
-        execution_environment: "stormshift-automation-execution-environment-202502261102"
+        execution_environment: "stormshift-automation-execution-environment-{{ exec_env_img_tag }}"
+        labels:
+          - stormshift-cluster-mgmt
 
         credentials:
           - "automation-vault"
@@ -119,8 +146,10 @@
             "spec": [
                 {
                     "choices": [
+                        {% if cluster_type != "manual" %}
                         "deploy",
                         "destroy",
+                        {% endif %}
                         "add-features",
                         "remove-features"
                     ],

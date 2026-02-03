@@ -69,7 +69,7 @@ cluster_additionalTrustBundle: /etc/pki/ca-trust/source/anchors/RedHat_Current-I
 cluster_imagesource:
  imageDigestSources:
  - source: quay.io/openshift-release-dev/ocp-release
-   mirrorSourcePolicy: AllowContactingSource
+#   mirrorSourcePolicy: AllowContactingSource
    mirrorSourcePolicy: NeverContactSource
    mirrors:
      - quay.coe.muc.redhat.com/proxy_quay_openshift_release/ocp-release
