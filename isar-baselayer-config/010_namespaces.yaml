@@ -7,10 +7,10 @@ metadata:
     openshift.io/display-name: "stormshift-vm-templates"
     openshift.io/requester: dfroehli@redhat.com
   labels:
-    openshift-pipelines.tekton.dev/namespace-reconcile-version: 1.20.2
-    openshift-pipelines.tekton.dev/namespace-trusted-configmaps-version: 1.20.2
+#    openshift-pipelines.tekton.dev/namespace-reconcile-version: 1.20.2
+#    openshift-pipelines.tekton.dev/namespace-trusted-configmaps-version: 1.20.2
     pod-security.kubernetes.io/audit: privileged
-    pod-security.kubernetes.io/audit-version: latest	
+    pod-security.kubernetes.io/audit-version: latest
     pod-security.kubernetes.io/warn: privileged
     pod-security.kubernetes.io/warn-version: latest
   name: stormshift-vm-templates
@@ -26,9 +26,9 @@ metadata:
   labels:
     openshift-pipelines.tekton.dev/namespace-reconcile-version: 1.20.2
     openshift-pipelines.tekton.dev/namespace-trusted-configmaps-version: 1.20.2
-    pod-security.kubernetes.io/audit: baseline	
-    pod-security.kubernetes.io/audit-version: latest	
-    pod-security.kubernetes.io/warn: baseline	
+    pod-security.kubernetes.io/audit: baseline
+    pod-security.kubernetes.io/audit-version: latest
+    pod-security.kubernetes.io/warn: baseline
     pod-security.kubernetes.io/warn-version: latest
   name: stormshift-microshift
 spec:
@@ -44,7 +44,7 @@ metadata:
     openshift-pipelines.tekton.dev/namespace-reconcile-version: 1.20.2
     openshift-pipelines.tekton.dev/namespace-trusted-configmaps-version: 1.20.2
     pod-security.kubernetes.io/audit: restricted
-    pod-security.kubernetes.io/audit-version: latest	
+    pod-security.kubernetes.io/audit-version: latest
     pod-security.kubernetes.io/warn: restricted
     pod-security.kubernetes.io/warn-version: latest
   name: stormshift-openshift
@@ -58,11 +58,11 @@ metadata:
     openshift.io/display-name: "stormshift"
     openshift.io/requester: rbohne@redhat.com
   labels:
-    openshift-pipelines.tekton.dev/namespace-reconcile-version: 1.20.2
-    openshift-pipelines.tekton.dev/namespace-trusted-configmaps-version: 1.20.2
-    pod-security.kubernetes.io/audit: baseline	
-    pod-security.kubernetes.io/audit-version: latest	
-    pod-security.kubernetes.io/warn: baseline	
+#    openshift-pipelines.tekton.dev/namespace-reconcile-version: 1.20.2
+#    openshift-pipelines.tekton.dev/namespace-trusted-configmaps-version: 1.20.2
+    pod-security.kubernetes.io/audit: baseline
+    pod-security.kubernetes.io/audit-version: latest
+    pod-security.kubernetes.io/warn: baseline
     pod-security.kubernetes.io/warn-version: latest
   name: stormshift
 spec:
