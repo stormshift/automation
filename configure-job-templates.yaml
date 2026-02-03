@@ -35,6 +35,24 @@
           - redhat-internal-certificate
           - coe-sso
           - look-and-feel
+    features_by_cluster_type:
+      manual:
+        all_available_features:
+          - manage-with-acm
+          - redhat-internal-certificate
+          - coe-sso
+          - external-secrets
+          - lvms
+          - rhoai
+          - look-and-feel
+          - workload-partitioning
+          - acm
+          - netapp-trident
+        default_features:
+          - manage-with-acm
+          - redhat-internal-certificate
+          - coe-sso
+          - look-and-feel
 
   tasks:
     # - debug: msg="{{ inventory_hostname }}"
@@ -128,8 +146,10 @@
             "spec": [
                 {
                     "choices": [
+                        {% if cluster_type != "manual" %}
                         "deploy",
                         "destroy",
+                        {% endif %}
                         "add-features",
                         "remove-features"
                     ],
