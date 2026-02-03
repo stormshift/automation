@@ -35,7 +35,6 @@
           - redhat-internal-certificate
           - coe-sso
           - look-and-feel
-    features_by_cluster_type:
       manual:
         all_available_features:
           - manage-with-acm
