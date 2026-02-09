@@ -18,6 +18,7 @@
           - workload-partitioning
           - acm
           - netapp-trident
+          - ocpvirt
         default_features:
           - manage-with-acm
           - redhat-internal-certificate
@@ -47,6 +48,7 @@
           - workload-partitioning
           - acm
           - netapp-trident
+          - ocpvirt
         default_features:
           - manage-with-acm
           - redhat-internal-certificate
