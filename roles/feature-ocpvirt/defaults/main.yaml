@@ -1,0 +1,3 @@
+---
+# defaults file
+ocpvirt_operator_channel: stable

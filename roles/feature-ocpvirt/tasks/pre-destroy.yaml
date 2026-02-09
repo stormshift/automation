@@ -1,0 +1,37 @@
+---
+# Nothing to implement here
+- name: Ensure cluster is online
+  wait_for:
+    host: "api.{{ inventory_hostname }}.{{ cluster_base_domain }}"
+    port: 6443
+    sleep: 1
+    timeout: 10
+
+- name: Fetch kubeconfig from vault
+  ansible.builtin.include_role:
+    name: internal-fetch-kubeconfig
+
+- name: Remove HyperConverged
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: absent
+    wait: yes
+    wait_timeout: 1200
+    definition:
+      kind: HyperConverged
+      apiVersion: hco.kubevirt.io/v1beta1
+      metadata:
+        name: kubevirt-hyperconverged
+        namespace: openshift-cnv
+
+- name: Remove OCPVirt operator
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: absent
+    definition:
+      kind: Namespace
+      apiVersion: v1
+      metadata:
+        name: openshift-cnv
+    wait: yes
+    wait_timeout: 1200
