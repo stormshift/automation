@@ -32,9 +32,4 @@ spec:
         enabled: {{ acm_volsync }}
         name: volsync
 {% endif %}
-{% if  acm_edge_manager_preview is defined %}
-      - configOverrides: {}
-        enabled: {{ acm_edge_manager_preview }}
-        name: edge-manager-preview
-{% endif %}
   separateCertificateManagement: false

@@ -2,7 +2,6 @@
 # defaults file
 acm_operator_channel: release-2.15
 
-acm_edge_manager_preview: false
 acm_multicluster_observability: false
 acm_insights: false
 acm_submariner_addon: false
