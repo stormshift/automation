@@ -1,0 +1,75 @@
+# This deploys RH OCPVirt Operator to a cluster
+# Based on:
+# https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html-single/virtualization/index#installing
+
+- name: Ensure cluster is online
+  wait_for:
+    host: "api.{{ inventory_hostname }}.{{ cluster_base_domain }}"
+    port: 6443
+    sleep: 1
+    timeout: 10
+
+- name: Fetch kubeconfig from vault
+  ansible.builtin.include_role:
+    name: internal-fetch-kubeconfig
+
+- name: Install OCPVirt operator
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    definition:
+      - apiVersion: v1
+        kind: Namespace
+        metadata:
+          name: openshift-cnv
+        labels:
+          openshift.io/cluster-monitoring: "true"
+      - apiVersion: operators.coreos.com/v1
+        kind: OperatorGroup
+        metadata:
+          name: kubevirt-hyperconverged-group
+          namespace: openshift-cnv
+        spec:
+          targetNamespaces:
+          - openshift-cnv
+      - apiVersion: operators.coreos.com/v1alpha1
+        kind: Subscription
+        metadata:
+          name: hco-operatorhub
+          namespace: openshift-cnv
+        spec:
+          channel: "{{ ocpvirt_operator_channel }}"
+          name: kubevirt-hyperconverged
+          source: redhat-operators
+          sourceNamespace: openshift-marketplace
+          installPlanApproval: Automatic
+
+- name: Wait for operator pod to be ready
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    kind: Pod
+    namespace: openshift-cnv
+    label_selectors:
+      - "name = virt-operator"
+    wait: yes
+    wait_timeout: 300
+    wait_condition:
+      type: Ready
+      status: True
+
+- name: Deploy HyperConverged (Coffee Time!)
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: present
+    wait: yes
+    wait_timeout: 1200
+    wait_condition:
+      type: Available
+      status: True
+    definition:
+      apiVersion: hco.kubevirt.io/v1beta1
+      kind: HyperConverged
+      metadata:
+        name: kubevirt-hyperconverged
+        namespace: openshift-cnv
+      spec:
