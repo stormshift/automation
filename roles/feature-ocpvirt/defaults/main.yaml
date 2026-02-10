@@ -1,4 +1,4 @@
 ---
 # defaults file
 ocpvirt_operator_channel: stable
-force_delete_existing_vms_on_destroy: true
+force_delete_existing_vms_on_destroy: false
