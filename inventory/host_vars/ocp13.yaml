@@ -5,8 +5,8 @@
 # cluster_excluded_actions:
 #   - destroy
 #   - create
-stormshift_owner_email: "splatas@redhat.com"
-stormshift_owner_purpose: "Consulting prep"
+stormshift_owner_email: "{{ tower_user_email }}"
+stormshift_owner_purpose: "tbd"
 stormshift_owner_usage: "exclusive"
 cluster_type: classic
 # This is also the zone in IPA!
