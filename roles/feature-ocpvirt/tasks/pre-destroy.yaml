@@ -1,0 +1,68 @@
+---
+# Nothing to implement here
+- name: Ensure cluster is online
+  wait_for:
+    host: "api.{{ inventory_hostname }}.{{ cluster_base_domain }}"
+    port: 6443
+    sleep: 1
+    timeout: 10
+
+- name: Fetch kubeconfig from vault
+  ansible.builtin.include_role:
+    name: internal-fetch-kubeconfig
+
+- name: Get existing VMs
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    kind: VirtualMachine
+    api_version: kubevirt.io/v1
+  register: vms
+
+- name: Fail when VMs exist
+  when:
+    - force_delete_existing_vms_on_destroy is false
+    - vms.resources | length > 0
+  fail:
+    msg: "Please delete all existing VMS! There are {{vms.resources | length}} VMs currently defined."
+
+- name: Delete existing VMS
+  when: force_delete_existing_vms_on_destroy is true
+  with_items: "{{ vms.resources }}"
+  loop_control:
+    loop_var: vm
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: absent
+    wait: yes
+    wait_timeout: 60
+    definition:
+      kind: VirtualMachine
+      api_version: kubevirt.io/v1
+      metadata:
+        name: "{{ vm.metadata.name }}"
+        namespace: "{{ vm.metadata.namespace }}"
+
+- name: Remove HyperConverged
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: absent
+    wait: yes
+    wait_timeout: 1200
+    definition:
+      kind: HyperConverged
+      apiVersion: hco.kubevirt.io/v1beta1
+      metadata:
+        name: kubevirt-hyperconverged
+        namespace: openshift-cnv
+
+- name: Remove OCPVirt operator
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: absent
+    definition:
+      kind: Namespace
+      apiVersion: v1
+      metadata:
+        name: openshift-cnv
+    wait: yes
+    wait_timeout: 1200
