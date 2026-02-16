@@ -26,5 +26,5 @@
     installPlanApproval: Automatic
     channel: "{{ lvms_channel }}"
     name: lvms-operator
-    source: "{% if early_access is defined %}lvms-earlyaccess-catalog{% else %}redhat-operators{% endif %}"
+    source: "{% if early_access is changed %}lvms-earlyaccess-catalog{% else %}redhat-operators{% endif %}"
     sourceNamespace: openshift-marketplace
