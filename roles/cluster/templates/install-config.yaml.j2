@@ -1,12 +1,28 @@
 apiVersion: v1
+metadata:
+  creationTimestamp: null
+  name: {{ inventory_hostname }}
+
 baseDomain: {{ cluster_base_domain }}
 cpuPartitioningMode: {{ cluster_cpuPartitioningMode }}
-compute:
-  - architecture: amd64
-    hyperthreading: Enabled
-    name: worker
-    platform: {}
-    replicas: {{ workers | default([]) | length  }}
+
+controlPlane:
+  architecture: amd64
+  hyperthreading: Enabled
+  name: master
+  platform: {}
+  replicas: {{ control_plans | length }}
+{% if fencing is defined %}
+  fencing:
+    credentials:
+{% for master in control_plans %}
+      - hostname: {{ inventory_hostname }}-cp-{{ loop.index0 }}
+        address: {{ fencing.address }}/{{ inventory_hostname }}-cp-{{ loop.index0}}
+        username: {{ fencing.username }}
+        password: {{ fencing.password }}
+        certificateVerification: {{ fencing.certificateVerification }}
+{% endfor %}
+{% endif %}
 
 {% if arbiters | default([]) | length > 0 %}
 arbiter:
@@ -16,19 +32,13 @@ arbiter:
   replicas: {{ arbiters | default([]) | length }}
 {% endif %}
 
-{% if openshift_featureSet is defined %}
-featureSet: {{ openshift_featureSet }}
-{% endif %}
+compute:
+  - architecture: amd64
+    hyperthreading: Enabled
+    name: worker
+    platform: {}
+    replicas: {{ workers | default([]) | length  }}
 
-controlPlane:
-  architecture: amd64
-  hyperthreading: Enabled
-  name: master
-  platform: {}
-  replicas: {{ control_plans | length }}
-metadata:
-  creationTimestamp: null
-  name: {{ inventory_hostname }}
 networking:
   clusterNetwork:
     - cidr: 10.128.0.0/14
@@ -69,6 +79,10 @@ platform:
   none: {}
 {% endif %}
 publish: External
+
+{% if openshift_featureSet is defined %}
+featureSet: {{ openshift_featureSet }}
+{% endif %}
 
 {% if cluster_capabilities is defined %}
 capabilities:
