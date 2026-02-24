@@ -1,6 +1,6 @@
 ---
 stormshift_owner_email: "dfroehli@redhat.com"
-stormshift_owner_purpose: "Edge TNA"
+stormshift_owner_purpose: "Edge TNA/TNF"
 stormshift_owner_usage: "exclusive"
 cluster_type: classic
 cluster_api_vip: 10.32.105.42
@@ -8,8 +8,6 @@ cluster_ingress_vip: 10.32.105.49
 
 cluster_color: "#0FF"
 
-# Default is in roles/cluster/defaults/main.yaml - Override if needed:
-#openshift_version: 4.17.12
 stormshift_cluster_features:
   - redhat-internal-certificate
   - coe-sso
@@ -26,9 +24,9 @@ cluster_capabilities:
 #  - Ingress
 
 # Default is in roles/cluster/defaults/main.yaml - Override if needed:
-openshift_version: 4.20.6
-#openshift_location: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp-dev-preview/{{ openshift_version }}"
-#openshift_featureSet: TechPreviewNoUpgrade
+openshift_version: 4.22.0-0.nightly-2026-02-23-040809
+openshift_location: "https://openshift-release-artifacts.apps.ci.l2s4.p1.openshiftapps.com/{{ openshift_version }}"
+openshift_featureSet: TechPreviewNoUpgrade
 
 control_plan_cores: 8
 control_plan_ram_gb: 64
@@ -46,12 +44,17 @@ control_plans:
     vm_network_mac_address: 0E:C0:EF:20:69:51
 #  - vm_network_ip_address: 10.32.105.82
 #    vm_network_mac_address: 0E:C0:EF:20:69:52
+fencing:
+  address: redfish+https://stormshift-kubevirt-redfish-stormshift-kubevirt-redfish.apps.isar.coe.muc.redhat.com/redfish/v1/Systems
+  username: admin
+  password: admin123
+  certificateVerification: Disabled
 
 arbiter_cores: 2
 arbiter_ram_gb: 8
-arbiters:
-  - vm_network_ip_address: 10.32.105.82
-    vm_network_mac_address: 0E:C0:EF:20:69:52
+#arbiters:
+#  - vm_network_ip_address: 10.32.105.82
+#    vm_network_mac_address: 0E:C0:EF:20:69:52
 
 
 worker_cores: 8
