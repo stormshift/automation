@@ -5,11 +5,11 @@
 # cluster_excluded_actions:
 #   - destroy
 #   - create
-stormshift_owner_email: "{{ tower_user_email }}"
-stormshift_owner_purpose: "tbd"
+stormshift_owner_email: "wmarx@redhat.com"
+stormshift_owner_purpose: "Customer testing"
 stormshift_owner_usage: "exclusive"
 cluster_type: classic
-openshift_version: 4.18.23
+openshift_version: 4.20.14
 
 
 # This is also the zone in IPA!
