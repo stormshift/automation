@@ -27,7 +27,7 @@ cluster_capabilities:
 #openshift_version: 4.22.0-0.nightly-2026-02-23-040809
 #openshift_location: "https://openshift-release-artifacts.apps.ci.l2s4.p1.openshiftapps.com/{{ openshift_version }}"
 openshift_version: 4.22.0-ec.3
-openshift_location: "https://openshift-release-artifacts.apps.ci.l2s4.p1.openshiftapps.com/{{ openshift_version }}"
+openshift_location: "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp-dev-preview/{{ openshift_version }}"
 openshift_featureSet: TechPreviewNoUpgrade
 
 control_plan_cores: 8
