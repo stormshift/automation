@@ -8,7 +8,7 @@
   
     - name: Check PowerState
       ansible.builtin.command:
-        cmd: "curl -k -u {{ mgmt_user }}:{{ mgmt_password }} https://{{ ansible_host }}/redfish/v1/Systems/System.Embedded.1"
+        cmd: "curl -k -u {{ mgmt_user }}:{{ mgmt_password }} https://{{ ansible_host }}/redfish/v1/Systems/{{ redfish_system_id }}/"
       register: systems_output
 
     - name: Transform JSON to YAML
@@ -16,7 +16,7 @@
         redfish_system_info: "{{ systems_output.stdout |  from_json }}"
 
     # - name: Debug systems output
-    #   ansible.builtin.daebug:
+    #   ansible.builtin.debug:
     #     var: redfish_system_info
 
     - name: PowerState
