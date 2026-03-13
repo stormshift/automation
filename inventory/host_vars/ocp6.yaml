@@ -1,6 +1,6 @@
 ---
-stormshift_owner_email: "rbohne@redhat.com"
-stormshift_owner_purpose: "Cross cluster live migration"
+stormshift_owner_email: ""
+stormshift_owner_purpose: ""
 stormshift_owner_usage: "shared"
 
 # Same color as for the labels: https://github.com/stormshift/support/labels

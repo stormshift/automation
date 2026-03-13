@@ -1,7 +1,7 @@
 ---
 openshift_version: 4.20.8
-stormshift_owner_email: "rbohne@redhat.com"
-stormshift_owner_purpose: "Cross cluster live migration (ACM)"
+stormshift_owner_email: ""
+stormshift_owner_purpose: ""
 stormshift_owner_usage: "shared"
 
 cluster_type: classic

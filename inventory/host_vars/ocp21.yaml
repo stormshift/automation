@@ -1,5 +1,5 @@
 ---
-stormshift_owner_email: "rbohne@redhat.com"
+stormshift_owner_email: ""
 stormshift_owner_purpose: "TNA Demo Cluster"
 stormshift_owner_usage: "shared"
 cluster_type: classic
