@@ -1,11 +1,12 @@
 cfg/secrets.yml
 clouds.yml
 assisted-installer/vault-password-file
-development-example.env-private 
+development-example.env-private
 development-example.vars-private
-.vault_pass 
-ansible-navigator.log 
+.vault_pass
+ansible-navigator.log
 scrible/kubeadmin-*
 scrible/kubeconfig-*
 .dockerconfigjson
 .DS_Store
+context/_build
