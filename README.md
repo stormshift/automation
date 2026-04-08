@@ -107,7 +107,7 @@ podman machine start
 podman machine ssh --username root
 
 cd /etc/pki/ca-trust/source/anchors
-curl -k -O http://inf1.coe.muc.redhat.com/Current-IT-Root-CAs.crt
+curl -k -O http://sf1.coe.muc.redhat.com/Current-IT-Root-CAs.crt
 update-ca-trust
 
 ```
