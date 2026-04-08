@@ -41,6 +41,16 @@ rules:
   - patch
   - get
   - edit
+- apiGroups:	
+  - k8s.cni.cncf.io	
+  resources:	
+  - network-attachment-definitions	
+  verbs:	
+  - create	
+  - list	
+  - delete	
+  - patch	
+  - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role

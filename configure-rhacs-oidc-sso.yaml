@@ -1,0 +1,160 @@
+---
+# Configure Keycloak OIDC clients for Red Hat Advanced Cluster Security (RHACS) Central
+# and one Kubernetes Secret with declarative OIDC auth provider YAML (one file per provider).
+#
+# References:
+#   - https://www.redhat.com/en/blog/red-hat-advanced-cluster-security-a-guide-to-authentication
+#   - https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_security_for_kubernetes/4.10/html/configuring/declarative-configuration-using
+#
+# Prerequisites:
+#   - Valid kubeconfig for the OpenShift cluster (kubernetes.core reads it explicitly).
+#   - Secret rhacs_declarative_secret_name must not already exist in rhacs_namespace (playbook fails fast).
+#   - community.general.keycloak_client (community.general collection)
+#   - kubernetes.core collection
+#   - sso_admin_pw (e.g. Ansible Vault in inventory/group_vars/all.yaml)
+#
+# Execution (example with ansible-navigator; KUBECONFIG is passed into the EE via
+# ansible-navigator.yaml execution-environment.environment-variables.pass):
+#   export KUBECONFIG=~/.kube/config
+#   ansible-navigator run configure-rhacs-oidc-sso.yaml \
+#     --penv KUBECONFIG \
+#     -e rhacs_namespace=stackrox \
+#     -e rhacs_ui_host=central-stackrox.apps.example.com
+#
+# If rhacs_ui_host is omitted, the playbook discovers it from the OpenShift Route named
+# rhacs_central_route_name in rhacs_namespace.
+#
+# After apply: mount this Secret to Central for declarative configuration (see RHACS docs).
+
+- hosts: localhost
+  connection: local
+  gather_facts: false
+  collections:
+    - kubernetes.core
+    - community.general
+  vars:
+    keycloak_auth_url: "https://sso.coe.muc.redhat.com"
+    keycloak_auth_realm: master
+    keycloak_admin_username: admin
+    keycloak_admin_password: "{{ sso_admin_pw }}"
+
+    rhacs_namespace: stackrox
+    rhacs_central_route_name: central
+    rhacs_ui_host: ""
+    rhacs_oidc_redirect_uris: []
+    rhacs_keycloak_client_id: ""
+    rhacs_keycloak_client_id_admin: ""
+    rhacs_declarative_secret_name: "rhacs-declarative-oidc-auth"
+    # Per-provider settings (loop). client_id_override empty → rhacs-<host><client_id_suffix>
+    rhacs_oidc_providers:
+      - realm: coe-sso
+        client_id_override: "{{ rhacs_keycloak_client_id }}"
+        client_id_suffix: ""
+        secret_salt: ""
+        auth_provider_name: "COE-SSO"
+        minimum_role: Analyst
+        declarative_config_key: oidc-auth-provider.yaml
+      - realm: coe-sso-admin
+        client_id_override: "{{ rhacs_keycloak_client_id_admin }}"
+        client_id_suffix: "-admin"
+        secret_salt: "-coe-sso-admin"
+        auth_provider_name: "COE-SSO-Admin"
+        minimum_role: Admin
+        declarative_config_key: oidc-auth-provider-admin.yaml
+
+  tasks:
+    - name: Discover RHACS Central Route hostname
+      when: rhacs_ui_host | length == 0
+      kubernetes.core.k8s_info:
+        api_version: route.openshift.io/v1
+        kind: Route
+        name: "{{ rhacs_central_route_name }}"
+        namespace: "{{ rhacs_namespace }}"
+      register: rhacs_route
+
+    - name: Set RHACS UI host from Route
+      ansible.builtin.set_fact:
+        rhacs_ui_host: "{{ rhacs_route.resources | first | community.general.json_query('status.ingress[0].host') }}"
+      when: rhacs_ui_host | length == 0
+
+    - name: Fail if RHACS UI host is unknown
+      ansible.builtin.fail:
+        msg: "Set rhacs_ui_host or ensure Route {{ rhacs_central_route_name }} exists in {{ rhacs_namespace }}"
+      when: rhacs_ui_host is not defined or rhacs_ui_host | length == 0
+
+    - name: Set base Keycloak client id prefix (overrides are per provider in rhacs_oidc_providers)
+      ansible.builtin.set_fact:
+        rhacs_oidc_base_client_id: "{{ 'rhacs-' + (rhacs_ui_host | replace('.', '-')) }}"
+
+    - name: Default OIDC redirect URIs when not overridden
+      ansible.builtin.set_fact:
+        rhacs_oidc_redirect_uris:
+          - "https://{{ rhacs_ui_host }}/sso/providers/oidc/callback"
+          - "https://{{ rhacs_ui_host }}/auth/response/oidc"
+      when: rhacs_oidc_redirect_uris | length == 0
+
+    - name: Create Keycloak OIDC clients for RHACS
+      community.general.keycloak_client:
+        validate_certs: false
+        auth_keycloak_url: "{{ keycloak_auth_url }}"
+        auth_realm: "{{ keycloak_auth_realm }}"
+        auth_username: "{{ keycloak_admin_username }}"
+        auth_password: "{{ keycloak_admin_password }}"
+        realm: "{{ item.realm }}"
+        client_id: "{{ _client_id }}"
+        secret: "{{ _secret }}"
+        name: "{{ _client_id }}"
+        redirect_uris: "{{ rhacs_oidc_redirect_uris }}"
+        web_origins: "https://{{ rhacs_ui_host }}/"
+        public_client: false
+        frontchannel_logout: true
+        state: present
+      vars:
+        _client_id: "{{ item.client_id_override if (item.client_id_override | length > 0) else (rhacs_oidc_base_client_id ~ item.client_id_suffix) }}"
+        _secret: "{{ (rhacs_ui_host ~ item.secret_salt) | ansible.builtin.to_uuid }}"
+      loop: "{{ rhacs_oidc_providers }}"
+      loop_control:
+        label: "{{ item.realm }}"
+      delegate_to: localhost
+
+    - name: Build declarative OIDC YAML map (one Secret key per provider)
+      ansible.builtin.set_fact:
+        rhacs_declarative_stringdata: "{{ rhacs_declarative_stringdata | default({}) | combine({item.declarative_config_key: _yaml}) }}"
+      vars:
+        _issuer: "{{ keycloak_auth_url }}/realms/{{ item.realm }}"
+        _client_id: "{{ item.client_id_override if (item.client_id_override | length > 0) else (rhacs_oidc_base_client_id ~ item.client_id_suffix) }}"
+        _secret: "{{ (rhacs_ui_host ~ item.secret_salt) | ansible.builtin.to_uuid }}"
+        _yaml: |
+          name: "{{ item.auth_provider_name }}"
+          minimumRole: "{{ item.minimum_role }}"
+          uiEndpoint: "{{ rhacs_ui_host }}"
+          oidc:
+              issuer: "{{ _issuer }}"
+              mode: "auto"
+              clientID: "{{ _client_id }}"
+              clientSecret: "{{ _secret }}"
+      loop: "{{ rhacs_oidc_providers }}"
+      loop_control:
+        label: "{{ item.realm }}"
+
+    - name: Create Secret with RHACS declarative OIDC configuration
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Secret
+          type: Opaque
+          metadata:
+            name: "{{ rhacs_declarative_secret_name }}"
+            namespace: "{{ rhacs_namespace }}"
+            labels:
+              app.kubernetes.io/managed-by: ansible
+              rhacs.stackrox.io/declarative-config: "true"
+          stringData: "{{ rhacs_declarative_stringdata }}"
+
+    - name: Next steps — mount declarative Secret on RHACS Central
+      ansible.builtin.debug:
+        msg:
+          - "Declarative keys: {{ rhacs_declarative_stringdata.keys() | list | join(', ') }}."
+          - "Keycloak realms: {{ rhacs_oidc_providers | map(attribute='realm') | list | join(', ') }}."
+          - "Configure Central to mount this Secret for declarative configuration; restart Central if required."
