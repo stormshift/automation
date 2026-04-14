@@ -1,8 +1,8 @@
 ---
 openshift_version: 4.21.9
-stormshift_owner_email: ""
-stormshift_owner_purpose: ""
-stormshift_owner_usage: "shared"
+stormshift_owner_email: "rbohne@redhat.com"
+stormshift_owner_purpose: "HCP Hackathon"
+stormshift_owner_usage: "deticated"
 
 cluster_type: classic
 cluster_api_vip: 10.32.105.64
