@@ -97,6 +97,7 @@ podman machine init \
     --volume /Volumes/Development:/Volumes/Development \
     --volume /Users:/Users \
     --volume /var/folders:/var/folders \
+    --volume /var/run:/var/run \
     --memory 4096 podman-machine-default
 
 # Start machine
