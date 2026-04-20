@@ -99,7 +99,7 @@
 # See defaults/main.yml
 # See https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/monitoring/configuring-core-platform-monitoring#configuring-alert-routing-default-platform-alerts_configuring-alerts-and-notifications
 - name: Get alertmanager-main Secret
-  when: alertmanager_configure
+  when: alertmanager_configure and stormshift_owner_email is defined
   kubernetes.core.k8s_info:
     kubeconfig: "{{ cluster_access_kubeconfig }}"
     api_version: v1
