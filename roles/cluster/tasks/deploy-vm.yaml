@@ -22,7 +22,7 @@
         spec:
           storage:
             accessModes:
-              - ReadWriteMany
+              - "{{ storage_access_mode | default('ReadWriteMany') }}"
             storageClassName: "{{ vm_rootdisk_storageclass }}"
             resources:
               requests:
@@ -78,7 +78,7 @@
           # See https://github.com/stormshift/support/issues/312#issuecomment-3589708045
           model: "{{ vm_cpu_model if (vm_cpu_model is iterable and vm_cpu_model | length > 0) else '' }}"
           features:
-            - name: vmx 
+            - name: vmx
               policy: require
         memory:
           guest: "{{ vm_memory_gb }}Gi"
