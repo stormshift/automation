@@ -35,6 +35,12 @@ hosts:
             next-hop-address: {{ network_default_gw }}
             next-hop-interface: eth0
             table-id: 254
+{% if arbiter_network is defined %}
+          - destination: {{ arbiter_network }}
+            next-hop-address: {{ arbiter_gateway_ext }}
+            next-hop-interface: eth0
+            table-id: 254
+{% endif %}
 {% endfor %}
 
 {% for host in arbiters | default([]) %}
@@ -65,7 +71,7 @@ hosts:
       routes:
         config:
           - destination: 0.0.0.0/0
-            next-hop-address: {{ network_default_gw }}
+            next-hop-address: {{ arbiter_gateway_int | default(network_default_gw) }}
             next-hop-interface: eth0
             table-id: 254
 {% endfor %}

@@ -139,6 +139,13 @@
 
     path: "coe-lab/cluster-credential/stormshift-{{ inventory_hostname }}"
 
+- name: Remove installation directory
+  ignore_errors: true
+  ansible.builtin.file:
+    path: "{{ openshift_install_dir }}"
+    state: absent
+    mode: 0755
+
 # - name: Delete cluster authentfication in AAP
 #   awx.awx.credential:
 #     name: "{{ inventory_hostname }}"
