@@ -94,6 +94,7 @@
   when: not clusterAlreadyExists
   ansible.builtin.shell: |
     export PATH={{ openshift_install_dest }}:$PATH
+    export OPENSHIFT_INSTALL_EXPERIMENTAL_DISABLE_IMAGE_POLICY=true
     {{ openshift_install_command }} --dir={{ openshift_install_dir }} agent create image
   args:
     creates: "{{ openshift_install_dir }}/agent.x86_64.iso"
@@ -237,6 +238,7 @@
 
 # https://github.com/kubevirt/containerized-data-importer/blob/main/doc/upload.md
 - name: Create DataVolume agent-iso
+  tags: notIdempotent
   when: not clusterAlreadyExists
   # register: my_var_with_return_value
   kubernetes.core.k8s:
@@ -268,6 +270,7 @@
               storage: 2Gi
 
 - name: Upload token
+  tags: notIdempotent
   when: not clusterAlreadyExists
   register: my_var_with_return_value
   kubernetes.core.k8s:
@@ -292,6 +295,7 @@
 #     msg: "curl -v --insecure -H 'Authorization: Bearer  {{ my_var_with_return_value.result.status.token }}' --data-binary @/var/home/rbohne/Downloads/beryllium-1-i386.hybrid.iso https://{{ upload_host }}/v1beta1/upload "
 
 - name: Upload agent-iso
+  tags: notIdempotent
   when: not clusterAlreadyExists
   ansible.builtin.uri:
     url: "{{ upload_host }}/v1beta1/upload"
@@ -307,6 +311,14 @@
 #     name: cluster
 #     tasks_from: "pre-deploy-cluster-{{ cluster_type }}.yaml"
 
+- name: Apply additional manifest
+  when: additional_manifest is defined
+  kubernetes.core.k8s:
+    api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
+    host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
+    validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
+    state: present
+    definition: "{{ additional_manifest }}"
 
 - name: Deploy control plane VM
   vars:
@@ -318,6 +330,7 @@
     vm_memory_gb: "{{ control_plan_ram_gb }}"
     vm_network_ip_address: "{{ item.1.vm_network_ip_address }}"
     vm_network_mac_address: "{{ item.1.vm_network_mac_address }}"
+    vm_net_attach_def: "{{ item.1.vm_net_attach_def | default('coe-bridge') }}"
   ansible.builtin.include_tasks: "deploy-vm.yaml"
   with_indexed_items: "{{ control_plans }}"
 
@@ -331,6 +344,7 @@
     vm_memory_gb: "{{ arbiter_ram_gb }}"
     vm_network_ip_address: "{{ item.1.vm_network_ip_address }}"
     vm_network_mac_address: "{{ item.1.vm_network_mac_address }}"
+    vm_net_attach_def: "{{ item.1.vm_net_attach_def | default('coe-bridge') }}"
   ansible.builtin.include_tasks: "deploy-vm.yaml"
   with_indexed_items: "{{ arbiters }}"
 
@@ -344,6 +358,7 @@
     vm_memory_gb: "{{ worker_ram_gb }}"
     vm_network_ip_address: "{{ item.1.vm_network_ip_address }}"
     vm_network_mac_address: "{{ item.1.vm_network_mac_address }}"
+    vm_net_attach_def: "{{ item.1.vm_net_attach_def | default('coe-bridge') }}"
   ansible.builtin.include_tasks: "deploy-vm.yaml"
   with_indexed_items: "{{ workers | default([])}}"
 
