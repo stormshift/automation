@@ -8,6 +8,7 @@
 
     state: present
     run_strategy: "{{ ocpVirt_runStrategy_running }}" # default
+    evictionStrategy: "{{ ocpVirt_evictionStrategy | default('LiveMigrate')  }}"
     wait: true
     wait_timeout: 480
     name: "{{ vm_name }}"
