@@ -31,12 +31,16 @@ openshift_version: 4.22.0-rc.0
 #openshift_location: "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp-dev-preview/{{ openshift_version }}"
 #openshift_featureSet: TechPreviewNoUpgrade
 
-# TNA:
-#openshift_version: 4.21.8
+# Use local discs for VMs:
 worker_storage_class: "lvms-local-ssd"
 control_plan_storage_class: "lvms-local-ssd"
 agent_iso_storage_class: "odf-replica-two-file"
 storage_access_mode: "ReadWriteOnce"
+ocpVirt_evictionStrategy: None
+
+# Speedup deployment:
+remove_cdrom_after_install: false
+
 
 control_plan_cores: 8
 control_plan_ram_gb: 32
@@ -52,17 +56,17 @@ control_plans:
 #  - vm_network_ip_address: 10.32.105.82
 #    vm_network_mac_address: 0E:C0:EF:20:69:52
 
-#fencing:
-#  address: redfish+https://stormshift-kubevirt-redfish-stormshift-kubevirt-redfish.apps.isar.coe.muc.redhat.com/redfish/v1/Systems
-#  username: admin
-#  password: admin123
-#  certificateVerification: Disabled
+fencing:
+  address: redfish+https://stormshift-kubevirt-redfish-stormshift-kubevirt-redfish.apps.isar.coe.muc.redhat.com/redfish/v1/Systems
+  username: admin
+  password: admin123
+  certificateVerification: Disabled
 
-arbiter_cores: 2
-arbiter_ram_gb: 8
-arbiters:
-  - vm_network_ip_address: 10.32.105.82
-    vm_network_mac_address: 0E:C0:EF:20:69:52
+#arbiter_cores: 2
+#arbiter_ram_gb: 8
+#arbiters:
+#  - vm_network_ip_address: 10.32.105.82
+#    vm_network_mac_address: 0E:C0:EF:20:69:52
 
 
 worker_cores: 8

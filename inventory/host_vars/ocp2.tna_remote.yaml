@@ -25,14 +25,16 @@ cluster_capabilities:
 #  - baremetal
 #  - Ingress
 
+
+
 # Default is in roles/cluster/defaults/main.yaml - Override if needed:
 
 # TNF:
 #openshift_version: 4.22.0-0.nightly-2026-03-17-033403
 #openshift_location: "https://openshift-release-artifacts.apps.ci.l2s4.p1.openshiftapps.com/{{ openshift_version }}"
-openshift_version: 4.22.0-ec.4
+openshift_version: 4.22.0-rc.0
 openshift_location: "https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp-dev-preview/{{ openshift_version }}"
-openshift_featureSet: TechPreviewNoUpgrade
+#openshift_featureSet: TechPreviewNoUpgrade
 worker_storage_class: "lvms-local-ssd"
 control_plan_storage_class: "lvms-local-ssd"
 agent_iso_storage_class: "odf-replica-two-file"
