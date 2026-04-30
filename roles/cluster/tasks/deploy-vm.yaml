@@ -44,6 +44,7 @@
               name: "{{ inventory_hostname }}-agent-iso"
               namespace: "{{ target_namespace }}"
     spec:
+      evictionStrategy: "{{ ocpVirt_evictionStrategy | default('LiveMigrate')  }}"
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -118,4 +119,3 @@
               macAddress: "{{ vm_network_mac_address }}"
               model: virtio
               name: coe
-      evictionStrategy: "{{ ocpVirt_evictionStrategy | default('LiveMigrate')  }}"
