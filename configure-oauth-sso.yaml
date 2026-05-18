@@ -3,8 +3,7 @@
 # cp -v $KUBECONFIG .
 # /Users/rbohne/.kube/.switch_tmp/config.2962012707.tmp -> ./config.2962012707.tmp
 # export K8S_AUTH_KUBECONFIG=$(basename $KUBECONFIG)
-# ansible-navigator run configure-oauth-sso.yaml \
-#  --vault-password-file=.vault_pass
+# ansible-navigator run configure-oauth-sso.yaml --vault-password-file=.vault_pass
 
 # This is use a test
 - hosts: localhost
@@ -135,7 +134,7 @@
 
     - ansible.builtin.set_fact:
         identity_providers: []
-      when: identity_providers | length == 0
+      when: identity_providers | default([], true) | length == 0
 
     - debug:
         var: identity_providers
