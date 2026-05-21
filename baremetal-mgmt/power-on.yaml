@@ -1,5 +1,5 @@
 ---
-- name: BaerMetal Server
+- name: BareMetal Server ON
   hosts: "baremetal-bmc"
   connection: local
   gather_facts: false
@@ -13,5 +13,3 @@
         category: Systems
         command: PowerOn
         resource_id: "{{ redfish_system_id }}"
-
-    
