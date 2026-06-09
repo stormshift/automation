@@ -58,6 +58,11 @@
         state: latest
       register: osupdate
 
+    - name: Clean dnf cache
+      tags: post
+      changed_when: false
+      command: dnf clean all
+
     - name: Stop VM
       changed_when: false
       local_action:
