@@ -13,12 +13,25 @@
   when: checkExists_results is not failed
 
 - name: Download OpenShift Artifacts
-  when: not clusterAlreadyExists
+  when:
+    - not clusterAlreadyExists
+    - ocp_release_image is not defined
   # Work-a-round: tags inheritance don't work without a block.
   # https://github.com/ansible/ansible/issues/41540#issuecomment-419433375
   block:
     - name: Include tasks
       ansible.builtin.include_tasks: download-openshift-artifacts.yml
+  tags: download-openshift-artifacts
+
+- name: Extract OpenShift Artifacts from payload
+  when:
+    - not clusterAlreadyExists
+    - ocp_release_image is defined
+  # Work-a-round: tags inheritance don't work without a block.
+  # https://github.com/ansible/ansible/issues/41540#issuecomment-419433375
+  block:
+    - name: Include tasks
+      ansible.builtin.include_tasks: extract-openshift-artifacts-from-payload.yml
   tags: download-openshift-artifacts
 
 - name: Add api/api-int dns records
