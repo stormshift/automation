@@ -1,7 +1,7 @@
 stormshift_owner_email: "dfroehli@redhat.com"
 stormshift_owner_purpose: "Current GA Version"
-ushift_version: "4.21"
-ushift_preview_version: latest-4.22
+ushift_version: "4.22"
+ushift_preview_version: latest-5.0
 ushift_preview_version_dep_ec: 4.22-el9-beta
 ushift_preview_version_dep_rc: 4.22-el9-beta
 # repo, one of: EC/RC/standard
@@ -10,15 +10,15 @@ ushift_actually_install: true
 ushift_deploy_sample_workload: true
 vm_cores: 2
 vm_memory: "2Gi"
-ushift_vm_template: "rhel96"
-ushift_rhel_version: "9.6"
+ushift_vm_template: "rhel98"
+ushift_rhel_version: "9.8"
 network_ip_address: 10.32.99.11
 network_mac_address: 0E:C0:EF:20:63:0B
 ushift_repo_list:
       - rhel-9-for-x86_64-appstream-eus-rpms
       - rhel-9-for-x86_64-baseos-eus-rpms
       - fast-datapath-for-rhel-9-x86_64-rpms
-      - rhocp-4.21-for-rhel-9-x86_64-rpms
+      - rhocp-4.22-for-rhel-9-x86_64-rpms
 #      - gitops-1.12-for-rhel-9-x86_64-rpms
 # install_type - one of: rpm, ostree, imageMode
 ushift_install_type: rpm
