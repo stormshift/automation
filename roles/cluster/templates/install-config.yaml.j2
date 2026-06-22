@@ -45,6 +45,9 @@ networking:
       hostPrefix: 23
   machineNetwork:
     - cidr: {{ network }}/{{ network_ip_address_prefix_length }}
+{% if arbiter_network is defined %}
+    - cidr: {{ arbiter_network }}
+{% endif %}
   networkType: OVNKubernetes
   serviceNetwork:
     - 172.30.0.0/16

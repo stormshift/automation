@@ -60,7 +60,7 @@ hosts:
             enabled: true
             address:
               - ip: {{ host.vm_network_ip_address }}
-                prefix-length: {{ network_ip_address_prefix_length }}
+                prefix-length: {{ arbiter_network | default('0.0.0.0/' ~ network_ip_address_prefix_length) | ansible.utils.ipaddr('prefix') }}
             dhcp: false
       dns-resolver:
         config:
