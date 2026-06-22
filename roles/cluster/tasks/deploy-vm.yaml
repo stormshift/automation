@@ -1,121 +1,118 @@
 ---
 
 - name: "Deploy VM {{target_namespace}}/{{ vm_name }}"
-  kubevirt.core.kubevirt_vm:
+  kubernetes.core.k8s:
     api_key:         "{{ hostvars['isar']['k8s_auth_api_key'] }}"
     host:            "{{ hostvars['isar']['k8s_auth_host'] }}"
     validate_certs:  "{{ hostvars['isar']['k8s_auth_verify_ssl'] }}"
-
     state: present
-    run_strategy: "{{ ocpVirt_runStrategy_running }}" # default
     wait: true
     wait_timeout: 480
-    name: "{{ vm_name }}"
-    namespace: "{{ target_namespace }}"
-    labels:
-      vm_group: "{{ target_namespace }}"
-    annotations:
-      descheduler.alpha.kubernetes.io/evict: "{{ descheduler_evict }}"
-    data_volume_templates:
-      - metadata:
-          name: "{{ vm_name }}-root"
-        spec:
-          storage:
-            accessModes:
-              - "{{ storage_access_mode | default('ReadWriteMany') }}"
-            storageClassName: "{{ vm_rootdisk_storageclass }}"
-            resources:
-              requests:
-                storage: "{{ vm_rootdisk_size }}"
-          source:
-            blank: {}
-      - metadata:
-          name: "{{ vm_name }}-cdrom"
-        spec:
-          storage:
-            accessModes:
-              - ReadWriteMany
-            storageClassName: "{{ agent_iso_storage_class }}"
-            resources:
-              requests:
-                storage: "2Gi"
-          source:
-            pvc:
-              name: "{{ inventory_hostname }}-agent-iso"
-              namespace: "{{ target_namespace }}"
-    spec:
-      evictionStrategy: "{{ ocpVirt_evictionStrategy | default('LiveMigrate')  }}"
-      affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            podAffinityTerm:
-              labelSelector:
-                matchExpressions:
-                - key: vm_group
-                  operator: In
-                  values:
-                  - "{{ target_namespace }}"
-              topologyKey: kubernetes.io/hostname
-
-      volumes:
-        - name: cdrom
-          dataVolume:
-            name: "{{ vm_name }}-cdrom"
-        - name: root
-          dataVolume:
-            name: "{{ vm_name }}-root"
-      networks:
-        - name: coe
-          multus:
-            networkName: "{{ vm_net_attach_def | default('coe-bridge') }}"
-      domain:
-        cpu:
-          cores: "{{ vm_cores | int }}"
-          sockets: 1
-          threads: 1 # Hyperthreading is disabled at ISAR cluster
-          # Default to IvyBridge for now, to avoid issues with newer CPUs
-          # IvyBridg, to not support RHEL 10. If you need RHEL 10 support please use Haswell.
-          # See https://github.com/stormshift/support/issues/312#issuecomment-3589708045
-          model: "{{ vm_cpu_model if (vm_cpu_model is iterable and vm_cpu_model | length > 0) else '' }}"
-          features:
-            - name: vmx
-              policy: require
-        memory:
-          guest: "{{ vm_memory_gb }}Gi"
-        resources:
-          requests:
-            memory: "{{ vm_memory_gb }}Gi"
-          # https://docs.openshift.com/container-platform/4.14/virt/install/preparing-cluster-for-virt.html#virt-cluster-resource-requirements_preparing-cluster-for-virt
-          # Based on the calculation:
-          # Memory overhead per virtual machine ≈ (1.002 × requested memory) \
-          #               + 218 MiB \
-          #               + 8 MiB × (number of vCPUs) \
-          #               + 16 MiB × (number of graphics devices) \
-          #               + (additional memory overhead)
-          #
-
-          # echo "(16384 * 1.002) + 218 + (8*8)" | bc -l
-          #  => 16698.768
-          # + 20Mib because of https://docs.openshift.com/container-platform/4.15/virt/monitoring/virt-runbooks.html#virt-runbook-KubevirtVmHighMemoryUsage
-          #   echo "(16384 * 1.002) + 218 + (8*8) + 20 " | bc -l
-          #  => 16718.768
-          #  round: 16720Mi
-          limits:
-            memory: "{{ ( ( ( vm_memory_gb * 1.002 ) + 0.218 + ( 0.008 *  vm_cores ) ) * 1024 ) | round(0) | int }}Mi"
-        devices:
-          disks:
-            - name: root
-              bootOrder: 1
-              disk:
-                bus: virtio
-            - name: cdrom
-              bootOrder: 2
-              cdrom:
-                bus: sata
-              shareable: true
-          interfaces:
-            - bridge: {}
-              macAddress: "{{ vm_network_mac_address }}"
-              model: virtio
-              name: coe
+    wait_condition:
+      type: Ready
+      status: "True"
+    definition:
+      apiVersion: kubevirt.io/v1
+      kind: VirtualMachine
+      metadata:
+        name: "{{ vm_name }}"
+        namespace: "{{ target_namespace }}"
+        labels:
+          vm_group: "{{ target_namespace }}"
+        annotations:
+          descheduler.alpha.kubernetes.io/evict: "{{ descheduler_evict }}"
+      spec:
+        runStrategy: "{{ ocpVirt_runStrategy_running }}"
+        dataVolumeTemplates:
+          - metadata:
+              name: "{{ vm_name }}-root"
+            spec:
+              storage:
+                accessModes:
+                  - "{{ storage_access_mode | default('ReadWriteMany') }}"
+                storageClassName: "{{ vm_rootdisk_storageclass }}"
+                resources:
+                  requests:
+                    storage: "{{ vm_rootdisk_size }}"
+              source:
+                blank: {}
+          - metadata:
+              name: "{{ vm_name }}-cdrom"
+            spec:
+              storage:
+                accessModes:
+                  - ReadWriteMany
+                storageClassName: "{{ agent_iso_storage_class }}"
+                resources:
+                  requests:
+                    storage: "2Gi"
+              source:
+                pvc:
+                  name: "{{ inventory_hostname }}-agent-iso"
+                  namespace: "{{ target_namespace }}"
+        template:
+          metadata:
+            labels:
+              vm_group: "{{ target_namespace }}"
+          spec:
+            evictionStrategy: "{{ ocpVirt_evictionStrategy }}"
+            affinity:
+              podAntiAffinity:
+                preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 100
+                  podAffinityTerm:
+                    labelSelector:
+                      matchExpressions:
+                      - key: vm_group
+                        operator: In
+                        values:
+                        - "{{ target_namespace }}"
+                    topologyKey: kubernetes.io/hostname
+            volumes:
+              - name: cdrom
+                dataVolume:
+                  name: "{{ vm_name }}-cdrom"
+              - name: root
+                dataVolume:
+                  name: "{{ vm_name }}-root"
+            networks:
+              - name: coe
+                multus:
+                  networkName: "{{ vm_net_attach_def | default('coe-bridge') }}"
+            domain:
+              cpu:
+                cores: "{{ vm_cores | int }}"
+                sockets: 1
+                threads: 1
+                # See https://github.com/stormshift/support/issues/312#issuecomment-3589708045
+                model: "{{ vm_cpu_model if (vm_cpu_model is iterable and vm_cpu_model | length > 0) else '' }}"
+                features:
+                  - name: vmx
+                    policy: require
+              memory:
+                guest: "{{ vm_memory_gb }}Gi"
+              resources:
+                requests:
+                  memory: "{{ vm_memory_gb }}Gi"
+                # Memory overhead per virtual machine ≈ (1.002 × requested memory)
+                #               + 218 MiB + 8 MiB × (number of vCPUs)
+                #               + 16 MiB × (number of graphics devices) + (additional memory overhead)
+                # + 20 MiB because of KubevirtVmHighMemoryUsage runbook
+                limits:
+                  memory: "{{ ( ( ( vm_memory_gb * 1.002 ) + 0.218 + ( 0.008 *  vm_cores ) ) * 1024 ) | round(0) | int }}Mi"
+              devices:
+                disks:
+                  - name: root
+                    bootOrder: 1
+                    disk:
+                      bus: virtio
+                  - name: cdrom
+                    bootOrder: 2
+                    cdrom:
+                      bus: sata
+                    shareable: true
+                interfaces:
+                  - bridge: {}
+                    macAddress: "{{ vm_network_mac_address }}"
+                    model: virtio
+                    name: coe
