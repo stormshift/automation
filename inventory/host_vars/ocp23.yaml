@@ -1,6 +1,6 @@
 ---
-stormshift_owner_email: "kvanbesi@redhat.com"
-stormshift_owner_purpose: "consulting demo"
+stormshift_owner_email: "dholder@redhat.com"
+stormshift_owner_purpose: "customer reproducer"
 stormshift_owner_usage: "exclusive"
 cluster_type: classic
 cluster_api_vip: 10.32.105.199
@@ -20,35 +20,37 @@ cluster_capabilities:
 #  - Ingress
 
 # Default is in roles/cluster/defaults/main.yaml - Override if needed:
-openshift_version: 4.20.14
+openshift_version: 4.20.23
 #openshift_location: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp-dev-preview/{{ openshift_version }}"
 #openshift_featureSet: TechPreviewNoUpgrade
 
-control_plan_cores: 8
-control_plan_ram_gb: 32
+control_plan_cores: 4
+control_plan_ram_gb: 16
 
 control_plans:
   - vm_network_ip_address: 10.32.105.201
     vm_network_mac_address: 0E:C0:EF:20:6F:C9
   - vm_network_ip_address: 10.32.105.202
     vm_network_mac_address: 0E:C0:EF:20:6F:CA
-
-arbiter_cores: 2
-arbiter_ram_gb: 8
-arbiters:
   - vm_network_ip_address: 10.32.105.203
     vm_network_mac_address: 0E:C0:EF:20:6F:CB
 
-worker_cores: 8
+#arbiter_cores: 2
+#arbiter_ram_gb: 8
+#arbiters:
+#  - vm_network_ip_address: 10.32.105.203
+#    vm_network_mac_address: 0E:C0:EF:20:6F:CB
+
+worker_cores: 4
 worker_ram_gb: 16
 
 # Compact 3 nodes only Cluster:
-workers: []
+#workers: []
 # Regular 3+3 Cluster:
-# workers:
-  # - vm_network_ip_address: 10.32.105.204
-  #   vm_network_mac_address: 0E:C0:EF:20:6F:CC
-  # - vm_network_ip_address: 10.32.105.205
-  #   vm_network_mac_address: 0E:C0:EF:20:6F:CD
-  # - vm_network_ip_address: 10.32.105.206
-  #   vm_network_mac_address: 0E:C0:EF:20:6F:CE
+workers:
+   - vm_network_ip_address: 10.32.105.204
+     vm_network_mac_address: 0E:C0:EF:20:6F:CC
+   - vm_network_ip_address: 10.32.105.205
+     vm_network_mac_address: 0E:C0:EF:20:6F:CD
+   - vm_network_ip_address: 10.32.105.206
+     vm_network_mac_address: 0E:C0:EF:20:6F:CE
