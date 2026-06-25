@@ -1,6 +1,6 @@
 ---
 # RHACS container image (independent of host RHEL major version).
-roxagent_rhacs_image: registry.redhat.io/advanced-cluster-security/rhacs-main-rhel8:4.11.0
+roxagent_rhacs_image: registry.redhat.io/advanced-cluster-security/rhacs-main-rhel9:4.11.0
 
 roxagent_auth_file: /etc/containers/auth.json
 roxagent_state_dir: /etc/roxagent

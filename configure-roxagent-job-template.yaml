@@ -1,25 +1,83 @@
 ---
 # Register the AAP job template for RHACS roxagent provisioning (with callback).
 #
-# Run once against AAP controller inventory (e.g. localhost with awx.awx collection):
-#   ansible-navigator run configure-roxagent-job-template.yaml
+# AAP on OpenShift uses the platform gateway API prefix /api/controller/.
+# Set only the gateway base URL in cfg/secrets.yml (no /api/controller suffix):
+#   aap_controller_host: https://security-aap-aap.apps.ocp22.stormshift.coe.muc.redhat.com
 #
-# After creation, note the job template ID and set ROXAGENT_AAP_CALLBACK_URL in
-# vuln-scan VM templates. Store roxagent_aap_host_config_key in Vault (not in git).
+# Run:
+#   ansible-navigator run configure-roxagent-job-template.yaml \
+#     -e roxagent_aap_host_config_key=... \
+#     -e @cfg/secrets.yml
 
 - hosts: localhost
   connection: local
   gather_facts: false
   collections:
     - awx.awx
+  environment:
+    AWXKIT_API_BASE_PATH: /api/controller/
+    CONTROLLER_OPTIONAL_API_URLPATTERN_PREFIX: /api/controller/
   vars:
     roxagent_aap_project: stormshift-automation
-    roxagent_aap_inventory: stormshift-inventory-from-git
-    roxagent_aap_organization: stormshift
+    roxagent_aap_project_scm_url: https://github.com/stormshift/automation.git
+    roxagent_aap_project_scm_branch: main
+    roxagent_aap_inventory: ISAR-vm-inventory
+    roxagent_aap_inventory_source_name: "{{ roxagent_aap_inventory }} - OpenShift Virtualization"
+    roxagent_aap_inventory_source_credential: ""
+    roxagent_aap_inventory_source_host_filter: ""
+    roxagent_aap_organization: ISAR
     roxagent_aap_execution_environment: stormshift-automation-execution-environment-202602021722
-    # Override via -e roxagent_aap_host_config_key=... (from Vault); do not commit secrets.
     roxagent_aap_host_config_key: "{{ lookup('ansible.builtin.env', 'ROXAGENT_AAP_HOST_CONFIG_KEY', default='') }}"
     roxagent_aap_job_template_name: Configure RHACS Roxagent
+    roxagent_aap_credentials:
+      # replace as needed
+      - Machine-Creds
+      - Kubevirt-Creds
+    # Gateway base URL only; /api/controller/ is supplied via AWXKIT_API_BASE_PATH above.
+    roxagent_aap_controller_host: >-
+      {{
+        (
+          aap_controller_host
+          | default(lookup('env', 'CONTROLLER_HOST'), true)
+          | default('', true)
+        )
+        | regex_replace('/api/controller/?$', '')
+        | regex_replace('/$', '')
+      }}
+    roxagent_aap_controller_username: >-
+      {{ aap_controller_username | default(lookup('env', 'CONTROLLER_USERNAME'), true) | default('', true) }}
+    roxagent_aap_controller_password: >-
+      {{ aap_controller_password | default(lookup('env', 'CONTROLLER_PASSWORD'), true) | default('', true) }}
+    roxagent_aap_controller_validate_certs: >-
+      {{ aap_controller_validate_certs | default(lookup('env', 'CONTROLLER_VERIFY_SSL', default='true')) | bool }}
+    roxagent_aap_rhacs_image: "{{ roxagent_aap_rhacs_image | default('registry.redhat.io/advanced-cluster-security/rhacs-main-rhel9:4.11.0') }}"
+  module_defaults:
+    awx.awx.organization:
+      controller_host: "{{ roxagent_aap_controller_host }}"
+      controller_username: "{{ roxagent_aap_controller_username }}"
+      controller_password: "{{ roxagent_aap_controller_password }}"
+      validate_certs: "{{ roxagent_aap_controller_validate_certs }}"
+    awx.awx.inventory:
+      controller_host: "{{ roxagent_aap_controller_host }}"
+      controller_username: "{{ roxagent_aap_controller_username }}"
+      controller_password: "{{ roxagent_aap_controller_password }}"
+      validate_certs: "{{ roxagent_aap_controller_validate_certs }}"
+    awx.awx.inventory_source:
+      controller_host: "{{ roxagent_aap_controller_host }}"
+      controller_username: "{{ roxagent_aap_controller_username }}"
+      controller_password: "{{ roxagent_aap_controller_password }}"
+      validate_certs: "{{ roxagent_aap_controller_validate_certs }}"
+    awx.awx.project:
+      controller_host: "{{ roxagent_aap_controller_host }}"
+      controller_username: "{{ roxagent_aap_controller_username }}"
+      controller_password: "{{ roxagent_aap_controller_password }}"
+      validate_certs: "{{ roxagent_aap_controller_validate_certs }}"
+    awx.awx.job_template:
+      controller_host: "{{ roxagent_aap_controller_host }}"
+      controller_username: "{{ roxagent_aap_controller_username }}"
+      controller_password: "{{ roxagent_aap_controller_password }}"
+      validate_certs: "{{ roxagent_aap_controller_validate_certs }}"
 
   tasks:
     - name: Fail when host config key is not provided
@@ -28,6 +86,72 @@
           Set ROXAGENT_AAP_HOST_CONFIG_KEY in the environment or pass
           -e roxagent_aap_host_config_key=... when running this playbook.
       when: roxagent_aap_host_config_key | length == 0
+
+    - name: Fail when controller connection settings are incomplete
+      ansible.builtin.fail:
+        msg: >-
+          Set aap_controller_host, aap_controller_username, and aap_controller_password
+          in cfg/secrets.yml or export CONTROLLER_HOST, CONTROLLER_USERNAME, and
+          CONTROLLER_PASSWORD. Use the gateway base URL only (no /api/controller suffix).
+      when:
+        - roxagent_aap_controller_host | length == 0
+          or roxagent_aap_controller_username | length == 0
+          or roxagent_aap_controller_password | length == 0
+
+    - name: Show resolved AAP controller connection (debug)
+      ansible.builtin.debug:
+        msg:
+          controller_host: "{{ roxagent_aap_controller_host }}"
+          api_base_path: "{{ lookup('env', 'AWXKIT_API_BASE_PATH') }}"
+          controller_username: "{{ roxagent_aap_controller_username }}"
+          validate_certs: "{{ roxagent_aap_controller_validate_certs }}"
+
+    - name: Ensure organization exists
+      awx.awx.organization:
+        name: "{{ roxagent_aap_organization }}"
+        description: "{{ roxagent_aap_organization }} OCP-V virtual machines and automation"
+        state: present
+
+    - name: Ensure VM inventory exists
+      awx.awx.inventory:
+        name: "{{ roxagent_aap_inventory }}"
+        organization: "{{ roxagent_aap_organization }}"
+        description: >-
+          RHEL VMs on {{ roxagent_aap_organization }} OCP-V for RHACS roxagent provisioning.
+          Hosts may be added dynamically via provisioning callback extra_vars.
+        state: present
+
+    - name: Fail when OpenShift Virtualization inventory credential is not configured
+      ansible.builtin.fail:
+        msg: >-
+          Set roxagent_aap_inventory_source_credential in cfg/secrets.yml to an
+          existing OpenShift or Kubernetes API Bearer Token credential in AAP.
+      when: roxagent_aap_inventory_source_credential | length == 0
+
+    - name: Ensure OpenShift Virtualization inventory source exists
+      awx.awx.inventory_source:
+        name: "{{ roxagent_aap_inventory_source_name }}"
+        inventory: "{{ roxagent_aap_inventory }}"
+        organization: "{{ roxagent_aap_organization }}"
+        source: openshift_virtualization
+        credential: "{{ roxagent_aap_inventory_source_credential }}"
+        host_filter: "{{ roxagent_aap_inventory_source_host_filter }}"
+        update_on_launch: true
+        overwrite: true
+        state: present
+
+    - name: Ensure automation project exists
+      awx.awx.project:
+        name: "{{ roxagent_aap_project }}"
+        organization: "{{ roxagent_aap_organization }}"
+        description: >-
+          StormShift automation playbooks for {{ roxagent_aap_organization }} VMs.
+        scm_type: git
+        scm_url: "{{ roxagent_aap_project_scm_url }}"
+        scm_branch: "{{ roxagent_aap_project_scm_branch }}"
+        scm_update_on_launch: true
+        scm_update_cache_timeout: 60
+        state: present
 
     - name: Create roxagent job template
       awx.awx.job_template:
@@ -41,16 +165,13 @@
         project: "{{ roxagent_aap_project }}"
         playbook: configure-roxagent.yaml
         execution_environment: "{{ roxagent_aap_execution_environment }}"
-        credentials:
-          - automation-vault
-          - stormshift-automation-pullsecret
-          - stormshift-automation-ssh
+        credentials: "{{ roxagent_aap_credentials }}"
         state: present
         allow_simultaneous: true
         ask_variables_on_launch: true
         extra_vars:
-          roxagent_rhacs_image: registry.redhat.io/advanced-cluster-security/rhacs-main-rhel8:4.11.0
-        enable_provisioning_callback: true
+          roxagent_rhacs_image: "{{ roxagent_aap_rhacs_image }}"
+
         host_config_key: "{{ roxagent_aap_host_config_key }}"
 
     - name: Show callback URL placeholder
