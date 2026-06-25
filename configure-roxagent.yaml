@@ -12,9 +12,18 @@
 - name: Configure roxagent
   hosts: "{{ roxagent_play_hosts | default('all') }}"
   become: true
-  gather_facts: true
-  vars:
-    ansible_host: "{{ roxagent_ansible_host | default(omit) }}"
-    ansible_user: "{{ roxagent_ansible_user | default(omit) }}"
+  gather_facts: false
+  pre_tasks:
+    - name: Apply provisioning callback connection overrides
+      ansible.builtin.set_fact:
+        ansible_host: "{{ roxagent_ansible_host }}"
+        ansible_user: "{{ roxagent_ansible_user | default('cloud-user') }}"
+      when:
+        - roxagent_ansible_host is defined
+        - roxagent_ansible_host | length > 0
+
+    - name: Gather facts
+      ansible.builtin.setup:
+
   roles:
     - roxagent
