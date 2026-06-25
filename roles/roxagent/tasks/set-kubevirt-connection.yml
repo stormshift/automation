@@ -3,50 +3,66 @@
 # Requires virtctl in PATH and an OpenShift/Kubernetes credential on the job
 # (for example ISAR-VM-Connect) so KUBECONFIG or K8S_AUTH_* is available.
 
-- name: Apply provisioning callback SSH user override
+- name: Resolve KubeVirt VM namespace and name
   ansible.builtin.set_fact:
-    ansible_user: "{{ roxagent_ansible_user | default(roxagent_vm_ssh_user) }}"
-  when:
-    - roxagent_ansible_user is defined
-    - roxagent_ansible_user | length > 0
+    _roxagent_kubevirt_vm_name: "{{ _roxagent_vm_name_resolved }}"
+    _roxagent_kubevirt_namespace: "{{ _roxagent_namespace_resolved }}"
+  vars:
+    _roxagent_vm_name_from_label: "{{ vm_labels['kubevirt.io/domain'] | default('', true) }}"
+    _roxagent_vm_name_from_var: >-
+      {{
+        roxagent_kubevirt_vm_name
+        | default(roxagent_target_host | default('', true), true)
+      }}
+    _roxagent_vm_name_resolved: >-
+      {{
+        _roxagent_vm_name_from_var
+        if _roxagent_vm_name_from_var | length > 0
+        else _roxagent_vm_name_from_label
+      }}
+    _roxagent_namespace_from_var: "{{ roxagent_kubevirt_namespace | default('', true) }}"
+    _roxagent_namespace_from_group: >-
+      {{
+        group_names
+        | select('match', '^namespace_')
+        | map('regex_replace', '^namespace_', '')
+        | list
+        | first
+        | default('', true)
+      }}
+    _roxagent_namespace_from_hostname: >-
+      {{
+        inventory_hostname
+        | regex_replace(
+          '-' + (_roxagent_vm_name_resolved | regex_escape) + '$',
+          ''
+        )
+        if _roxagent_vm_name_resolved | length > 0
+        else ''
+      }}
+    _roxagent_namespace_resolved: >-
+      {{
+        _roxagent_namespace_from_var
+        if _roxagent_namespace_from_var | length > 0
+        else (
+          _roxagent_namespace_from_group
+          if _roxagent_namespace_from_group | length > 0
+          else _roxagent_namespace_from_hostname
+        )
+      }}
 
 - name: Configure virtctl SSH transport for KubeVirt VMs
   ansible.builtin.set_fact:
     ansible_host: "vm/{{ _roxagent_kubevirt_vm_name }}.{{ _roxagent_kubevirt_namespace }}"
-    ansible_user: "{{ ansible_user | default(roxagent_vm_ssh_user) }}"
+    ansible_user: "{{ roxagent_ansible_user | default(roxagent_vm_ssh_user) }}"
     ansible_ssh_common_args: "{{ roxagent_virtctl_ssh_common_args }}"
-  vars:
-    _roxagent_kubevirt_namespace: >-
-      {{
-        roxagent_kubevirt_namespace
-        | default(
-          group_names
-          | select('match', '^namespace_')
-          | map('regex_replace', '^namespace_', '')
-          | list
-          | first
-          | default('', true)
-        )
-      }}
-    _roxagent_kubevirt_vm_name: >-
-      {{
-        roxagent_kubevirt_vm_name
-        | default(
-          roxagent_target_host
-          | default(
-            vm_labels['kubevirt.io/domain']
-            | default(
-              inventory_hostname
-              | regex_replace('^' + _roxagent_kubevirt_namespace + '-', '')
-              if _roxagent_kubevirt_namespace | length > 0
-              else inventory_hostname,
-              true
-            ),
-            true
-          ),
-          true
-        )
-      }}
+  when:
+    - roxagent_virtctl_ssh | bool
+    - _roxagent_kubevirt_namespace | length > 0
+    - _roxagent_kubevirt_vm_name | length > 0
+
+- name: Reset SSH connection to apply virtctl transport
+  ansible.builtin.meta: reset_connection
   when:
     - roxagent_virtctl_ssh | bool
     - _roxagent_kubevirt_namespace | length > 0
