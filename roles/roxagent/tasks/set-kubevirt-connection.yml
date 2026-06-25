@@ -5,8 +5,9 @@
 # a kubeconfig file built from those values.
 #
 # KubeVirt inventory notes (AAP):
-# - VM name is on vmi_labels.kubevirt.io/domain (not vm_labels)
-# - Namespace groups use underscores: namespace_sluetzen_vm_vuln_demo
+# - Inventory hostname is {namespace}-{vm_name} (e.g. sluetzen-virt-sluetzen-rhel9-devel).
+# - Namespace groups use underscores: namespace_sluetzen_virt → sluetzen-virt
+# - vmi_labels.kubevirt.io/domain can omit name prefixes; prefer hostname derivation.
 
 - name: Resolve cluster API settings from AAP credential environment
   ansible.builtin.set_fact:
@@ -95,39 +96,6 @@
     _roxagent_kubevirt_vm_name: "{{ _roxagent_vm_name_resolved }}"
     _roxagent_kubevirt_namespace: "{{ _roxagent_namespace_resolved }}"
   vars:
-    _roxagent_vm_name_from_label: >-
-      {{
-        vmi_labels['kubevirt.io/domain']
-        | default(vm_labels['app'] | default(vm_labels['kubevirt.io/domain'] | default('', true), true), true)
-      }}
-    _roxagent_vm_name_from_var: >-
-      {{
-        roxagent_kubevirt_vm_name
-        | default(roxagent_target_host | default('', true), true)
-      }}
-    _roxagent_vm_name_from_hostname_regex: >-
-      {{
-        inventory_hostname
-        | regex_search('^.*-(rhel(?:9|10)-.+)$', '\1')
-        | default('', true)
-      }}
-    _roxagent_vm_name_unresolved: >-
-      {{
-        _roxagent_vm_name_from_var
-        if _roxagent_vm_name_from_var | length > 0
-        else (
-          _roxagent_vm_name_from_label
-          if _roxagent_vm_name_from_label | length > 0
-          else _roxagent_vm_name_from_hostname_regex
-        )
-      }}
-    # KubeVirt inventory compose may return label values as single-element lists.
-    _roxagent_vm_name_resolved: >-
-      {{
-        (_roxagent_vm_name_unresolved | first | default('', true))
-        if (_roxagent_vm_name_unresolved is sequence and _roxagent_vm_name_unresolved is not string)
-        else (_roxagent_vm_name_unresolved | default('', true))
-      }}
     _roxagent_namespace_from_var: >-
       {{
         roxagent_kubevirt_namespace | default('', true)
@@ -146,6 +114,57 @@
         | list
         | first
         | default('', true)
+      }}
+    _roxagent_namespace_early: >-
+      {{
+        _roxagent_namespace_from_var
+        if _roxagent_namespace_from_var | length > 0
+        else _roxagent_namespace_from_group
+      }}
+    _roxagent_vm_name_from_inventory_hostname: >-
+      {{
+        inventory_hostname | regex_replace('^' + (_roxagent_namespace_early | regex_escape) + '-', '')
+        if (
+          _roxagent_namespace_early | length > 0
+          and inventory_hostname is match('^' + (_roxagent_namespace_early | regex_escape) + '-.+')
+        )
+        else ''
+      }}
+    _roxagent_vm_name_from_label: >-
+      {{
+        vmi_labels['kubevirt.io/domain']
+        | default(vm_labels['app'] | default(vm_labels['kubevirt.io/domain'] | default('', true), true), true)
+      }}
+    _roxagent_vm_name_from_hostname_regex: >-
+      {{
+        inventory_hostname
+        | regex_search('^.*-(rhel(?:9|10)-.+)$', '\1')
+        | default('', true)
+      }}
+    _roxagent_vm_name_unresolved: >-
+      {{
+        roxagent_target_host | default('', true)
+        if roxagent_target_host | default('', true) | length > 0
+        else (
+          _roxagent_vm_name_from_inventory_hostname
+          if _roxagent_vm_name_from_inventory_hostname | length > 0
+          else (
+            roxagent_kubevirt_vm_name | default('', true)
+            if roxagent_kubevirt_vm_name | default('', true) | length > 0
+            else (
+              _roxagent_vm_name_from_label
+              if _roxagent_vm_name_from_label | length > 0
+              else _roxagent_vm_name_from_hostname_regex
+            )
+          )
+        )
+      }}
+    # KubeVirt inventory compose may return label values as single-element lists.
+    _roxagent_vm_name_resolved: >-
+      {{
+        (_roxagent_vm_name_unresolved | first | default('', true))
+        if (_roxagent_vm_name_unresolved is sequence and _roxagent_vm_name_unresolved is not string)
+        else (_roxagent_vm_name_unresolved | default('', true))
       }}
     _roxagent_namespace_from_hostname: >-
       {{
@@ -171,9 +190,16 @@
           _roxagent_namespace_from_group
           if _roxagent_namespace_from_group | length > 0
           else (
-            _roxagent_namespace_from_hostname
-            if _roxagent_namespace_from_hostname | length > 0
-            else _roxagent_namespace_from_hostname_regex
+            _roxagent_namespace_early
+            if (
+              _roxagent_namespace_early | length > 0
+              and _roxagent_vm_name_from_inventory_hostname | length > 0
+            )
+            else (
+              _roxagent_namespace_from_hostname
+              if _roxagent_namespace_from_hostname | length > 0
+              else _roxagent_namespace_from_hostname_regex
+            )
           )
         )
       }}

@@ -31,12 +31,10 @@
     roxagent_aap_inventory_source_name: "{{ roxagent_aap_inventory }} - OpenShift Virtualization"
     roxagent_aap_inventory_source_host_filter: ""
     # Do not set ansible_host to the VM pod IP; the playbook uses virtctl SSH.
+    # VM name/namespace are resolved in the roxagent role from inventory_hostname
+    # and namespace_* inventory groups (vmi_labels can omit name prefixes).
     roxagent_aap_inventory_source_vars:
       use_service: false
-      compose:
-        # vmi_labels values can be lists; [0] is safe here (compose only runs for VM hosts).
-        roxagent_kubevirt_vm_name: "(vmi_labels['kubevirt.io/domain'] | default(vm_labels['app'] | default('')))[0] if (vmi_labels['kubevirt.io/domain'] | default(vm_labels['app'] | default(''))) is iterable and (vmi_labels['kubevirt.io/domain'] | default(vm_labels['app'] | default(''))) is not string else (vmi_labels['kubevirt.io/domain'] | default(vm_labels['app'] | default('')))"
-        roxagent_kubevirt_namespace: "inventory_hostname | regex_replace('-' + (((vmi_labels['kubevirt.io/domain'] | default(vm_labels['app'] | default('')))[0] if (vmi_labels['kubevirt.io/domain'] | default(vm_labels['app'] | default(''))) is iterable and (vmi_labels['kubevirt.io/domain'] | default(vm_labels['app'] | default(''))) is not string else (vmi_labels['kubevirt.io/domain'] | default(vm_labels['app'] | default('')))) | regex_escape) + '$', '')"
     roxagent_aap_organization: ISAR
     roxagent_aap_execution_environment: stormshift-automation-execution-environment-202602021722
     roxagent_aap_host_config_key: "{{ lookup('ansible.builtin.env', 'ROXAGENT_AAP_HOST_CONFIG_KEY', default='') }}"
