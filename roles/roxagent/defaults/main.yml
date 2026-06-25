@@ -27,18 +27,10 @@ roxagent_virtctl_binary: virtctl
 roxagent_kubeconfig_path: /runner/.kube/config
 roxagent_virtctl_ssh_config_path: /runner/.ssh/virtctl-proxy.conf
 # virtctl ansible_host is vm/<name>.<namespace> — slashes in %h break ansible.cfg
-# control_path (%(directory)s/%%h-%%r). Override ssh_args; use a fixed path (no % tokens).
+# control_path (%(directory)s/%%h-%%r). Override only that; multiplexing comes from ansible.cfg.
 roxagent_virtctl_ssh_control_path_dir: /runner/cp
-roxagent_virtctl_ssh_args: >-
-  -o ControlMaster=no
-  -o ControlPersist=no
-roxagent_virtctl_ssh_control_path: "{{ roxagent_virtctl_ssh_control_path_dir }}/virtctl-ssh"
-roxagent_virtctl_ssh_common_args: >-
-  -F {{ roxagent_virtctl_ssh_config_path }}
-  -o ControlMaster=no
-  -o ControlPersist=no
-  -o StrictHostKeyChecking=no
-  -o UserKnownHostsFile=/dev/null
+roxagent_virtctl_ssh_control_path: "{{ roxagent_virtctl_ssh_control_path_dir }}/%C"
+roxagent_virtctl_ssh_common_args: "-F {{ roxagent_virtctl_ssh_config_path }}"
 roxagent_vm_ssh_user: cloud-user
 roxagent_kubevirt_namespace: ""
 roxagent_kubevirt_vm_name: ""

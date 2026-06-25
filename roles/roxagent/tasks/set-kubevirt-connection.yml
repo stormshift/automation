@@ -86,11 +86,6 @@
     content: |
       Host vm/*
         ProxyCommand env KUBECONFIG={{ roxagent_kubeconfig_path }} {{ roxagent_virtctl_binary }} port-forward --stdio=true %h %p
-        ControlMaster no
-        ControlPersist no
-        ControlPath {{ roxagent_virtctl_ssh_control_path }}
-        StrictHostKeyChecking no
-        UserKnownHostsFile /dev/null
   become: false
   delegate_to: localhost
   run_once: true
@@ -195,10 +190,9 @@
       ansible.builtin.set_fact:
         ansible_host: "vm/{{ _roxagent_kubevirt_vm_name }}.{{ _roxagent_kubevirt_namespace }}"
         ansible_user: "{{ roxagent_ansible_user | default(roxagent_vm_ssh_user) }}"
-        ansible_ssh_args: "{{ roxagent_virtctl_ssh_args }}"
-        ansible_control_path: "{{ roxagent_virtctl_ssh_control_path }}"
-        ansible_control_path_dir: "{{ roxagent_virtctl_ssh_control_path_dir }}"
         ansible_ssh_common_args: "{{ roxagent_virtctl_ssh_common_args }}"
+        ansible_control_path: "{{ roxagent_virtctl_ssh_control_path | replace('%C', '%%C') }}"
+        ansible_control_path_dir: "{{ roxagent_virtctl_ssh_control_path_dir }}"
 
     - name: Reset SSH connection to apply virtctl transport
       ansible.builtin.meta: reset_connection
