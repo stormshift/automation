@@ -12,6 +12,7 @@
     path: "{{ roxagent_virtctl_ssh_config_path | dirname }}"
     state: directory
     mode: "0700"
+  become: false
   delegate_to: localhost
   run_once: true
 
@@ -22,6 +23,7 @@
     content: |
       Host vm/*
         ProxyCommand {{ roxagent_virtctl_binary }} port-forward --stdio=true %h %p
+  become: false
   delegate_to: localhost
   run_once: true
 
