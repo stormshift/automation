@@ -203,6 +203,23 @@
           )
         )
       }}
+    _roxagent_ssh_user_resolved: >-
+      {{
+        roxagent_ansible_user | default('', true)
+        if roxagent_ansible_user | default('', true) | length > 0
+        else (
+          hostvars[inventory_hostname]['ansible_user']
+          if (
+            'ansible_user' in hostvars[inventory_hostname]
+            and hostvars[inventory_hostname]['ansible_user'] | default('', true) | length > 0
+          )
+          else (
+            hostvars[inventory_hostname]['roxagent_vm_ssh_user']
+            if 'roxagent_vm_ssh_user' in hostvars[inventory_hostname]
+            else roxagent_vm_ssh_user | default('cloud-user')
+          )
+        )
+      }}
 
 - name: Apply virtctl SSH transport for KubeVirt VMs
   when:
@@ -216,13 +233,14 @@
           inventory_hostname: "{{ inventory_hostname }}"
           kubevirt_vm: "{{ _roxagent_kubevirt_vm_name }}"
           kubevirt_namespace: "{{ _roxagent_kubevirt_namespace }}"
+          ansible_user: "{{ _roxagent_ssh_user_resolved }}"
           ansible_host: "vm/{{ _roxagent_kubevirt_vm_name }}.{{ _roxagent_kubevirt_namespace }}"
           kubeconfig: "{{ roxagent_kubeconfig_path }}"
 
     - name: Configure virtctl SSH transport for KubeVirt VMs
       ansible.builtin.set_fact:
         ansible_host: "vm/{{ _roxagent_kubevirt_vm_name }}.{{ _roxagent_kubevirt_namespace }}"
-        ansible_user: "{{ roxagent_ansible_user | default(roxagent_vm_ssh_user) }}"
+        ansible_user: "{{ _roxagent_ssh_user_resolved }}"
         ansible_ssh_common_args: "{{ roxagent_virtctl_ssh_common_args }}"
         ansible_control_path: "{{ roxagent_virtctl_ssh_control_path | replace('%C', '%%C') }}"
         ansible_control_path_dir: "{{ roxagent_virtctl_ssh_control_path_dir }}"

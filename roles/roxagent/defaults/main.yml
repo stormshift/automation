@@ -38,5 +38,6 @@ roxagent_virtctl_ssh_control_path_dir: /runner/cp
 roxagent_virtctl_ssh_control_path: "{{ roxagent_virtctl_ssh_control_path_dir }}/%C"
 roxagent_virtctl_ssh_common_args: "-F {{ roxagent_virtctl_ssh_config_path }}"
 roxagent_vm_ssh_user: cloud-user
+# Per-host SSH user: inventory host var ansible_user or roxagent_ansible_user (see set-kubevirt-connection.yml).
 roxagent_kubevirt_namespace: ""
 roxagent_kubevirt_vm_name: ""
