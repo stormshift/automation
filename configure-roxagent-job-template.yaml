@@ -26,6 +26,9 @@
     roxagent_aap_inventory_source_name: "{{ roxagent_aap_inventory }} - OpenShift Virtualization"
     roxagent_aap_inventory_source_credential: ""
     roxagent_aap_inventory_source_host_filter: ""
+    # Do not set ansible_host to the VM pod IP; the playbook uses virtctl SSH.
+    roxagent_aap_inventory_source_vars:
+      use_service: false
     roxagent_aap_organization: ISAR
     roxagent_aap_execution_environment: stormshift-automation-execution-environment-202602021722
     roxagent_aap_host_config_key: "{{ lookup('ansible.builtin.env', 'ROXAGENT_AAP_HOST_CONFIG_KEY', default='') }}"
@@ -136,6 +139,7 @@
         source: openshift_virtualization
         credential: "{{ roxagent_aap_inventory_source_credential }}"
         host_filter: "{{ roxagent_aap_inventory_source_host_filter }}"
+        source_vars: "{{ roxagent_aap_inventory_source_vars }}"
         update_on_launch: true
         overwrite: true
         state: present
@@ -171,6 +175,7 @@
         ask_variables_on_launch: true
         extra_vars:
           roxagent_rhacs_image: "{{ roxagent_aap_rhacs_image }}"
+          roxagent_virtctl_ssh: true
 
         host_config_key: "{{ roxagent_aap_host_config_key }}"
 

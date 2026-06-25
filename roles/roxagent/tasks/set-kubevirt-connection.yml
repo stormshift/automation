@@ -1,0 +1,53 @@
+---
+# Route SSH through virtctl port-forward for VMs on the pod network.
+# Requires virtctl in PATH and an OpenShift/Kubernetes credential on the job
+# (for example ISAR-VM-Connect) so KUBECONFIG or K8S_AUTH_* is available.
+
+- name: Apply provisioning callback SSH user override
+  ansible.builtin.set_fact:
+    ansible_user: "{{ roxagent_ansible_user | default(roxagent_vm_ssh_user) }}"
+  when:
+    - roxagent_ansible_user is defined
+    - roxagent_ansible_user | length > 0
+
+- name: Configure virtctl SSH transport for KubeVirt VMs
+  ansible.builtin.set_fact:
+    ansible_host: "vm/{{ _roxagent_kubevirt_vm_name }}.{{ _roxagent_kubevirt_namespace }}"
+    ansible_user: "{{ ansible_user | default(roxagent_vm_ssh_user) }}"
+    ansible_ssh_common_args: "{{ roxagent_virtctl_ssh_common_args }}"
+  vars:
+    _roxagent_kubevirt_namespace: >-
+      {{
+        roxagent_kubevirt_namespace
+        | default(
+          group_names
+          | select('match', '^namespace_')
+          | map('regex_replace', '^namespace_', '')
+          | list
+          | first
+          | default('', true)
+        )
+      }}
+    _roxagent_kubevirt_vm_name: >-
+      {{
+        roxagent_kubevirt_vm_name
+        | default(
+          roxagent_target_host
+          | default(
+            vm_labels['kubevirt.io/domain']
+            | default(
+              inventory_hostname
+              | regex_replace('^' + _roxagent_kubevirt_namespace + '-', '')
+              if _roxagent_kubevirt_namespace | length > 0
+              else inventory_hostname,
+              true
+            ),
+            true
+          ),
+          true
+        )
+      }}
+  when:
+    - roxagent_virtctl_ssh | bool
+    - _roxagent_kubevirt_namespace | length > 0
+    - _roxagent_kubevirt_vm_name | length > 0

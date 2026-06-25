@@ -6,21 +6,21 @@
 #     -e roxagent_registry_username='...' -e roxagent_registry_password='...'
 #
 # AAP provisioning callback extra_vars (set by cloud-init on vuln-scan VMs):
-#   roxagent_ansible_host, roxagent_ansible_user
-# AAP adds the calling host to the job inventory; extra_vars override connection settings.
+#   roxagent_kubevirt_namespace, roxagent_kubevirt_vm_name (or roxagent_target_host),
+#   roxagent_ansible_user
+#
+# SSH to pod-network VMs uses virtctl port-forward (see roxagent_virtctl_ssh in
+# roles/roxagent/defaults/main.yml). Attach the OpenShift/Kubernetes credential
+# used for the inventory source (for example ISAR-VM-Connect) to the job template.
 
 - name: Configure roxagent
   hosts: "{{ roxagent_play_hosts | default('all') }}"
   become: true
   gather_facts: false
   pre_tasks:
-    - name: Apply provisioning callback connection overrides
-      ansible.builtin.set_fact:
-        ansible_host: "{{ roxagent_ansible_host }}"
-        ansible_user: "{{ roxagent_ansible_user | default('cloud-user') }}"
-      when:
-        - roxagent_ansible_host is defined
-        - roxagent_ansible_host | length > 0
+    - name: Configure KubeVirt SSH connection
+      ansible.builtin.include_tasks: roles/roxagent/tasks/set-kubevirt-connection.yml
+      when: roxagent_virtctl_ssh | default(true) | bool
 
     - name: Gather facts
       ansible.builtin.setup:
