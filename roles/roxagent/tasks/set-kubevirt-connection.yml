@@ -1,11 +1,65 @@
 ---
 # Route SSH through virtctl port-forward for VMs on the pod network.
 # Requires virtctl in PATH and an OpenShift/Kubernetes credential on the job
-# (for example ISAR-VM-Connect) so KUBECONFIG or K8S_AUTH_* is available.
+# (for example ISAR-VM-Connect). AAP injects K8S_AUTH_* env vars; virtctl needs
+# a kubeconfig file built from those values.
 #
 # KubeVirt inventory notes (AAP):
 # - VM name is on vmi_labels.kubevirt.io/domain (not vm_labels)
 # - Namespace groups use underscores: namespace_sluetzen_vm_vuln_demo
+
+- name: Resolve cluster API settings from AAP credential environment
+  ansible.builtin.set_fact:
+    roxagent_k8s_auth_host: "{{ lookup('ansible.builtin.env', 'K8S_AUTH_HOST', default='') }}"
+    roxagent_k8s_auth_api_key: "{{ lookup('ansible.builtin.env', 'K8S_AUTH_API_KEY', default='') }}"
+    roxagent_k8s_auth_verify_ssl: >-
+      {{ lookup('ansible.builtin.env', 'K8S_AUTH_VERIFY_SSL', default='true') | bool }}
+    roxagent_k8s_auth_ssl_ca_cert: "{{ lookup('ansible.builtin.env', 'K8S_AUTH_SSL_CA_CERT', default='') }}"
+  run_once: true
+
+- name: Fail when OpenShift/Kubernetes API credential is not attached to the job
+  ansible.builtin.fail:
+    msg: >-
+      virtctl requires K8S_AUTH_HOST and K8S_AUTH_API_KEY from an attached
+      OpenShift or Kubernetes API Bearer Token credential (for example
+      ISAR-VM-Connect).
+  when:
+    - roxagent_k8s_auth_host | length == 0 or roxagent_k8s_auth_api_key | length == 0
+  run_once: true
+
+- name: Read cluster CA certificate when provided
+  ansible.builtin.slurp:
+    src: "{{ roxagent_k8s_auth_ssl_ca_cert }}"
+  register: roxagent_k8s_auth_ssl_ca_cert_slurp
+  when:
+    - roxagent_k8s_auth_ssl_ca_cert | length > 0
+  run_once: true
+
+- name: Ensure kubeconfig directory exists
+  ansible.builtin.file:
+    path: "{{ roxagent_kubeconfig_path | dirname }}"
+    state: directory
+    mode: "0700"
+  become: false
+  delegate_to: localhost
+  run_once: true
+
+- name: Write kubeconfig for virtctl from AAP credential environment
+  ansible.builtin.template:
+    dest: "{{ roxagent_kubeconfig_path }}"
+    mode: "0600"
+    src: kubeconfig.j2
+  vars:
+    roxagent_k8s_auth_ssl_ca_cert_content: >-
+      {{
+        roxagent_k8s_auth_ssl_ca_cert_slurp.content | b64decode
+        if roxagent_k8s_auth_ssl_ca_cert_slurp is defined
+          and roxagent_k8s_auth_ssl_ca_cert_slurp is not skipped
+        else ''
+      }}
+  become: false
+  delegate_to: localhost
+  run_once: true
 
 - name: Ensure SSH config directory exists for virtctl proxy
   ansible.builtin.file:
@@ -22,7 +76,7 @@
     mode: "0600"
     content: |
       Host vm/*
-        ProxyCommand {{ roxagent_virtctl_binary }} port-forward --stdio=true %h %p
+        ProxyCommand env KUBECONFIG={{ roxagent_kubeconfig_path }} {{ roxagent_virtctl_binary }} port-forward --stdio=true %h %p
   become: false
   delegate_to: localhost
   run_once: true
@@ -108,30 +162,26 @@
         )
       }}
 
-- name: Show resolved virtctl SSH target
-  ansible.builtin.debug:
-    msg:
-      inventory_hostname: "{{ inventory_hostname }}"
-      kubevirt_vm: "{{ _roxagent_kubevirt_vm_name }}"
-      kubevirt_namespace: "{{ _roxagent_kubevirt_namespace }}"
-      ansible_host: "vm/{{ _roxagent_kubevirt_vm_name }}.{{ _roxagent_kubevirt_namespace }}"
-  when:
-    - _roxagent_kubevirt_namespace | length > 0
-    - _roxagent_kubevirt_vm_name | length > 0
-
-- name: Configure virtctl SSH transport for KubeVirt VMs
-  ansible.builtin.set_fact:
-    ansible_host: "vm/{{ _roxagent_kubevirt_vm_name }}.{{ _roxagent_kubevirt_namespace }}"
-    ansible_user: "{{ roxagent_ansible_user | default(roxagent_vm_ssh_user) }}"
-    ansible_ssh_common_args: "{{ roxagent_virtctl_ssh_common_args }}"
+- name: Apply virtctl SSH transport for KubeVirt VMs
   when:
     - roxagent_virtctl_ssh | bool
     - _roxagent_kubevirt_namespace | length > 0
     - _roxagent_kubevirt_vm_name | length > 0
+  block:
+    - name: Show resolved virtctl SSH target
+      ansible.builtin.debug:
+        msg:
+          inventory_hostname: "{{ inventory_hostname }}"
+          kubevirt_vm: "{{ _roxagent_kubevirt_vm_name }}"
+          kubevirt_namespace: "{{ _roxagent_kubevirt_namespace }}"
+          ansible_host: "vm/{{ _roxagent_kubevirt_vm_name }}.{{ _roxagent_kubevirt_namespace }}"
+          kubeconfig: "{{ roxagent_kubeconfig_path }}"
 
-- name: Reset SSH connection to apply virtctl transport
-  ansible.builtin.meta: reset_connection
-  when:
-    - roxagent_virtctl_ssh | bool
-    - _roxagent_kubevirt_namespace | length > 0
-    - _roxagent_kubevirt_vm_name | length > 0
+    - name: Configure virtctl SSH transport for KubeVirt VMs
+      ansible.builtin.set_fact:
+        ansible_host: "vm/{{ _roxagent_kubevirt_vm_name }}.{{ _roxagent_kubevirt_namespace }}"
+        ansible_user: "{{ roxagent_ansible_user | default(roxagent_vm_ssh_user) }}"
+        ansible_ssh_common_args: "{{ roxagent_virtctl_ssh_common_args }}"
+
+    - name: Reset SSH connection to apply virtctl transport
+      ansible.builtin.meta: reset_connection

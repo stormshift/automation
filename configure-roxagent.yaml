@@ -17,11 +17,15 @@
   hosts: "{{ roxagent_play_hosts | default('all') }}"
   become: true
   gather_facts: false
+  environment:
+    KUBECONFIG: "{{ roxagent_kubeconfig_path | default('/runner/.kube/config') }}"
   vars:
     ansible_user: "{{ roxagent_vm_ssh_user | default('cloud-user') }}"
   pre_tasks:
     - name: Configure KubeVirt SSH connection
-      ansible.builtin.include_tasks: roles/roxagent/tasks/set-kubevirt-connection.yml
+      ansible.builtin.include_role:
+        name: roxagent
+        tasks_from: set-kubevirt-connection.yml
       when: roxagent_virtctl_ssh | default(true) | bool
 
     - name: Gather facts
