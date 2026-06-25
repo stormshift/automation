@@ -30,8 +30,8 @@
     roxagent_aap_inventory_source_vars:
       use_service: false
       compose:
-        roxagent_kubevirt_vm_name: "vm_labels['kubevirt.io/domain'] | default('')"
-        roxagent_kubevirt_namespace: "inventory_hostname | regex_replace('-' + (vm_labels['kubevirt.io/domain'] | default('') | regex_escape) + '$', '')"
+        roxagent_kubevirt_vm_name: "vmi_labels['kubevirt.io/domain'] | default(vm_labels['app'] | default(''))"
+        roxagent_kubevirt_namespace: "inventory_hostname | regex_replace('-' + (vmi_labels['kubevirt.io/domain'] | default(vm_labels['app'] | default('')) | regex_escape) + '$', '')"
     roxagent_aap_organization: ISAR
     roxagent_aap_execution_environment: stormshift-automation-execution-environment-202602021722
     roxagent_aap_host_config_key: "{{ lookup('ansible.builtin.env', 'ROXAGENT_AAP_HOST_CONFIG_KEY', default='') }}"

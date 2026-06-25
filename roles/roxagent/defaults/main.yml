@@ -24,8 +24,9 @@ roxagent_service_timeout_start_sec: 300
 # KubeVirt / OpenShift Virtualization SSH via virtctl (AAP runs outside pod network).
 roxagent_virtctl_ssh: true
 roxagent_virtctl_binary: virtctl
+roxagent_virtctl_ssh_config_path: /runner/.ssh/virtctl-proxy.conf
 roxagent_virtctl_ssh_common_args: >-
-  -o ProxyCommand="{{ roxagent_virtctl_binary }} port-forward --stdio=true %h %p"
+  -F {{ roxagent_virtctl_ssh_config_path }}
   -o ControlMaster=no
   -o StrictHostKeyChecking=no
   -o UserKnownHostsFile=/dev/null

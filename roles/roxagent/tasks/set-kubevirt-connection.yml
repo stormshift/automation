@@ -2,30 +2,75 @@
 # Route SSH through virtctl port-forward for VMs on the pod network.
 # Requires virtctl in PATH and an OpenShift/Kubernetes credential on the job
 # (for example ISAR-VM-Connect) so KUBECONFIG or K8S_AUTH_* is available.
+#
+# KubeVirt inventory notes (AAP):
+# - VM name is on vmi_labels.kubevirt.io/domain (not vm_labels)
+# - Namespace groups use underscores: namespace_sluetzen_vm_vuln_demo
+
+- name: Ensure SSH config directory exists for virtctl proxy
+  ansible.builtin.file:
+    path: "{{ roxagent_virtctl_ssh_config_path | dirname }}"
+    state: directory
+    mode: "0700"
+  delegate_to: localhost
+  run_once: true
+
+- name: Install virtctl SSH client configuration
+  ansible.builtin.copy:
+    dest: "{{ roxagent_virtctl_ssh_config_path }}"
+    mode: "0600"
+    content: |
+      Host vm/*
+        ProxyCommand {{ roxagent_virtctl_binary }} port-forward --stdio=true %h %p
+  delegate_to: localhost
+  run_once: true
 
 - name: Resolve KubeVirt VM namespace and name
   ansible.builtin.set_fact:
     _roxagent_kubevirt_vm_name: "{{ _roxagent_vm_name_resolved }}"
     _roxagent_kubevirt_namespace: "{{ _roxagent_namespace_resolved }}"
   vars:
-    _roxagent_vm_name_from_label: "{{ vm_labels['kubevirt.io/domain'] | default('', true) }}"
+    _roxagent_vm_name_from_label: >-
+      {{
+        vmi_labels['kubevirt.io/domain']
+        | default(vm_labels['app'] | default(vm_labels['kubevirt.io/domain'] | default('', true), true), true)
+      }}
     _roxagent_vm_name_from_var: >-
       {{
         roxagent_kubevirt_vm_name
         | default(roxagent_target_host | default('', true), true)
       }}
+    _roxagent_vm_name_from_hostname_regex: >-
+      {{
+        inventory_hostname
+        | regex_search('^.*-(rhel(?:9|10)-.+)$', '\1')
+        | default('', true)
+      }}
     _roxagent_vm_name_resolved: >-
       {{
         _roxagent_vm_name_from_var
         if _roxagent_vm_name_from_var | length > 0
-        else _roxagent_vm_name_from_label
+        else (
+          _roxagent_vm_name_from_label
+          if _roxagent_vm_name_from_label | length > 0
+          else _roxagent_vm_name_from_hostname_regex
+        )
       }}
-    _roxagent_namespace_from_var: "{{ roxagent_kubevirt_namespace | default('', true) }}"
+    _roxagent_namespace_from_var: >-
+      {{
+        roxagent_kubevirt_namespace | default('', true)
+        if (
+          roxagent_kubevirt_namespace | default('', true) | length > 0
+          and roxagent_kubevirt_namespace != inventory_hostname
+        )
+        else ''
+      }}
     _roxagent_namespace_from_group: >-
       {{
         group_names
         | select('match', '^namespace_')
         | map('regex_replace', '^namespace_', '')
+        | map('replace', '_', '-')
         | list
         | first
         | default('', true)
@@ -40,6 +85,12 @@
         if _roxagent_vm_name_resolved | length > 0
         else ''
       }}
+    _roxagent_namespace_from_hostname_regex: >-
+      {{
+        inventory_hostname
+        | regex_search('^(.+)-(rhel(?:9|10)-.+)$', '\1')
+        | default('', true)
+      }}
     _roxagent_namespace_resolved: >-
       {{
         _roxagent_namespace_from_var
@@ -47,9 +98,24 @@
         else (
           _roxagent_namespace_from_group
           if _roxagent_namespace_from_group | length > 0
-          else _roxagent_namespace_from_hostname
+          else (
+            _roxagent_namespace_from_hostname
+            if _roxagent_namespace_from_hostname | length > 0
+            else _roxagent_namespace_from_hostname_regex
+          )
         )
       }}
+
+- name: Show resolved virtctl SSH target
+  ansible.builtin.debug:
+    msg:
+      inventory_hostname: "{{ inventory_hostname }}"
+      kubevirt_vm: "{{ _roxagent_kubevirt_vm_name }}"
+      kubevirt_namespace: "{{ _roxagent_kubevirt_namespace }}"
+      ansible_host: "vm/{{ _roxagent_kubevirt_vm_name }}.{{ _roxagent_kubevirt_namespace }}"
+  when:
+    - _roxagent_kubevirt_namespace | length > 0
+    - _roxagent_kubevirt_vm_name | length > 0
 
 - name: Configure virtctl SSH transport for KubeVirt VMs
   ansible.builtin.set_fact:
