@@ -18,13 +18,17 @@
   environment:
     AWXKIT_API_BASE_PATH: /api/controller/
     CONTROLLER_OPTIONAL_API_URLPATTERN_PREFIX: /api/controller/
+    CONTROLLER_HOST: "{{ roxagent_aap_controller_host }}"
+    CONTROLLER_USERNAME: "{{ roxagent_aap_controller_username }}"
+    CONTROLLER_PASSWORD: "{{ roxagent_aap_controller_password }}"
+    CONTROLLER_VERIFY_SSL: "{{ roxagent_aap_controller_validate_certs | string | lower }}"
   vars:
+    aap_podman_image_registry_credential_type: Podman Image Registry
     roxagent_aap_project: stormshift-automation
     roxagent_aap_project_scm_url: https://github.com/stormshift/automation.git
     roxagent_aap_project_scm_branch: main
     roxagent_aap_inventory: ISAR-vm-inventory
     roxagent_aap_inventory_source_name: "{{ roxagent_aap_inventory }} - OpenShift Virtualization"
-    roxagent_aap_inventory_source_credential: ""
     roxagent_aap_inventory_source_host_filter: ""
     # Do not set ansible_host to the VM pod IP; the playbook uses virtctl SSH.
     roxagent_aap_inventory_source_vars:
@@ -36,11 +40,13 @@
     roxagent_aap_execution_environment: stormshift-automation-execution-environment-202602021722
     roxagent_aap_host_config_key: "{{ lookup('ansible.builtin.env', 'ROXAGENT_AAP_HOST_CONFIG_KEY', default='') }}"
     roxagent_aap_job_template_name: Configure RHACS Roxagent
-    roxagent_aap_credentials:
-      # replace as needed
-      - Machine-Creds
-      - Kubevirt-Creds
-    # Gateway base URL only; /api/controller/ is supplied via AWXKIT_API_BASE_PATH above.
+    roxagent_aap_ssh_credential: ""
+    roxagent_aap_kubevirt_credential: ""
+    roxagent_aap_image_registry_credential: ""
+    roxagent_aap_job_credentials:
+      - "{{ roxagent_aap_kubevirt_credential }}"
+      - "{{ roxagent_aap_ssh_credential }}"
+      - "{{ roxagent_aap_image_registry_credential }}"
     roxagent_aap_controller_host: >-
       {{
         (
@@ -58,32 +64,6 @@
     roxagent_aap_controller_validate_certs: >-
       {{ aap_controller_validate_certs | default(lookup('env', 'CONTROLLER_VERIFY_SSL', default='true')) | bool }}
     roxagent_aap_rhacs_image: "{{ roxagent_aap_rhacs_image | default('registry.redhat.io/advanced-cluster-security/rhacs-main-rhel9:4.11.0') }}"
-  module_defaults:
-    awx.awx.organization:
-      controller_host: "{{ roxagent_aap_controller_host }}"
-      controller_username: "{{ roxagent_aap_controller_username }}"
-      controller_password: "{{ roxagent_aap_controller_password }}"
-      validate_certs: "{{ roxagent_aap_controller_validate_certs }}"
-    awx.awx.inventory:
-      controller_host: "{{ roxagent_aap_controller_host }}"
-      controller_username: "{{ roxagent_aap_controller_username }}"
-      controller_password: "{{ roxagent_aap_controller_password }}"
-      validate_certs: "{{ roxagent_aap_controller_validate_certs }}"
-    awx.awx.inventory_source:
-      controller_host: "{{ roxagent_aap_controller_host }}"
-      controller_username: "{{ roxagent_aap_controller_username }}"
-      controller_password: "{{ roxagent_aap_controller_password }}"
-      validate_certs: "{{ roxagent_aap_controller_validate_certs }}"
-    awx.awx.project:
-      controller_host: "{{ roxagent_aap_controller_host }}"
-      controller_username: "{{ roxagent_aap_controller_username }}"
-      controller_password: "{{ roxagent_aap_controller_password }}"
-      validate_certs: "{{ roxagent_aap_controller_validate_certs }}"
-    awx.awx.job_template:
-      controller_host: "{{ roxagent_aap_controller_host }}"
-      controller_username: "{{ roxagent_aap_controller_username }}"
-      controller_password: "{{ roxagent_aap_controller_password }}"
-      validate_certs: "{{ roxagent_aap_controller_validate_certs }}"
 
   tasks:
     - name: Fail when host config key is not provided
@@ -104,6 +84,18 @@
           or roxagent_aap_controller_username | length == 0
           or roxagent_aap_controller_password | length == 0
 
+    - name: Fail when required job template credentials are not configured
+      ansible.builtin.fail:
+        msg: >-
+          Set roxagent_aap_ssh_credential, roxagent_aap_kubevirt_credential, and
+          roxagent_aap_image_registry_credential in cfg/secrets.yml. Each value must
+          be the name of an existing AAP credential (SSH, OpenShift/Kubernetes API,
+          and Podman Image Registry types respectively).
+      when:
+        - roxagent_aap_ssh_credential | length == 0
+          or roxagent_aap_kubevirt_credential | length == 0
+          or roxagent_aap_image_registry_credential | length == 0
+
     - name: Show resolved AAP controller connection (debug)
       ansible.builtin.debug:
         msg:
@@ -111,6 +103,7 @@
           api_base_path: "{{ lookup('env', 'AWXKIT_API_BASE_PATH') }}"
           controller_username: "{{ roxagent_aap_controller_username }}"
           validate_certs: "{{ roxagent_aap_controller_validate_certs }}"
+          job_credentials: "{{ roxagent_aap_job_credentials }}"
 
     - name: Ensure organization exists
       awx.awx.organization:
@@ -127,20 +120,13 @@
           Hosts may be added dynamically via provisioning callback extra_vars.
         state: present
 
-    - name: Fail when OpenShift Virtualization inventory credential is not configured
-      ansible.builtin.fail:
-        msg: >-
-          Set roxagent_aap_inventory_source_credential in cfg/secrets.yml to an
-          existing OpenShift or Kubernetes API Bearer Token credential in AAP.
-      when: roxagent_aap_inventory_source_credential | length == 0
-
     - name: Ensure OpenShift Virtualization inventory source exists
       awx.awx.inventory_source:
         name: "{{ roxagent_aap_inventory_source_name }}"
         inventory: "{{ roxagent_aap_inventory }}"
         organization: "{{ roxagent_aap_organization }}"
         source: openshift_virtualization
-        credential: "{{ roxagent_aap_inventory_source_credential }}"
+        credential: "{{ roxagent_aap_kubevirt_credential }}"
         host_filter: "{{ roxagent_aap_inventory_source_host_filter }}"
         source_vars: "{{ roxagent_aap_inventory_source_vars }}"
         update_on_launch: true
@@ -160,6 +146,94 @@
         scm_update_cache_timeout: 60
         state: present
 
+    - name: Ensure Podman Image Registry credential type exists
+      awx.awx.credential_type:
+        name: "{{ aap_podman_image_registry_credential_type }}"
+        description: >-
+          Injects container registry credentials into playbooks via
+          PODMAN_IMAGE_REGISTRY_* environment variables. Use instead of the managed
+          Container Registry type when credentials must reach the playbook.
+        kind: cloud
+        inputs:
+          fields:
+            - id: host
+              type: string
+              label: Authentication URL
+              default: registry.redhat.io
+            - id: username
+              type: string
+              label: Username
+            - id: password
+              type: string
+              label: Password or Token
+              secret: true
+            - id: verify_ssl
+              type: boolean
+              label: Verify SSL
+              default: true
+          required:
+            - host
+            - username
+            - password
+        injectors:
+          env:
+            PODMAN_IMAGE_REGISTRY_HOST: "{{ '{{' }} host {{ '}}' }}"
+            PODMAN_IMAGE_REGISTRY_USERNAME: "{{ '{{' }} username {{ '}}' }}"
+            PODMAN_IMAGE_REGISTRY_PASSWORD: "{{ '{{' }} password {{ '}}' }}"
+        state: present
+
+    - name: Ensure image registry credential exists in AAP
+      awx.awx.credential:
+        name: "{{ roxagent_aap_image_registry_credential }}"
+        organization: "{{ roxagent_aap_organization }}"
+        credential_type: "{{ aap_podman_image_registry_credential_type }}"
+        description: Container registry pull credentials for podman jobs.
+        inputs:
+          host: "{{ roxagent_registry_host | default('registry.redhat.io') }}"
+          username: "{{ roxagent_registry_username }}"
+          password: "{{ roxagent_registry_password }}"
+          verify_ssl: true
+        state: present
+      when:
+        - roxagent_registry_username | default('') | length > 0
+        - roxagent_registry_password | default('') | length > 0
+      no_log: true
+
+    - name: Fetch image registry credential metadata from AAP
+      ansible.builtin.uri:
+        url: >-
+          {{ roxagent_aap_controller_host }}/api/controller/v2/credentials/?name__iexact={{
+            roxagent_aap_image_registry_credential | urlencode }}&organization__name={{
+            roxagent_aap_organization | urlencode }}
+        url_username: "{{ roxagent_aap_controller_username }}"
+        url_password: "{{ roxagent_aap_controller_password }}"
+        force_basic_auth: true
+        validate_certs: "{{ roxagent_aap_controller_validate_certs }}"
+        return_content: true
+      register: _roxagent_image_registry_cred_lookup
+
+    - name: Fail when image registry credential is missing in AAP
+      ansible.builtin.fail:
+        msg: >-
+          Credential "{{ roxagent_aap_image_registry_credential }}" was not found in
+          organization "{{ roxagent_aap_organization }}". Create it with type
+          "{{ aap_podman_image_registry_credential_type }}", or set
+          roxagent_registry_username/password in cfg/secrets.yml and re-run this
+          playbook to create it automatically.
+      when: _roxagent_image_registry_cred_lookup.json.count | default(0) == 0
+
+    - name: Fail when image registry credential uses managed Container Registry type
+      ansible.builtin.fail:
+        msg: >-
+          Credential "{{ roxagent_aap_image_registry_credential }}" is the managed
+          Container Registry type (kind registry). AAP cannot attach that to job
+          templates and it does not inject into playbooks. Delete it, then recreate
+          it with credential type "{{ aap_podman_image_registry_credential_type }}"
+          or set roxagent_registry_username/password in cfg/secrets.yml and re-run
+          this playbook.
+      when:
+        - _roxagent_image_registry_cred_lookup.json.results[0].kind == 'registry'
+
     - name: Create roxagent job template
       awx.awx.job_template:
         name: "{{ roxagent_aap_job_template_name }}"
@@ -172,14 +246,13 @@
         project: "{{ roxagent_aap_project }}"
         playbook: configure-roxagent.yaml
         execution_environment: "{{ roxagent_aap_execution_environment }}"
-        credentials: "{{ roxagent_aap_credentials }}"
+        credentials: "{{ roxagent_aap_job_credentials }}"
         state: present
         allow_simultaneous: true
         ask_variables_on_launch: true
         extra_vars:
           roxagent_rhacs_image: "{{ roxagent_aap_rhacs_image }}"
           roxagent_virtctl_ssh: true
-
         host_config_key: "{{ roxagent_aap_host_config_key }}"
 
     - name: Show callback URL placeholder

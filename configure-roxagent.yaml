@@ -2,8 +2,9 @@
 # Configure RHACS roxagent on RHEL VMs via the roxagent Ansible role.
 #
 # Manual AAP / ansible-playbook run (limit or select hosts from inventory):
-#   ansible-playbook configure-roxagent.yaml -l my-rhel-vm \
-#     -e roxagent_registry_username='...' -e roxagent_registry_password='...'
+#   ansible-playbook configure-roxagent.yaml -l my-rhel-vm
+#
+# Registry auth: attach an AAP credential of type "Podman Image Registry" to the job template.
 #
 # AAP provisioning callback extra_vars (set by cloud-init on vuln-scan VMs):
 #   roxagent_kubevirt_namespace, roxagent_kubevirt_vm_name (or roxagent_target_host),

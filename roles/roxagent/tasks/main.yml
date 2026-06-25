@@ -1,4 +1,7 @@
 ---
+- name: Resolve registry authentication from AAP credential injection
+  ansible.builtin.include_tasks: resolve-registry-auth.yml
+
 - name: Validate supported RHEL distribution
   ansible.builtin.assert:
     that:
@@ -74,7 +77,7 @@
         argv:
           - podman
           - login
-          - registry.redhat.io
+          - "{{ roxagent_registry_host }}"
           - --username
           - "{{ roxagent_registry_username }}"
           - --password-stdin
@@ -100,7 +103,8 @@
 - name: Fail when registry auth is not configured
   ansible.builtin.fail:
     msg: >-
-      Registry authentication is required. Set roxagent_registry_auth or
+      Registry authentication is required. Attach an AAP credential of type
+      "Podman Image Registry" to the job template, or set roxagent_registry_auth or
       roxagent_registry_username/roxagent_registry_password.
   when: not roxagent_auth_stat.stat.exists
 

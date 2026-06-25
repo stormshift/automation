@@ -10,6 +10,7 @@ roxagent_state_image_file: "{{ roxagent_state_dir }}/image"
 roxagent_registry_auth: {}
 
 # Fallback when roxagent_registry_auth is empty.
+roxagent_registry_host: registry.redhat.io
 roxagent_registry_username: ""
 roxagent_registry_password: ""
 

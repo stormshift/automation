@@ -1,0 +1,22 @@
+---
+# Resolve container registry credentials injected by an AAP credential of type
+# "Podman Image Registry" (PODMAN_IMAGE_REGISTRY_* env vars). The role still writes
+# /etc/containers/auth.json on each VM because the Quadlet unit needs AuthFile for
+# scheduled image pulls.
+
+- name: Resolve registry credentials from AAP env injection
+  when:
+    - roxagent_registry_auth | default({}) | length == 0
+    - roxagent_registry_username | default('') | length == 0
+    - lookup('ansible.builtin.env', 'PODMAN_IMAGE_REGISTRY_USERNAME', default='') | length > 0
+    - lookup('ansible.builtin.env', 'PODMAN_IMAGE_REGISTRY_PASSWORD', default='') | length > 0
+  ansible.builtin.set_fact:
+    roxagent_registry_username: "{{ lookup('ansible.builtin.env', 'PODMAN_IMAGE_REGISTRY_USERNAME') }}"
+    roxagent_registry_password: "{{ lookup('ansible.builtin.env', 'PODMAN_IMAGE_REGISTRY_PASSWORD') }}"
+    roxagent_registry_host: >-
+      {{
+        lookup('ansible.builtin.env', 'PODMAN_IMAGE_REGISTRY_HOST', default='')
+        | default(roxagent_registry_host, true)
+      }}
+  no_log: true
+  run_once: true
