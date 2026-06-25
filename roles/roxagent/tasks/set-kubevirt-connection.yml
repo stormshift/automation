@@ -111,7 +111,7 @@
         | regex_search('^.*-(rhel(?:9|10)-.+)$', '\1')
         | default('', true)
       }}
-    _roxagent_vm_name_resolved: >-
+    _roxagent_vm_name_unresolved: >-
       {{
         _roxagent_vm_name_from_var
         if _roxagent_vm_name_from_var | length > 0
@@ -120,6 +120,13 @@
           if _roxagent_vm_name_from_label | length > 0
           else _roxagent_vm_name_from_hostname_regex
         )
+      }}
+    # KubeVirt inventory compose may return label values as single-element lists.
+    _roxagent_vm_name_resolved: >-
+      {{
+        (_roxagent_vm_name_unresolved | first | default('', true))
+        if (_roxagent_vm_name_unresolved is sequence and _roxagent_vm_name_unresolved is not string)
+        else (_roxagent_vm_name_unresolved | default('', true))
       }}
     _roxagent_namespace_from_var: >-
       {{
