@@ -1,0 +1,27 @@
+---
+# Install/configure RHACS roxagent on this machine (localhost only).
+#
+# Use for local development and testing without AAP or virtctl SSH transport.
+# Run on the target VM itself — not from the execution environment container
+# (inside the EE, "localhost" is the container, not your VM).
+#
+#   ansible-playbook configure-roxagent-local.yaml -e @cfg/secrets.yml
+#
+# Or with ansible-navigator on the host Ansible (no EE):
+#
+#   ansible-navigator run configure-roxagent-local.yaml -e @cfg/secrets.yml --ee false
+#
+# Registry credentials (pick one):
+#   - roxagent_registry_username / roxagent_registry_password in cfg/secrets.yml
+#   - PODMAN_IMAGE_REGISTRY_* env vars
+#   - roxagent_registry_auth pull-secret dict
+
+- name: Configure roxagent on localhost
+  hosts: localhost
+  connection: local
+  become: true
+  gather_facts: true
+  vars:
+    roxagent_virtctl_ssh: false
+  roles:
+    - roxagent
