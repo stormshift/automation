@@ -1,0 +1,10 @@
+---
+- name: Roxagent systemd daemon-reload
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Roxagent run scan
+  ansible.builtin.systemd:
+    name: roxagent.service
+    state: started
+  when: roxagent_run_initial_scan | bool

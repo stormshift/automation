@@ -1,0 +1,32 @@
+---
+# Configure RHACS roxagent on RHEL VMs via the roxagent Ansible role.
+#
+# Manual run:
+#   ansible-playbook configure-roxagent.yaml -l my-rhel-vm \
+#     -e roxagent_registry_username='...' -e roxagent_registry_password='...'
+#
+# AAP provisioning callback extra_vars (set by cloud-init on vuln-scan VMs):
+#   roxagent_target_host, roxagent_ansible_host, roxagent_ansible_user
+
+- name: Register callback target host
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Add dynamic roxagent target from callback extra vars
+      ansible.builtin.add_host:
+        name: "{{ roxagent_target_host }}"
+        ansible_host: "{{ roxagent_ansible_host }}"
+        ansible_user: "{{ roxagent_ansible_user | default('cloud-user') }}"
+        groups: roxagent_targets
+      when:
+        - roxagent_target_host is defined
+        - roxagent_target_host | length > 0
+        - roxagent_ansible_host is defined
+        - roxagent_ansible_host | length > 0
+
+- name: Configure roxagent
+  hosts: "{{ roxagent_play_hosts | default('roxagent_targets') }}"
+  become: true
+  gather_facts: true
+  roles:
+    - roxagent

@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  author: sluetze
+  description: Install and update RHACS roxagent via Podman Quadlet on RHEL 9/10
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: EL
+      versions:
+        - "9"
+        - "10"
+  galaxy_tags:
+    - security
+    - rhacs
+    - roxagent
+
+dependencies: []

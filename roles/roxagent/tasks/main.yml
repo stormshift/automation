@@ -1,0 +1,200 @@
+---
+- name: Validate supported RHEL distribution
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['distribution'] == 'RedHat'
+      - ansible_facts['distribution_major_version'] in ['9', '10']
+    fail_msg: "roxagent role supports Red Hat Enterprise Linux 9 and 10 only."
+
+- name: Check subscription is registered
+  ansible.builtin.command: subscription-manager status
+  register: roxagent_subscription_status
+  changed_when: false
+  failed_when: roxagent_subscription_status.rc != 0
+
+- name: Warn when vsock is not available
+  ansible.builtin.stat:
+    path: /dev/vsock
+  register: roxagent_vsock
+
+- name: Display vsock warning
+  ansible.builtin.debug:
+    msg: "/dev/vsock is not present; RHACS VM vulnerability scanning requires vsock on OCP-V."
+  when: not roxagent_vsock.stat.exists
+
+- name: Install Podman
+  ansible.builtin.dnf:
+    name: podman
+    state: present
+  tags:
+    - roxagent_install
+
+- name: Ensure roxagent state directory exists
+  ansible.builtin.file:
+    path: "{{ roxagent_state_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Read currently deployed roxagent image
+  ansible.builtin.slurp:
+    src: "{{ roxagent_state_image_file }}"
+  register: roxagent_deployed_image_slurp
+  failed_when: false
+
+- name: Set deployed image fact
+  ansible.builtin.set_fact:
+    roxagent_deployed_image: >-
+      {{
+        (roxagent_deployed_image_slurp.content | b64decode | trim)
+        if roxagent_deployed_image_slurp.content is defined
+        else ''
+      }}
+
+- name: Configure registry auth from pull secret dict
+  when: roxagent_registry_auth | length > 0
+  block:
+    - name: Write registry auth file from pull secret
+      ansible.builtin.template:
+        src: containers-auth.json.j2
+        dest: "{{ roxagent_auth_file }}"
+        owner: root
+        group: root
+        mode: "0600"
+
+- name: Configure registry auth from username and password
+  when:
+    - roxagent_registry_auth | length == 0
+    - roxagent_registry_username | length > 0
+    - roxagent_registry_password | length > 0
+  block:
+    - name: Log in to registry.redhat.io
+      ansible.builtin.command:
+        argv:
+          - podman
+          - login
+          - registry.redhat.io
+          - --username
+          - "{{ roxagent_registry_username }}"
+          - --password-stdin
+          - --authfile
+          - "{{ roxagent_auth_file }}"
+      args:
+        stdin: "{{ roxagent_registry_password }}"
+      no_log: true
+      changed_when: true
+
+    - name: Restrict permissions on registry auth file
+      ansible.builtin.file:
+        path: "{{ roxagent_auth_file }}"
+        owner: root
+        group: root
+        mode: "0600"
+
+- name: Ensure registry auth file exists
+  ansible.builtin.stat:
+    path: "{{ roxagent_auth_file }}"
+  register: roxagent_auth_stat
+
+- name: Fail when registry auth is not configured
+  ansible.builtin.fail:
+    msg: >-
+      Registry authentication is required. Set roxagent_registry_auth or
+      roxagent_registry_username/roxagent_registry_password.
+  when: not roxagent_auth_stat.stat.exists
+
+- name: Restore SELinux context on registry auth file
+  ansible.builtin.command:
+    argv:
+      - restorecon
+      - "{{ roxagent_auth_file }}"
+  changed_when: false
+  failed_when: false
+
+- name: Determine whether image pull is required
+  ansible.builtin.set_fact:
+    roxagent_image_pull_required: >-
+      {{ roxagent_deployed_image != roxagent_rhacs_image }}
+
+- name: Pre-pull RHACS image before updating systemd units
+  when: roxagent_image_pull_required | bool
+  ansible.builtin.command:
+    argv:
+      - podman
+      - pull
+      - "{{ roxagent_rhacs_image }}"
+      - --authfile
+      - "{{ roxagent_auth_file }}"
+  register: roxagent_image_pull
+  changed_when: roxagent_image_pull.rc == 0
+  tags:
+    - roxagent_install
+    - roxagent_update
+
+- name: Deploy roxagent-prep systemd unit
+  ansible.builtin.template:
+    src: roxagent-prep.service.j2
+    dest: /etc/systemd/system/roxagent-prep.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Roxagent systemd daemon-reload
+
+- name: Deploy roxagent timer unit
+  ansible.builtin.template:
+    src: roxagent.timer.j2
+    dest: /etc/systemd/system/roxagent.timer
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Roxagent systemd daemon-reload
+
+- name: Deploy roxagent Quadlet container unit
+  ansible.builtin.template:
+    src: roxagent.container.j2
+    dest: /etc/containers/systemd/roxagent.container
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Roxagent systemd daemon-reload
+
+- name: Restore SELinux contexts on roxagent unit files
+  ansible.builtin.command:
+    argv:
+      - restorecon
+      - -Rv
+      - /etc/containers/systemd/
+      - /etc/systemd/system/roxagent.timer
+      - /etc/systemd/system/roxagent-prep.service
+  changed_when: false
+  failed_when: false
+
+- name: Record deployed roxagent image
+  ansible.builtin.copy:
+    dest: "{{ roxagent_state_image_file }}"
+    content: "{{ roxagent_rhacs_image }}\n"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Flush handlers before enabling timer
+  ansible.builtin.meta: flush_handlers
+
+- name: Enable and start roxagent timer
+  ansible.builtin.systemd:
+    name: roxagent.timer
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: Trigger initial roxagent scan
+  ansible.builtin.command:
+    argv:
+      - systemctl
+      - start
+      - roxagent.service
+  register: roxagent_initial_scan
+  changed_when: roxagent_initial_scan.rc == 0
+  failed_when: false
+  when: roxagent_run_initial_scan | bool
