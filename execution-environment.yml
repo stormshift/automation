@@ -18,7 +18,7 @@ additional_build_steps:
           -o /etc/pki/ca-trust/source/anchors/RedHat_Current-IT-Root-CAs.pem &&
           update-ca-trust
     - RUN curl -fsSL -o /usr/local/bin/virtctl
-          https://github.com/kubevirt/kubevirt/releases/download/v1.5.0/virtctl-v1.5.0-linux-amd64 &&
+          https://github.com/kubevirt/kubevirt/releases/download/v1.7.4/virtctl-v1.7.4-linux-amd64 &&
           chmod +x /usr/local/bin/virtctl
 
 dependencies:
