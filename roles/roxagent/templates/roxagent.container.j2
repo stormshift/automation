@@ -5,8 +5,9 @@ Requires=roxagent-prep.service
 After=roxagent-prep.service
 
 [Container]
-Image={{ roxagent_rhacs_image }}
-AuthFile={{ roxagent_auth_file }}
+# Authenticated pulls are handled by the roxagent.image Quadlet unit.
+Image={{ roxagent_quadlet_image_reference }}
+Pull=never
 Exec=--host-path /host
 Network=host
 

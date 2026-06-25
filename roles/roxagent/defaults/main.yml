@@ -22,6 +22,11 @@ roxagent_timer_randomized_delay_sec: 40min
 
 roxagent_service_timeout_start_sec: 300
 
+# Quadlet units: roxagent.image (authenticated pull) + roxagent.container (run).
+roxagent_quadlet_container_path: /etc/containers/systemd/roxagent.container
+roxagent_quadlet_image_path: /etc/containers/systemd/roxagent.image
+roxagent_quadlet_image_reference: roxagent.image
+
 # KubeVirt / OpenShift Virtualization SSH via virtctl (AAP runs outside pod network).
 roxagent_virtctl_ssh: true
 roxagent_virtctl_binary: virtctl

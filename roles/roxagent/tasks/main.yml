@@ -154,10 +154,19 @@
     mode: "0644"
   notify: Roxagent systemd daemon-reload
 
+- name: Deploy roxagent Quadlet image unit
+  ansible.builtin.template:
+    src: roxagent.image.j2
+    dest: "{{ roxagent_quadlet_image_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Roxagent systemd daemon-reload
+
 - name: Deploy roxagent Quadlet container unit
   ansible.builtin.template:
     src: roxagent.container.j2
-    dest: /etc/containers/systemd/roxagent.container
+    dest: "{{ roxagent_quadlet_container_path }}"
     owner: root
     group: root
     mode: "0644"

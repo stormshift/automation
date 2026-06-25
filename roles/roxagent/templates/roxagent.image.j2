@@ -1,0 +1,10 @@
+[Unit]
+Description=StackRox VM Agent container image
+
+[Image]
+Image={{ roxagent_rhacs_image }}
+AuthFile={{ roxagent_auth_file }}
+Policy=newer
+
+[Service]
+Type=oneshot

@@ -1,8 +1,7 @@
 ---
 # Resolve container registry credentials injected by an AAP credential of type
 # "Podman Image Registry" (PODMAN_IMAGE_REGISTRY_* env vars). The role still writes
-# /etc/containers/auth.json on each VM because the Quadlet unit needs AuthFile for
-# scheduled image pulls.
+# /etc/containers/auth.json on each VM for roxagent.image Quadlet pulls.
 
 - name: Resolve registry credentials from AAP env injection
   when:
