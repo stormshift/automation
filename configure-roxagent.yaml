@@ -14,7 +14,7 @@
 # Do not rely on play vars; set-kubevirt-connection.yml resolves the effective user.
 #
 # SSH to pod-network VMs uses virtctl port-forward (see roxagent_virtctl_ssh in
-# roles/roxagent/defaults/main.yml). Attach the OpenShift/Kubernetes credential
+# sluetze.roxagent defaults). Attach the OpenShift/Kubernetes credential
 # used for the inventory source (for example ISAR-VM-Connect) to the job template.
 
 - name: Configure roxagent
@@ -26,7 +26,7 @@
   pre_tasks:
     - name: Configure KubeVirt SSH connection
       ansible.builtin.include_role:
-        name: roxagent
+        name: sluetze.roxagent
         tasks_from: set-kubevirt-connection.yml
       when: roxagent_virtctl_ssh | default(true) | bool
 
@@ -34,4 +34,4 @@
       ansible.builtin.setup:
 
   roles:
-    - roxagent
+    - sluetze.roxagent

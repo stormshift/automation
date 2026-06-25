@@ -43,6 +43,10 @@ dependencies:
     - libxml2-devel
     - libcurl-devel 
   galaxy:
+    roles:
+      - name: sluetze.roxagent
+        scm: git
+        src: https://github.com/sluetze/ansible-role-roxagent
     collections:
 # ToDo: add version numbers!
       - name: community.general

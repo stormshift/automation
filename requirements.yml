@@ -1,0 +1,5 @@
+---
+roles:
+  - name: sluetze.roxagent
+    scm: git
+    src: https://github.com/sluetze/ansible-role-roxagent

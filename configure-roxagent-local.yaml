@@ -24,4 +24,4 @@
   vars:
     roxagent_virtctl_ssh: false
   roles:
-    - roxagent
+    - sluetze.roxagent
