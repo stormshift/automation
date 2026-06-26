@@ -1,17 +1,18 @@
 ---
 # Configure RHACS roxagent on RHEL VMs via the roxagent Ansible role.
 #
-# Manual AAP / ansible-playbook run (limit or select hosts from inventory):
+# Batch (AAP job template "Configure RHACS Roxagent"):
+#   Launch against ISAR-vm-inventory; optionally set limit to subset of hosts.
+#
+# Ad-hoc (AAP job template "Configure RHACS Roxagent - New VM"):
+#   Survey / Launch API extra_vars: roxagent_kubevirt_namespace, roxagent_kubevirt_vm_name,
+#   roxagent_ansible_user (and optionally roxagent_target_host). Triggered by isar
+#   roxagent-trigger watcher or manual launch.
+#
+# Manual ansible-playbook:
 #   ansible-playbook configure-roxagent.yaml -l my-rhel-vm
 #
 # Registry auth: attach an AAP credential of type "Podman Image Registry" to the job template.
-#
-# AAP provisioning callback extra_vars (set by cloud-init on vuln-scan VMs):
-#   roxagent_kubevirt_namespace, roxagent_kubevirt_vm_name (or roxagent_target_host),
-#   roxagent_ansible_user
-#
-# SSH user per host: set host variable ansible_user or roxagent_ansible_user (callback).
-# Do not rely on play vars; set-kubevirt-connection.yml resolves the effective user.
 #
 # SSH to pod-network VMs uses virtctl port-forward (see roxagent_virtctl_ssh in
 # sluetze.roxagent defaults). Attach the OpenShift/Kubernetes credential

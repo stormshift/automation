@@ -1,14 +1,16 @@
 ---
-# Register the AAP job template for RHACS roxagent provisioning (with callback).
+# Register AAP job templates for RHACS roxagent provisioning.
+#
+# Batch:  Configure RHACS Roxagent — run against ISAR-vm-inventory (KubeVirt source).
+# Ad-hoc: Configure RHACS Roxagent - New VM — static inventory; target VM from extra_vars
+#         (survey, Launch API, or isar roxagent-trigger watcher).
 #
 # AAP on OpenShift uses the platform gateway API prefix /api/controller/.
 # Set only the gateway base URL in cfg/secrets.yml (no /api/controller suffix):
 #   aap_controller_host: https://security-aap-aap.apps.ocp22.stormshift.coe.muc.redhat.com
 #
 # Run:
-#   ansible-navigator run configure-roxagent-job-template.yaml \
-#     -e roxagent_aap_host_config_key=... \
-#     -e @cfg/secrets.yml
+#   ansible-navigator run configure-roxagent-job-template.yaml -e @cfg/secrets.yml
 
 - hosts: localhost
   connection: local
@@ -29,16 +31,35 @@
     roxagent_aap_project_scm_branch: main
     roxagent_aap_inventory: ISAR-vm-inventory
     roxagent_aap_inventory_source_name: "{{ roxagent_aap_inventory }} - OpenShift Virtualization"
+    # host_filter: AWX post-import regex on inventory hostnames (optional).
     roxagent_aap_inventory_source_host_filter: ""
+    # label_selector: passed to the KubeVirt plugin via source_vars (preferred).
+    # namespaces: optional list to limit sync scope; omit from source_vars when empty.
+    roxagent_aap_inventory_source_namespaces: []
+    roxagent_aap_inventory_source_label_selector: stormshift.coe.muc.redhat.com/roxagent=true
+    roxagent_aap_inventory_sync_schedule_name: "{{ roxagent_aap_inventory }} - KubeVirt sync"
+    roxagent_aap_inventory_sync_interval_minutes: 15
+    roxagent_aap_adhoc_inventory: Roxagent-adhoc
+    roxagent_aap_adhoc_host: adhoc-runner
     # Do not set ansible_host to the VM pod IP; the playbook uses virtctl SSH.
     # VM name/namespace are resolved in the roxagent role from inventory_hostname
     # and namespace_* inventory groups (vmi_labels can omit name prefixes).
-    roxagent_aap_inventory_source_vars:
-      use_service: false
+    roxagent_aap_inventory_source_vars: >-
+      {{
+        {
+          'use_service': false,
+          'label_selector': roxagent_aap_inventory_source_label_selector,
+        }
+        | combine(
+            {'namespaces': roxagent_aap_inventory_source_namespaces}
+            if roxagent_aap_inventory_source_namespaces | length > 0
+            else {}
+          )
+      }}
     roxagent_aap_organization: ISAR
     roxagent_aap_execution_environment: stormshift-automation-execution-environment-202602021722
-    roxagent_aap_host_config_key: "{{ lookup('ansible.builtin.env', 'ROXAGENT_AAP_HOST_CONFIG_KEY', default='') }}"
     roxagent_aap_job_template_name: Configure RHACS Roxagent
+    roxagent_aap_adhoc_job_template_name: Configure RHACS Roxagent - New VM
     roxagent_aap_ssh_credential: ""
     roxagent_aap_kubevirt_credential: ""
     roxagent_aap_image_registry_credential: ""
@@ -63,15 +84,28 @@
     roxagent_aap_controller_validate_certs: >-
       {{ aap_controller_validate_certs | default(lookup('env', 'CONTROLLER_VERIFY_SSL', default='true')) | bool }}
     roxagent_aap_rhacs_image: "{{ roxagent_aap_rhacs_image | default('registry.redhat.io/advanced-cluster-security/rhacs-main-rhel9:4.11.0') }}"
+    roxagent_aap_adhoc_survey_spec:
+      name: ""
+      description: Target KubeVirt VM for roxagent install (virtctl SSH from AAP).
+      spec:
+        - question_name: VM namespace
+          question_description: OpenShift project where the VM runs.
+          variable: roxagent_kubevirt_namespace
+          type: text
+          required: true
+        - question_name: VM name
+          question_description: KubeVirt VirtualMachine name.
+          variable: roxagent_kubevirt_vm_name
+          type: text
+          required: true
+        - question_name: SSH user
+          question_description: Guest SSH user for virtctl port-forward.
+          variable: roxagent_ansible_user
+          type: text
+          required: true
+          default: cloud-user
 
   tasks:
-    - name: Fail when host config key is not provided
-      ansible.builtin.fail:
-        msg: >-
-          Set ROXAGENT_AAP_HOST_CONFIG_KEY in the environment or pass
-          -e roxagent_aap_host_config_key=... when running this playbook.
-      when: roxagent_aap_host_config_key | length == 0
-
     - name: Fail when controller connection settings are incomplete
       ansible.builtin.fail:
         msg: >-
@@ -115,8 +149,7 @@
         name: "{{ roxagent_aap_inventory }}"
         organization: "{{ roxagent_aap_organization }}"
         description: >-
-          RHEL VMs on {{ roxagent_aap_organization }} OCP-V for RHACS roxagent provisioning.
-          Hosts may be added dynamically via provisioning callback extra_vars.
+          RHEL VMs on {{ roxagent_aap_organization }} OCP-V for RHACS roxagent batch runs.
         state: present
 
     - name: Ensure OpenShift Virtualization inventory source exists
@@ -128,8 +161,34 @@
         credential: "{{ roxagent_aap_kubevirt_credential }}"
         host_filter: "{{ roxagent_aap_inventory_source_host_filter }}"
         source_vars: "{{ roxagent_aap_inventory_source_vars }}"
-        update_on_launch: true
+        update_on_launch: false
         overwrite: true
+        state: present
+
+    - name: Ensure periodic KubeVirt inventory sync schedule exists
+      awx.awx.schedule:
+        name: "{{ roxagent_aap_inventory_sync_schedule_name }}"
+        state: present
+        enabled: true
+        unified_job_template: "{{ roxagent_aap_inventory_source_name }}"
+        rrule: >-
+          DTSTART:20260101T000000Z RRULE:FREQ=MINUTELY;INTERVAL={{
+            roxagent_aap_inventory_sync_interval_minutes | int }}
+
+    - name: Ensure ad-hoc inventory exists
+      awx.awx.inventory:
+        name: "{{ roxagent_aap_adhoc_inventory }}"
+        organization: "{{ roxagent_aap_organization }}"
+        description: >-
+          Placeholder inventory for ad-hoc roxagent installs. The real VM target is
+          passed via job extra_vars (roxagent_kubevirt_namespace / roxagent_kubevirt_vm_name).
+        state: present
+
+    - name: Ensure ad-hoc placeholder host exists
+      awx.awx.host:
+        name: "{{ roxagent_aap_adhoc_host }}"
+        inventory: "{{ roxagent_aap_adhoc_inventory }}"
+        enabled: true
         state: present
 
     - name: Ensure automation project exists
@@ -233,12 +292,13 @@
       when:
         - _roxagent_image_registry_cred_lookup.json.results[0].kind == 'registry'
 
-    - name: Create roxagent job template
+    - name: Create batch roxagent job template
       awx.awx.job_template:
         name: "{{ roxagent_aap_job_template_name }}"
         description: >-
-          Install/update RHACS roxagent on RHEL VMs. Managed by
-          configure-roxagent-job-template.yaml. Supports provisioning callbacks.
+          Install/update RHACS roxagent on RHEL VMs from KubeVirt inventory.
+          Managed by configure-roxagent-job-template.yaml. Launch from AAP to run
+          against all or a subset of inventory hosts.
         job_type: run
         organization: "{{ roxagent_aap_organization }}"
         inventory: "{{ roxagent_aap_inventory }}"
@@ -249,13 +309,41 @@
         state: present
         allow_simultaneous: true
         ask_variables_on_launch: true
+        ask_limit_on_launch: true
+        host_config_key: ""
         extra_vars:
           roxagent_rhacs_image: "{{ roxagent_aap_rhacs_image }}"
           roxagent_virtctl_ssh: true
-        host_config_key: "{{ roxagent_aap_host_config_key }}"
 
-    - name: Show callback URL placeholder
+    - name: Create ad-hoc roxagent job template
+      awx.awx.job_template:
+        name: "{{ roxagent_aap_adhoc_job_template_name }}"
+        description: >-
+          Install RHACS roxagent on a single newly deployed VM. Target VM is set via
+          survey extra_vars. Launched automatically by the isar roxagent-trigger watcher
+          or manually from the AAP UI.
+        job_type: run
+        organization: "{{ roxagent_aap_organization }}"
+        inventory: "{{ roxagent_aap_adhoc_inventory }}"
+        project: "{{ roxagent_aap_project }}"
+        playbook: configure-roxagent.yaml
+        execution_environment: "{{ roxagent_aap_execution_environment }}"
+        credentials: "{{ roxagent_aap_job_credentials }}"
+        state: present
+        allow_simultaneous: true
+        limit: "{{ roxagent_aap_adhoc_host }}"
+        survey_enabled: true
+        survey_spec: "{{ roxagent_aap_adhoc_survey_spec }}"
+        extra_vars:
+          roxagent_rhacs_image: "{{ roxagent_aap_rhacs_image }}"
+          roxagent_virtctl_ssh: true
+
+    - name: Show job template summary
       ansible.builtin.debug:
-        msg: >-
-          Job template created. In the AAP UI, copy the provisioning callback URL
-          and set ROXAGENT_AAP_CALLBACK_URL in vuln-scan VM templates.
+        msg:
+          batch_job_template: "{{ roxagent_aap_job_template_name }}"
+          adhoc_job_template: "{{ roxagent_aap_adhoc_job_template_name }}"
+          inventory_sync_schedule: "{{ roxagent_aap_inventory_sync_schedule_name }}"
+          note: >-
+            Deploy isar-apps/ocp-v/roxagent-trigger on isar for automatic ad-hoc launches.
+            Create secret roxagent-trigger-aap with AAP credentials before starting the watcher.

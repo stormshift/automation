@@ -1,7 +1,0 @@
-# Optional vars for configure-roxagent-local.yaml (copy or merge into cfg/secrets.yml).
-#
-# ansible-navigator run configure-roxagent-local.yaml -e @cfg/secrets.yml
-
-# roxagent_rhacs_image: registry.redhat.io/advanced-cluster-security/rhacs-main-rhel9:4.11.0
-# roxagent_registry_username: "12345678|service-account-name"
-# roxagent_registry_password: "eyJhbGciOiJSUzUxMiJ9...."
