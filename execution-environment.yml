@@ -30,7 +30,7 @@ dependencies:
     python:
       - systemd-python
   python:
-    - ovirt-engine-sdk-python 
+    - ovirt-engine-sdk-python
     - six
   system:
     - nmstate
@@ -41,12 +41,11 @@ dependencies:
     - python3-wheel        # Fixes the 'legacy setup.py' warning
     - python3-setuptools   # Standardizes the build environment
     - libxml2-devel
-    - libcurl-devel 
+    - libcurl-devel
   galaxy:
     roles:
       - name: sluetze.roxagent
-        scm: git
-        src: https://github.com/sluetze/ansible-role-roxagent
+        version: v0.1.0
     collections:
 # ToDo: add version numbers!
       - name: community.general
@@ -56,6 +55,7 @@ dependencies:
       - name: ansible.posix
       - name: community.crypto
       - name: kubevirt.core
+      - name: containers.podman
 
       - name: community.libvirt
         src: git+https://github.com/ansible-collections/community.libvirt
