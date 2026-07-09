@@ -2,6 +2,9 @@
 openshift_mirror: "https://mirror.openshift.com"
 openshift_location: "{{ openshift_mirror }}/pub/openshift-v4/clients/ocp-dev-preview/{{ openshift_version }}"
 openshift_version: 5.0.0-ec.4
+# Important, because OpenShift 5 based on RHEL 10
+vm_cpu_model: "Haswell"
+
 stormshift_owner_email: "rbohne@redhat.com"
 stormshift_owner_purpose: "🌟 OpenShift 5.0.0-ec.4"
 stormshift_owner_usage: "shared"
