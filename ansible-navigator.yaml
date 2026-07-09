@@ -24,6 +24,9 @@ ansible-navigator:
         - CONTROLLER_PASSWORD
         - CONTROLLER_USERNAME
         - CONTROLLER_VERIFY_SSL
+        - PODMAN_IMAGE_REGISTRY_HOST
+        - PODMAN_IMAGE_REGISTRY_USERNAME
+        - PODMAN_IMAGE_REGISTRY_PASSWORD
 #    image: quay.coe.muc.redhat.com/stormshift/automation-execution-environment:202502261102
     image: quay.coe.muc.redhat.com/stormshift/automation-execution-environment:202602021722
     pull:
