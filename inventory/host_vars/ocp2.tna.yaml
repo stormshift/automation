@@ -39,7 +39,7 @@ worker_storage_class: "lvms-local-ssd"
 control_plan_storage_class: "lvms-local-ssd"
 agent_iso_storage_class: "odf-replica-two-file"
 storage_access_mode: "ReadWriteOnce"
-ocpVirt_evictionStrategy: "None"
+ocpVirt_evictionStrategy: "LiveMigrateIfPossible"
 descheduler_evict: "false"
 
 control_plan_cores: 8

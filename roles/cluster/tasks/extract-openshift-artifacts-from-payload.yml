@@ -1,0 +1,29 @@
+---
+
+- name: Create OpenShift artifacts directory
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: u+rwx,g+rx,o+rx
+  with_items:
+    - "{{ openshift_install_dest }}"
+
+- name: Dump  image pull secret
+  ansible.builtin.copy:
+    content: "{{ image_pull_secret }}"
+    dest: "{{ openshift_install_dest }}/pull-secret.json"
+    mode: '0600' # Restricted permissions since it contains a secret
+
+- name: Extract OpenShift installer from the release image
+  ansible.builtin.command:
+    cmd: >
+      oc adm release extract
+      --command=openshift-install
+      --command-os=linux
+      --to={{ openshift_install_dest }}
+      --registry-config={{ openshift_install_dest }}/pull-secret.json
+      "{{ ocp_release_image }}"
+  args:
+    creates: "{{ openshift_install_command }}"
+  environment:
+    PATH: "{{ ansible_env.PATH }}:/usr/local/bin" # Ensures Ansible can find the 'oc' binary if it's in a standard custom path
