@@ -20,7 +20,7 @@
 
 - name: Delete all Volumes
   ansible.builtin.uri:
-    url: "https://{{ netapp_managementLIF }}{{ item._links.self.href }}?allow_delete_while_mapped=true"
+    url: "https://{{ netapp_managementLIF }}{{ item._links.self.href }}"
     user: "{{ netapp_username }}"
     password: "{{ netapp_password }}"
     validate_certs: false
@@ -54,6 +54,9 @@
     validate_certs: false
     method: DELETE
     force_basic_auth: true
+    status_code:
+      - 200
+      - 202
   with_items: "{{ ontap_info_lun.ontap_info['storage/luns'].records }}"
 
 

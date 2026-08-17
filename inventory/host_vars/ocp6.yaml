@@ -1,7 +1,7 @@
 ---
-stormshift_owner_email: ""
-stormshift_owner_purpose: ""
-stormshift_owner_usage: "shared"
+stormshift_owner_email: "mgalling@redhat.com"
+stormshift_owner_purpose: "TAM education"
+stormshift_owner_usage: "dedicated"
 
 # Same color as for the labels: https://github.com/stormshift/support/labels
 cluster_color: "#FEF2C0"
@@ -11,6 +11,7 @@ openshift_version: 4.20.8
 stormshift_cluster_features:
   - redhat-internal-certificate
   - coe-sso
+  - netapp-trident
   - manage-with-acm
 
 cluster_type: classic
@@ -31,7 +32,7 @@ control_plans:
   - vm_network_ip_address: 10.32.105.94
     vm_network_mac_address: 0E:C0:EF:20:69:5E
 
-# worker_cpu_model: 'Haswell'
+# worker_cpu_mode: 'Haswell'
 
 worker_cores: 8
 worker_ram_gb: 16
