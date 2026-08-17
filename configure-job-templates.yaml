@@ -19,6 +19,7 @@
           - acm
           - netapp-trident
           - ocpvirt
+          - lightspeed
         default_features:
           - manage-with-acm
           - redhat-internal-certificate
@@ -49,6 +50,7 @@
           - acm
           - netapp-trident
           - ocpvirt
+          - lightspeed
         default_features:
           - manage-with-acm
           - redhat-internal-certificate
