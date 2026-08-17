@@ -1,14 +1,18 @@
 stormshift_owner_email: "dfroehli@redhat.com"
 stormshift_owner_purpose: "Playground"
-ushift_version: "4.21"
+ushift_version: "4.22"
 ushift_preview_version: latest-4.22
 ushift_preview_version_dep_ec: 4.22-el9-beta
 ushift_preview_version_dep_rc: 4.22-el9-beta
+
+ushift_rhel_version: "9.8"
+ushift_vm_template: "rhel98"
+
 # repo, one of: EC/RC/standard
 ushift_repo: standard
 ushift_actually_install: false
 ushift_deploy_sample_workload: true
-ushift_use_local_quay_proxy: true
+ushift_use_local_quay_proxy: false
 vm_cores: 2
 vm_memory: "4Gi"
 network_ip_address: 10.32.99.7
