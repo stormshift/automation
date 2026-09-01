@@ -56,17 +56,17 @@ control_plans:
 #  - vm_network_ip_address: 10.32.105.82
 #    vm_network_mac_address: 0E:C0:EF:20:69:52
 
-fencing:
-  address: redfish+https://stormshift-kubevirt-redfish-stormshift-kubevirt-redfish.apps.isar.coe.muc.redhat.com/redfish/v1/Systems
-  username: admin
-  password: admin123
-  certificateVerification: Disabled
+#fencing:
+#  address: redfish+https://stormshift-kubevirt-redfish-stormshift-kubevirt-redfish.apps.isar.coe.muc.redhat.com/redfish/v1/Systems
+#  username: admin
+#  password: admin123
+#  certificateVerification: Disabled
 
-#arbiter_cores: 2
-#arbiter_ram_gb: 8
-#arbiters:
-#  - vm_network_ip_address: 10.32.105.82
-#    vm_network_mac_address: 0E:C0:EF:20:69:52
+arbiter_cores: 2
+arbiter_ram_gb: 8
+arbiters:
+  - vm_network_ip_address: 10.32.105.82
+    vm_network_mac_address: 0E:C0:EF:20:69:52
 
 
 worker_cores: 8
