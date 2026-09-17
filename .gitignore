@@ -10,3 +10,4 @@ scrible/kubeconfig-*
 .dockerconfigjson
 .DS_Store
 context/_build
+context/Containerfile
