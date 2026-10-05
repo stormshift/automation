@@ -1,8 +1,8 @@
---- 
+---
 # ansible-vault encrypt_string secret --ask-vault-pass
 k8s_auth_host: https://api.isar.coe.muc.redhat.com:6443
 k8s_auth_verify_ssl: false
-
+cluster_type: manual
 # oc get secrets -n stormshift automation-token -o jsonpath="{.data.token}" | base64 -d | ansible-vault encrypt_string --vault-password-file .vault_pass >> inventory/host_vars/isar.yaml
 k8s_auth_api_key: !vault |
           $ANSIBLE_VAULT;1.1;AES256

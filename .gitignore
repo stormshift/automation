@@ -10,3 +10,5 @@ scrible/kubeconfig-*
 .dockerconfigjson
 .DS_Store
 context/_build
+.claude
+tmp
