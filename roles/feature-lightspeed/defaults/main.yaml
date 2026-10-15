@@ -1,0 +1,12 @@
+---
+lightspeed_namespace: "openshift-lightspeed"
+lightspeed_channel: "stable"
+lightspeed_provider_name: "stormshift-vertex-claude"
+lightspeed_provider_type: "google_vertex_anthropic"
+lightspeed_gcp_project_id: "itpc-gcp-product-all-claude"
+lightspeed_gcp_location: "us-east5"
+lightspeed_model: "claude-sonnet-4-5"
+lightspeed_vault_secret_path: "coe-lab/lightspeed/gcp-service-account"
+lightspeed_credential_secret_name: "lightspeed-llmcreds"
+lightspeed_credential_key: "apitoken"
+lightspeed_replicas: 1

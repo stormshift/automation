@@ -19,6 +19,7 @@
           - acm
           - netapp-trident
           - ocpvirt
+          - lightspeed
         default_features:
           - manage-with-acm
           - redhat-internal-certificate
@@ -49,6 +50,7 @@
           - acm
           - netapp-trident
           - ocpvirt
+          - lightspeed
         default_features:
           - manage-with-acm
           - redhat-internal-certificate
@@ -116,6 +118,7 @@
         project: "{{ default_awx_project }}"
         playbook: "stormshift-cluster-mgmt.yaml"
         execution_environment: "stormshift-automation-execution-environment-{{ exec_env_img_tag }}"
+        timeout: 86400  # 24 hours in seconds
         labels:
           - stormshift-cluster-mgmt
 

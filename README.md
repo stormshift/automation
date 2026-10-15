@@ -98,7 +98,8 @@ podman machine init \
     --volume /Users:/Users \
     --volume /var/folders:/var/folders \
     --volume /var/run:/var/run \
-    --memory 4096 podman-machine-default
+    --provider applehv \
+    --memory 8192 podman-machine-default
 
 # Start machine
 podman machine start

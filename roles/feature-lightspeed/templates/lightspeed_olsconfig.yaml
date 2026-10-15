@@ -1,0 +1,23 @@
+apiVersion: ols.openshift.io/v1alpha1
+kind: OLSConfig
+metadata:
+  name: cluster
+spec:
+  llm:
+    providers:
+      - name: "{{ lightspeed_provider_name }}"
+        type: "{{ lightspeed_provider_type }}"
+        credentialsSecretRef:
+          name: "{{ lightspeed_credential_secret_name }}"
+        googleVertexAnthropicConfig:
+          projectID: "{{ lightspeed_gcp_project_id }}"
+          location: "{{ lightspeed_gcp_location }}"
+        models:
+          - name: "{{ lightspeed_model }}"
+  ols:
+    defaultModel: "{{ lightspeed_model }}"
+    defaultProvider: "{{ lightspeed_provider_name }}"
+    logLevel: INFO
+    deployment:
+      api:
+        replicas: {{ lightspeed_replicas }}

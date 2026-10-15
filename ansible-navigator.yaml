@@ -2,6 +2,8 @@
 ansible-navigator:
   execution-environment:
     environment-variables:
+      set:
+        CONTROLLER_OPTIONAL_API_URLPATTERN_PREFIX: "/api/controller/"
       pass:
         - K8S_AUTH_KUBECONFIG
         - IPA_HOST
@@ -21,6 +23,7 @@ ansible-navigator:
         - RH_VAULT_ROLE_ID
         - RH_VAULT_SECRET_ID
         - CONTROLLER_HOST
+        - CONTROLLER_OAUTH_TOKEN
         - CONTROLLER_PASSWORD
         - CONTROLLER_USERNAME
         - CONTROLLER_VERIFY_SSL

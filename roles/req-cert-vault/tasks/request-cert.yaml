@@ -56,6 +56,10 @@
               Value: "{{csr.csr}}"
   register: crt_req
 
+- name: Dump crt_req
+  ansible.builtin.debug:
+    var: crt_req
+
 - name: Retrieve Certificate
   ansible.builtin.uri:
     url: "{{ ca_url }}/ca/rest/certs/{{crt_req.json.entries[0].certId}}"
