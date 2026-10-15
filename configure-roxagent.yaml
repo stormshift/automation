@@ -1,0 +1,38 @@
+---
+# Configure RHACS roxagent on RHEL VMs via the roxagent Ansible role.
+#
+# Batch (AAP job template "Configure RHACS Roxagent"):
+#   Launch against ISAR-vm-inventory; optionally set limit to subset of hosts.
+#
+# Ad-hoc (AAP job template "Configure RHACS Roxagent - New VM"):
+#   Survey / Launch API extra_vars: roxagent_kubevirt_namespace, roxagent_kubevirt_vm_name,
+#   roxagent_ansible_user (and optionally roxagent_target_host). Triggered by isar
+#   roxagent-trigger watcher or manual launch.
+#
+# Manual ansible-playbook:
+#   ansible-playbook configure-roxagent.yaml -l my-rhel-vm
+#
+# Registry auth: attach an AAP credential of type "Podman Image Registry" to the job template.
+#
+# SSH to pod-network VMs uses virtctl port-forward (see roxagent_virtctl_ssh in
+# sluetze.roxagent defaults). Attach the OpenShift/Kubernetes credential
+# used for the inventory source (for example ISAR-VM-Connect) to the job template.
+
+- name: Configure roxagent
+  hosts: "{{ roxagent_play_hosts | default('all') }}"
+  become: true
+  gather_facts: false
+  environment:
+    KUBECONFIG: "{{ roxagent_kubeconfig_path | default('/runner/.kube/config') }}"
+  pre_tasks:
+    - name: Configure KubeVirt SSH connection
+      ansible.builtin.include_role:
+        name: sluetze.roxagent
+        tasks_from: set-kubevirt-connection.yml
+      when: roxagent_virtctl_ssh | default(true) | bool
+
+    - name: Gather facts
+      ansible.builtin.setup:
+
+  roles:
+    - sluetze.roxagent
