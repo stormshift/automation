@@ -26,10 +26,10 @@
 # certificate.secret.cert_and_intermediate_pem
 # certificate.secret.key
 
-- name: Apply certificate
+- name: Create cert secret for Ingress
   kubernetes.core.k8s:
     kubeconfig: "{{ cluster_access_kubeconfig }}"
-
+    validate_certs: false
     state: present
     definition:
       apiVersion: v1
@@ -43,9 +43,10 @@
         namespace: openshift-ingress
       type: kubernetes.io/tls
 
-- name: Apply certificate
+- name: Apply certificate to IngressController
   kubernetes.core.k8s:
     kubeconfig: "{{ cluster_access_kubeconfig }}"
+    validate_certs: false
     state: present
     definition:
       apiVersion: operator.openshift.io/v1
@@ -59,11 +60,50 @@
     wait: yes
   register: apply_cert
 
+- name: Create cert secret for API
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    validate_certs: false
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: redhat-cluster-certificate
+        namespace: openshift-config
+      type: kubernetes.io/tls
+      stringData:
+        tls.crt: "{{ certificate.secret.cert_and_intermediate_pem }}"
+        tls.key: "{{ certificate.secret.key }}"
+      immutable: false
+
+- name: Apply certificate to API
+  when: useCustomCertForAPI
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    validate_certs: false
+    state: present
+    definition:
+      apiVersion: config.openshift.io/v1
+      kind: APIServer
+      metadata:
+        name: cluster
+      spec:
+        servingCerts:
+          namedCertificates:
+          - names:
+            - "api.{{ inventory_hostname }}.{{ cluster_base_domain }}"
+            servingCertificate:
+              name: redhat-cluster-certificate
+    wait: yes
+  register: apply_cert_api
+
 
 - name: Wait for IngressController to start Progressing
   when: apply_cert is changed
   kubernetes.core.k8s_info:
     kubeconfig: "{{ cluster_access_kubeconfig }}"
+    validate_certs: false
     kind: IngressController
     name: default
     namespace: openshift-ingress-operator
@@ -77,6 +117,7 @@
   when: apply_cert is changed
   kubernetes.core.k8s_info:
     kubeconfig: "{{ cluster_access_kubeconfig }}"
+    validate_certs: false
     kind: ClusterOperator
     name: kube-apiserver
     namespace: openshift-ingress-operator
@@ -89,6 +130,7 @@
 - name: Wait for IngressController to be stable again
   kubernetes.core.k8s_info:
     kubeconfig: "{{ cluster_access_kubeconfig }}"
+    validate_certs: false
     kind: IngressController
     name: default
     namespace: openshift-ingress-operator
@@ -101,6 +143,7 @@
 - name: Wait for API to be stable again
   kubernetes.core.k8s_info:
     kubeconfig: "{{ cluster_access_kubeconfig }}"
+    validate_certs: false
     kind: ClusterOperator
     name: kube-apiserver
     namespace: openshift-ingress-operator
