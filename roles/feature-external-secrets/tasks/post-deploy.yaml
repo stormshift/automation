@@ -3,7 +3,47 @@
   ansible.builtin.include_role:
     name: internal-fetch-kubeconfig
 
-- name: Install External Secrets operator
+# Remove community External Secrets Operator leftovers before installing the
+# Red Hat operator (idempotent; ignore missing resources).
+- name: Remove community External Secrets Operator leftovers
+  ignore_errors: true
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: absent
+    wait: yes
+    wait_timeout: 300
+    definition:
+      - kind: OperatorConfig
+        apiVersion: operator.external-secrets.io/v1alpha1
+        metadata:
+          name: coe
+          namespace: "{{ external_secrets_operand_namespace }}"
+      - kind: Subscription
+        apiVersion: operators.coreos.com/v1alpha1
+        metadata:
+          name: external-secrets-operator
+          namespace: openshift-operators
+      - kind: Secret
+        apiVersion: v1
+        metadata:
+          name: redhat-vault
+          namespace: "{{ external_secrets_operand_namespace }}"
+
+- name: Remove community External Secrets Operator CSV
+  ignore_errors: true
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: absent
+    delete_all: true
+    wait: yes
+    wait_timeout: 300
+    kind: ClusterServiceVersion
+    api_version: operators.coreos.com/v1alpha1
+    namespace: openshift-operators
+    label_selectors:
+      - operators.coreos.com/external-secrets-operator.openshift-operators
+
+- name: Install External Secrets Operator for Red Hat OpenShift
   kubernetes.core.k8s:
     kubeconfig: "{{ cluster_access_kubeconfig }}"
     state: present
@@ -11,35 +51,54 @@
       - kind: Namespace
         apiVersion: v1
         metadata:
-          name: external-secrets
+          name: "{{ external_secrets_operator_namespace }}"
+
+      - kind: OperatorGroup
+        apiVersion: operators.coreos.com/v1
+        metadata:
+          name: "{{ external_secrets_operator_group_name }}"
+          namespace: "{{ external_secrets_operator_namespace }}"
+        spec:
+          targetNamespaces: []
+
+      - kind: Subscription
+        apiVersion: operators.coreos.com/v1alpha1
+        metadata:
+          name: "{{ external_secrets_operator_subscription_name }}"
+          namespace: "{{ external_secrets_operator_namespace }}"
+        spec:
+          channel: "{{ external_secrets_operator_channel }}"
+          installPlanApproval: Automatic
+          name: "{{ external_secrets_operator_package }}"
+          source: redhat-operators
+          sourceNamespace: openshift-marketplace
 
       - kind: Secret
         apiVersion: v1
         metadata:
           name: redhat-vault
-          namespace: external-secrets
+          namespace: "{{ external_secrets_operator_namespace }}"
         data:
-          token: "{{ lookup('ansible.builtin.env', 'RH_VAULT_SECRET_ID' )| b64encode  }}"
+          token: "{{ lookup('ansible.builtin.env', 'RH_VAULT_SECRET_ID') | b64encode }}"
         type: Opaque
 
-      - kind: Subscription
-        apiVersion: operators.coreos.com/v1alpha1
-        metadata:
-          name: external-secrets-operator
-          namespace: openshift-operators
-        spec:
-          channel: alpha
-          installPlanApproval: Automatic
-          name: external-secrets-operator
-          source: community-operators
-          sourceNamespace: openshift-marketplace
+- name: Wait for ExternalSecretsConfig CRD to be established
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    kind: CustomResourceDefinition
+    name: externalsecretsconfigs.operator.openshift.io
+    wait: yes
+    wait_timeout: 300
+    wait_condition:
+      type: Established
+      status: True
 
-- name: Wait for operator pod to be ready
+- name: Wait for operator deployment to be available
   kubernetes.core.k8s_info:
     kubeconfig: "{{ cluster_access_kubeconfig }}"
     kind: Deployment
     name: external-secrets-operator-controller-manager
-    namespace: openshift-operators
+    namespace: "{{ external_secrets_operator_namespace }}"
     wait: yes
     wait_timeout: 300
     wait_condition:
@@ -47,18 +106,30 @@
       status: True
       reason: MinimumReplicasAvailable
 
-- name: Configure External Secrets operator
+- name: Configure External Secrets operand
   kubernetes.core.k8s:
     kubeconfig: "{{ cluster_access_kubeconfig }}"
     state: present
-    src: OperatorConfig.yaml
+    definition: "{{ lookup('ansible.builtin.file', 'ExternalSecretsConfig.yaml') | from_yaml }}"
 
-- name: Wait for controler pods to be ready
+- name: Wait for ExternalSecretsConfig to become Ready
+  kubernetes.core.k8s_info:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    api_version: operator.openshift.io/v1alpha1
+    kind: ExternalSecretsConfig
+    name: cluster
+    wait: yes
+    wait_timeout: 300
+    wait_condition:
+      type: Ready
+      status: True
+
+- name: Wait for operand deployments to be available
   kubernetes.core.k8s_info:
     kubeconfig: "{{ cluster_access_kubeconfig }}"
     kind: Deployment
-# no name here, its three deployments, we wait for all of them to become Available
-    namespace: external-secrets
+    # no name here, its three deployments, we wait for all of them to become Available
+    namespace: "{{ external_secrets_operand_namespace }}"
     wait: yes
     wait_timeout: 300
     wait_condition:
@@ -78,7 +149,7 @@
       reason: Valid
     definition:
       kind: ClusterSecretStore
-      apiVersion: external-secrets.io/v1beta1
+      apiVersion: external-secrets.io/v1
       metadata:
         name: redhat-vault
       spec:
@@ -87,16 +158,16 @@
             auth:
               appRole:
                 path: approle
-                roleId: "{{ lookup('ansible.builtin.env', 'RH_VAULT_ROLE_ID' ) }}"
+                roleId: "{{ lookup('ansible.builtin.env', 'RH_VAULT_ROLE_ID') }}"
                 secretRef:
                   key: token
                   name: redhat-vault
-                  namespace: external-secrets
+                  namespace: "{{ external_secrets_operator_namespace }}"
             caProvider:
               key: ca-bundle.crt
               name: redhat-current-it-root-cas
               namespace: openshift-config
               type: ConfigMap
             path: apps
-            server: "{{ lookup('ansible.builtin.env', 'RH_VAULT_URL' ) }}"
+            server: "{{ lookup('ansible.builtin.env', 'RH_VAULT_URL') }}"
             version: v2
