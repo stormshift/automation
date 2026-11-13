@@ -26,6 +26,9 @@
     validate_certs: false
     method: DELETE
     force_basic_auth: true
+    status_code: 
+      - 200
+      - 202
   with_items: "{{ ontap_info_vol.ontap_info['storage/volumes'].records }}"
 
 # coe-netapp-san
