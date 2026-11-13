@@ -83,7 +83,6 @@
           namespace: openshift-operators
 
 - name: Remove community ClusterServiceVersion leftovers
-  ignore_errors: true
   kubernetes.core.k8s:
     kubeconfig: "{{ cluster_access_kubeconfig }}"
     state: absent

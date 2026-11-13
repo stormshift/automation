@@ -4,20 +4,29 @@
     name: internal-fetch-kubeconfig
 
 # Remove community External Secrets Operator leftovers before installing the
-# Red Hat operator (idempotent; ignore missing resources).
-- name: Remove community External Secrets Operator leftovers
-  ignore_errors: true
+# Red Hat operator. CSV removal must succeed — a leftover community CSV causes
+# OLM CRD ownership intersection errors with openshift-external-secrets-operator.
+- name: Remove community External Secrets OperatorConfig
+  ignore_errors: true # fails when community OperatorConfig CRD does not exist
   kubernetes.core.k8s:
     kubeconfig: "{{ cluster_access_kubeconfig }}"
     state: absent
     wait: yes
     wait_timeout: 300
     definition:
-      - kind: OperatorConfig
-        apiVersion: operator.external-secrets.io/v1alpha1
-        metadata:
-          name: coe
-          namespace: "{{ external_secrets_operand_namespace }}"
+      kind: OperatorConfig
+      apiVersion: operator.external-secrets.io/v1alpha1
+      metadata:
+        name: coe
+        namespace: "{{ external_secrets_operand_namespace }}"
+
+- name: Remove community External Secrets Subscription and vault secret
+  kubernetes.core.k8s:
+    kubeconfig: "{{ cluster_access_kubeconfig }}"
+    state: absent
+    wait: yes
+    wait_timeout: 300
+    definition:
       - kind: Subscription
         apiVersion: operators.coreos.com/v1alpha1
         metadata:
@@ -30,7 +39,6 @@
           namespace: "{{ external_secrets_operand_namespace }}"
 
 - name: Remove community External Secrets Operator CSV
-  ignore_errors: true
   kubernetes.core.k8s:
     kubeconfig: "{{ cluster_access_kubeconfig }}"
     state: absent
